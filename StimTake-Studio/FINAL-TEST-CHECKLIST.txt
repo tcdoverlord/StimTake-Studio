@@ -1,0 +1,118 @@
+CREATOR CAM STUDIO v3.1.4 - FINAL TEST CHECKLIST
+================================================
+
+1. STARTUP
+
+- Open Creator-Cam-Overlay-Kit.exe.
+- Confirm no PowerShell or Command Prompt window appears.
+- Confirm the Control Deck remains open.
+- Confirm http://127.0.0.1:8787/index.html loads in OBS or Preview.
+
+2. TOP TIPPERS / FANS
+
+- On a fresh or cleared list, confirm the grid says:
+  Waiting for supporters...
+- Confirm the OBS overlay says the same.
+- Add one supporter and confirm the waiting message disappears.
+- Use Clear All Data and confirm the waiting message returns.
+
+3. LAYOUT + THEMES
+
+- Open Backstage Dashboard > Layout + Themes.
+- Test Creator, Full, Minimal, and Chat layouts.
+- Test at least two theme choices.
+- Confirm Apply Element and Reset Element still work.
+
+4. UI SKINS + HTML
+
+- Confirm the visible library lists UI skins only.
+- Confirm a non-THEME module ZIP is rejected.
+
+5. FLOATING TIP TICKER HTML
+
+- Confirm slots 1-6 start empty unless restored from a profile.
+- Upload a self-contained HTML file into slot 1.
+- Test Show Selected, Hide Selected, and Delete Selected.
+- Confirm the overlay uses the full 1920 x 1080 canvas.
+
+6. DMCA HTML
+
+- Confirm the area starts with:
+  No DMCA HTML uploaded. Nothing is preloaded.
+- Upload one 1920 x 1080 HTML file.
+- Test Turn On, Turn Off, and Delete HTML.
+- Upload a second file and confirm it replaces the first.
+
+7. DASHBOARD + ALERTS + LEADERBOARD
+
+- Confirm Dashboard does not contain Spin Wheel or Roll Dice.
+- Confirm wheel and dice controls exist only in Games.
+- Confirm Tip Action Rules are not shown.
+- Test Fake Tip, Fake Follow, and Test Alert.
+- Confirm long alert text wraps without being cut off.
+- Confirm alert duration/animation and Top Tippers maximum/reset controls work.
+
+8. GAMES + ACTIONS
+
+- In Games, confirm the centered Dice panel appears for D6, D12, and D20.
+- Leave Viewer blank and confirm no username appears; enter a Viewer and confirm it does.
+- Test the built-in wheel with its editable prize choices and confirm it announces
+  a winner and closes automatically.
+- Test one seasonal 1920 x 1080 HTML wheel from the separate wheel catalog.
+- Confirm the lower Custom HTML Dice + Game list does not duplicate wheel entries.
+- Test Action buttons 1-6.
+- Confirm Action slots 7-12 remain available for custom HTML.
+- Assign one selected Action script directly to an empty slot.
+- Confirm loading/running HTML does not flash the entire OBS feed black.
+
+9. SESSION + BACKUP
+
+- Save and load the current session.
+- Export Profile ZIP.
+- Confirm the ZIP contains backupscripts_sw, backupscripts_action,
+  backupscripts_ticker, and backupscripts_dmca after those areas have content.
+- Import the profile and reopen Creator Cam.
+- Confirm layouts, themes, HTML libraries, and session settings return.
+
+10. MANUAL RELEASE
+
+- Confirm no Platform Connector tab appears.
+- Confirm no platform account or API key is requested.
+
+11. MY SECRET SHOW CAMERA COVER
+
+- Open Backstage Dashboard and scroll to My Secret Show.
+- Confirm the OBS overlay starts LOCKED with only the My Secret Show artwork and
+  no separate black or Blackout layer.
+- Change the token price and theme; click Save + Apply Settings and confirm the
+  module updates.
+- Test Unlock and confirm the cinematic sequence removes the module iframe and
+  reveals the camera instead of displaying a black frame.
+- Test Cancel and confirm it returns to the locked My Secret Show artwork.
+- Test Test and confirm it never reveals the camera.
+- Set Tease seconds, press Tease View, and confirm the entire cover becomes
+  completely transparent with no logo, panel, text, or effects before auto-lock.
+- Press Tease View repeatedly and confirm only the latest timer controls relock.
+- Confirm particles, grid, orbs, scan, pulses, and rotating messages pause during
+  the clean tease and resume only after the locked cover returns.
+- Set a manual Last Supporter, refresh OBS, and confirm it persists.
+- Send a newer fake tip and confirm it replaces the manual Last Supporter.
+- Clear Last Supporter and confirm the card has no waiting placeholder.
+- Unlock, then press Lock and confirm the camera never flashes.
+- If desired, adjust the Browser Source opacity in OBS Studio and confirm the
+  My Secret Show artwork blends over the camera.
+- Confirm no tip automatically unlocks My Secret Show.
+ACTION SLOTS 1-20 - v8
+----------------------
+[ ] Fresh v8 start shows 20 Action buttons and all slots are empty.
+[ ] No Action HTML executes during overlay startup.
+[ ] Browse a self-contained HTML file into slots 1, 7, 10, 13, and 20.
+[ ] Each assigned button reloads the correct HTML and runs its JavaScript from the beginning.
+[ ] RUN SELECTED works for the selected slot.
+[ ] Browse a different HTML file into an assigned slot and confirm only that slot is replaced.
+[ ] A just-imported HTML runs even if the module catalog was not already loaded.
+[ ] Local root .js/.mjs and .css files load.
+[ ] Referenced/common image, audio, font, MP4, and WebM assets load.
+[ ] Repeated clicks run only the newest frame load and restart the hide timer.
+[ ] CLEAR SLOT removes the managed slot while leaving the original HTML untouched.
+[ ] The editable preload ZIP contains all six former included overlays.

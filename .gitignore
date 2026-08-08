@@ -1,1 +1,29 @@
 Third-Party/
+
+# StimTake generated build output
+StimTake-Studio/outputs/
+StimTake-Studio/*.exe
+StimTake-Studio/*.log
+
+# Generated creator/profile exports
+StimTake-Studio/export_profile_zip/
+
+# Python generated files
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Local secrets and credentials
+.env
+.env.*
+!.env.example
+secrets/
+private/
+
+# Certificates / private keys
+*.key
+*.pem
+*.pfx
+*.p12

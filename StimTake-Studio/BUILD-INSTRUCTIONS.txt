@@ -1,0 +1,34 @@
+CREATOR CAM STUDIO v3.1.4 - BUILD FILES
+Talented Creative Design / TCDOVERLORD
+
+All six files in this folder must stay together:
+
+1. Build-CreatorCam.cmd
+2. CreatorCamLauncher.cs
+3. CreatorStudioV3.cs
+4. CreatorCamPayload.zip
+5. BUILD-INSTRUCTIONS.txt
+6. FINAL-TEST-CHECKLIST.txt
+
+BUILD STEPS
+
+1. Extract the entire ZIP into one folder.
+2. Close Creator-Cam-Overlay-Kit.exe if it is running.
+3. Run Build-CreatorCam.cmd. This rebuilds both the root EXE and the copy in
+   the outputs folder with the embedded My Secret Show module.
+4. Wait for the message "Built successfully".
+5. Press any key to close the build window.
+
+The finished app is created inside the "outputs" folder contained in the
+extracted build-files folder.
+
+The supplied ORIGINAL-SAFE-POINT executable is an unchanged fallback copy.
+It does not contain My Secret Show. Run the builder before launching the normal
+Creator-Cam-Overlay-Kit.exe name.
+
+Example:
+
+D:\Devs\Creator-Cam-v3.1.4-Build-Files\
+D:\Devs\Creator-Cam-v3.1.4-Build-Files\outputs\Creator-Cam-Overlay-Kit.exe
+
+If the build fails, read Build-CreatorCam.log in the build-files folder.

@@ -1,0 +1,254 @@
+--- stimtake_v9_cleaner_layout_ui_buildfix1/CreatorStudioV3.cs
++++ stimtake_v9_chaturbate_bridge_candidate/CreatorStudioV3.cs
+@@ -1,5 +1,6 @@
+ using System;
+ using System.Collections.Generic;
++using System.Diagnostics;
+ using System.Drawing;
+ using System.IO;
+ using System.IO.Compression;
+@@ -2380,6 +2381,10 @@
+             private ComboBox templateSelector;
+             private ComboBox connectorPlatform;
+             private Label connectorStatus, connectorLastEvent, connectorCount;
++            private TextBox connectorUsername, connectorToken;
++            private CheckBox connectorAutoGameRequests;
++            private NumericUpDown connectorDiceMinimum, connectorWheelMinimum;
++            private Process connectorProcess;
+             private int connectorEvents;
+ 
+             private TabPage BuildActionDeckTab()
+@@ -2951,21 +2956,220 @@
+             private TabPage BuildConnectorTab()
+             {
+                 var page = Page("CONNECTORS");
+-                var manager = Group("PLATFORM CONNECTOR MANAGER", 15, 15, 915, 300); page.Controls.Add(manager);
+-                manager.Controls.Add(LabelAt("Platform", 18, 38)); connectorPlatform = Combo(new string[] { "Generic Local Adapter", "Chaturbate Adapter", "Stripchat Adapter", "Custom Adapter" }, 18, 60, 245); manager.Controls.Add(connectorPlatform);
+-                manager.Controls.Add(ButtonAt("SAVE PLATFORM", 280, 57, 160, delegate { File.WriteAllText(owner.StudioPath("connector-v3.txt"), connectorPlatform.Text); }));
+-                connectorStatus = LabelAt("Connection Status: LOCAL API ONLINE", 18, 125); connectorStatus.ForeColor = Color.LightGreen; manager.Controls.Add(connectorStatus);
+-                connectorLastEvent = LabelAt("Last Event: None", 18, 165); connectorLastEvent.Size = new Size(850, 28); manager.Controls.Add(connectorLastEvent);
+-                connectorCount = LabelAt("Events Received: 0", 18, 205); manager.Controls.Add(connectorCount);
+-                manager.Controls.Add(ButtonAt("SEND TEST EVENT", 680, 200, 190, delegate { owner.server.Publish("platform-event", "{\"type\":\"tip\",\"username\":\"ConnectorTest\",\"amount\":25}"); }));
+-                manager.Controls.Add(LabelAt("Endpoint: http://127.0.0.1:8787/api/platform-event?data=<URL-ENCODED EVENT JSON>", 18, 250));
+-                var safety = Group("CONNECTOR SAFETY", 15, 335, 915, 180); page.Controls.Add(safety);
+-                safety.Controls.Add(LabelAt("The local API accepts normalized events from approved adapters. Creator Cam does not request platform passwords.", 18, 45));
+-                safety.Controls.Add(LabelAt("Supported normalized types: tip, follow, viewer-action, goal, alert, dice, and wheel unlock events.", 18, 85));
+-                safety.Controls.Add(LabelAt("Tips can unlock actions. They never automatically spin a creator-controlled wheel.", 18, 125));
++
++                var chaturbate = Group("CHATURBATE → STIMTAKE TIP BRIDGE", 15, 15, 915, 360);
++                page.Controls.Add(chaturbate);
++
++                chaturbate.Controls.Add(LabelAt("Model username", 18, 35));
++                connectorUsername = Box("", 18, 57, 220); chaturbate.Controls.Add(connectorUsername);
++
++                chaturbate.Controls.Add(LabelAt("Events API token • held in memory only", 255, 35));
++                connectorToken = Box("", 255, 57, 305);
++                connectorToken.UseSystemPasswordChar = true;
++                chaturbate.Controls.Add(connectorToken);
++
++                connectorAutoGameRequests = new CheckBox {
++                    Text = "AUTO-RUN EXPLICIT !dice / !wheel REQUESTS",
++                    Location = new Point(585, 58), AutoSize = true,
++                    ForeColor = TextColor, BackColor = Color.Transparent
++                };
++                chaturbate.Controls.Add(connectorAutoGameRequests);
++
++                chaturbate.Controls.Add(LabelAt("Dice minimum tokens", 18, 105));
++                connectorDiceMinimum = NumberAt(1, 1, 999999, 18, 127, 130, 0);
++                chaturbate.Controls.Add(connectorDiceMinimum);
++
++                chaturbate.Controls.Add(LabelAt("Wheel minimum tokens", 165, 105));
++                connectorWheelMinimum = NumberAt(1, 1, 999999, 165, 127, 130, 0);
++                chaturbate.Controls.Add(connectorWheelMinimum);
++
++                chaturbate.Controls.Add(ButtonAt("START CHATURBATE", 320, 123, 190, delegate { StartChaturbateConnector(); }));
++                chaturbate.Controls.Add(ButtonAt("STOP", 520, 123, 110, delegate { StopChaturbateConnector(); }));
++                chaturbate.Controls.Add(ButtonAt("TEST 25 TOKEN TIP", 640, 123, 205, delegate {
++                    owner.server.Publish("platform-event", "{\"type\":\"tip\",\"username\":\"ConnectorTest\",\"amount\":25,\"message\":\"!dice\",\"request\":\"dice\",\"source\":\"local-test\"}");
++                }));
++
++                connectorStatus = LabelAt("Connection Status: STOPPED", 18, 185);
++                connectorStatus.ForeColor = Color.LightGreen; connectorStatus.Size = new Size(845, 28);
++                chaturbate.Controls.Add(connectorStatus);
++
++                connectorLastEvent = LabelAt("Last Event: None", 18, 222);
++                connectorLastEvent.Size = new Size(845, 28); chaturbate.Controls.Add(connectorLastEvent);
++
++                connectorCount = LabelAt("Events Received: 0", 18, 258);
++                connectorCount.Size = new Size(845, 28); chaturbate.Controls.Add(connectorCount);
++
++                var note = LabelAt(
++                    "The connector forwards TIP username + token amount + message into this existing UI. " +
++                    "The token is never saved by StimTake. Tip messages can be detected as !dice / !roll / !wheel / !spin. " +
++                    "Automatic game triggering is OFF unless the model checks the box above.",
++                    18, 298);
++                note.AutoSize = false; note.Size = new Size(845, 48); chaturbate.Controls.Add(note);
++
++                var generic = Group("LOCAL CONNECTOR API • ADVANCED / OTHER ADAPTERS", 15, 395, 915, 175);
++                page.Controls.Add(generic);
++                generic.Controls.Add(LabelAt("Platform", 18, 35));
++                connectorPlatform = Combo(new string[] { "Chaturbate Adapter", "Generic Local Adapter", "Stripchat Adapter", "Custom Adapter" }, 18, 57, 245);
++                generic.Controls.Add(connectorPlatform);
++                generic.Controls.Add(ButtonAt("SAVE PLATFORM", 280, 54, 160, delegate { File.WriteAllText(owner.StudioPath("connector-v3.txt"), connectorPlatform.Text); }));
++                generic.Controls.Add(LabelAt("Local endpoint: http://127.0.0.1:8787/api/platform-event?data=<URL-ENCODED EVENT JSON>", 18, 105));
++                generic.Controls.Add(LabelAt("No platform password is accepted by this endpoint. It only receives normalized local events.", 18, 138));
++
++                var safety = Group("CONNECTOR SAFETY", 15, 590, 915, 160);
++                page.Controls.Add(safety);
++                safety.Controls.Add(LabelAt("Each model uses her own Chaturbate Events API username + token on her own PC.", 18, 38));
++                safety.Controls.Add(LabelAt("The token is passed to the bridge process through an environment variable and cleared from the UI after startup.", 18, 75));
++                safety.Controls.Add(LabelAt("Tip logs contain tip data only — never the API token.", 18, 112));
++
++                LoadChaturbateConnectorSettings();
+                 owner.server.EventPublished += ConnectorEventPublished;
+-                Disposed += delegate { owner.server.EventPublished -= ConnectorEventPublished; };
++                Disposed += delegate {
++                    owner.server.EventPublished -= ConnectorEventPublished;
++                    StopChaturbateConnector();
++                };
+                 return page;
++            }
++
++
++            private string ChaturbateBridgeScript()
++            {
++                return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Connectors", "StimTakeChaturbateBridge", "stimtake_chaturbate_bridge.py");
++            }
++
++            private void LoadChaturbateConnectorSettings()
++            {
++                try
++                {
++                    string usernamePath = owner.StudioPath("chaturbate-username-v1.txt");
++                    if (File.Exists(usernamePath) && connectorUsername != null)
++                        connectorUsername.Text = File.ReadAllText(usernamePath, Encoding.UTF8).Trim();
++
++                    string settingsPath = owner.StudioPath("chaturbate-bridge-settings-v1.txt");
++                    if (File.Exists(settingsPath))
++                    {
++                        string[] values = File.ReadAllText(settingsPath, Encoding.UTF8).Split('\t');
++                        decimal number;
++                        bool flag;
++                        if (values.Length > 0 && Decimal.TryParse(values[0], out number))
++                            connectorDiceMinimum.Value = Math.Max(connectorDiceMinimum.Minimum, Math.Min(connectorDiceMinimum.Maximum, number));
++                        if (values.Length > 1 && Decimal.TryParse(values[1], out number))
++                            connectorWheelMinimum.Value = Math.Max(connectorWheelMinimum.Minimum, Math.Min(connectorWheelMinimum.Maximum, number));
++                        if (values.Length > 2 && Boolean.TryParse(values[2], out flag))
++                            connectorAutoGameRequests.Checked = flag;
++                    }
++                }
++                catch { }
++            }
++
++            private void SaveChaturbateConnectorSettings()
++            {
++                try
++                {
++                    string username = (connectorUsername.Text ?? "").Trim();
++                    File.WriteAllText(owner.StudioPath("chaturbate-username-v1.txt"), username, new UTF8Encoding(false));
++                    File.WriteAllText(
++                        owner.StudioPath("chaturbate-bridge-settings-v1.txt"),
++                        connectorDiceMinimum.Value + "\t" + connectorWheelMinimum.Value + "\t" + connectorAutoGameRequests.Checked,
++                        new UTF8Encoding(false));
++                }
++                catch { }
++            }
++
++            private void StartChaturbateConnector()
++            {
++                string username = (connectorUsername.Text ?? "").Trim();
++                string token = connectorToken.Text ?? "";
++                string script = ChaturbateBridgeScript();
++
++                if (username.Length == 0)
++                {
++                    MessageBox.Show("Enter this model's Chaturbate username.");
++                    return;
++                }
++                if (token.Trim().Length == 0)
++                {
++                    MessageBox.Show("Enter this model's Chaturbate Events API token. StimTake will not save it.");
++                    return;
++                }
++                if (!File.Exists(script))
++                {
++                    MessageBox.Show("StimTake Chaturbate Bridge was not found:\r\n\r\n" + script);
++                    return;
++                }
++
++                StopChaturbateConnector();
++                SaveChaturbateConnectorSettings();
++
++                try
++                {
++                    var info = new ProcessStartInfo();
++                    info.FileName = "py";
++                    info.Arguments =
++                        "-3 \"" + script + "\"" +
++                        " --username \"" + username.Replace("\"", "") + "\"" +
++                        " --endpoint \"http://127.0.0.1:8787/api/platform-event\"" +
++                        " --request-mode " + (connectorAutoGameRequests.Checked ? "trigger" : "detect") +
++                        " --dice-min " + ((int)connectorDiceMinimum.Value) +
++                        " --wheel-min " + ((int)connectorWheelMinimum.Value);
++                    info.WorkingDirectory = Path.GetDirectoryName(script);
++                    info.UseShellExecute = false;
++                    info.CreateNoWindow = true;
++                    info.EnvironmentVariables["STIMTAKE_CB_USERNAME"] = username;
++                    info.EnvironmentVariables["STIMTAKE_CB_TOKEN"] = token;
++
++                    connectorProcess = Process.Start(info);
++                    connectorToken.Clear();
++
++                    if (connectorProcess == null) throw new InvalidOperationException("Python connector process did not start.");
++                    connectorProcess.EnableRaisingEvents = true;
++                    connectorProcess.Exited += delegate {
++                        if (IsDisposed || !IsHandleCreated) return;
++                        try
++                        {
++                            BeginInvoke((MethodInvoker)delegate {
++                                if (connectorStatus != null) connectorStatus.Text = "Connection Status: STOPPED";
++                            });
++                        }
++                        catch { }
++                    };
++
++                    connectorStatus.Text = "Connection Status: RUNNING • waiting for Chaturbate tips";
++                }
++                catch (Exception error)
++                {
++                    connectorToken.Clear();
++                    connectorProcess = null;
++                    MessageBox.Show(
++                        "Chaturbate connector could not start.\r\n\r\n" +
++                        error.Message +
++                        "\r\n\r\nPython must be available through the Windows 'py' launcher.",
++                        "StimTake Chaturbate Bridge",
++                        MessageBoxButtons.OK,
++                        MessageBoxIcon.Error);
++                    connectorStatus.Text = "Connection Status: START FAILED";
++                }
++            }
++
++            private void StopChaturbateConnector()
++            {
++                try
++                {
++                    if (connectorProcess != null && !connectorProcess.HasExited)
++                    {
++                        connectorProcess.Kill();
++                        connectorProcess.WaitForExit(2000);
++                    }
++                }
++                catch { }
++                finally
++                {
++                    if (connectorProcess != null)
++                    {
++                        try { connectorProcess.Dispose(); } catch { }
++                    }
++                    connectorProcess = null;
++                    if (connectorStatus != null) connectorStatus.Text = "Connection Status: STOPPED";
++                }
+             }
+ 
+             private void ConnectorEventPublished(string type, string payload)

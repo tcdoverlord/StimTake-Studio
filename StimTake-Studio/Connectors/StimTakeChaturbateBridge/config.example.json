@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "note": "Username/settings may be stored here later. Never store the Chaturbate API token in this file.",
+  "stimtake_endpoint": "http://127.0.0.1:8787/api/platform-event",
+  "request_mode": "detect",
+  "dice_min_tokens": 1,
+  "wheel_min_tokens": 1
+}

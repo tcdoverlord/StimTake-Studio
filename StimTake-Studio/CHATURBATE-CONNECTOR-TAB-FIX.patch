@@ -1,0 +1,17 @@
+--- buildfix1/CreatorStudioV3.cs
++++ connector-tab-fix/CreatorStudioV3.cs
+@@ -270,12 +270,13 @@
+ 
+             private void BuildInterface()
+             {
+-                var title = new Label { Text = "CREATOR CAM STUDIO • BACKSTAGE MANUAL CONTROL • NO SITE APIS", Dock = DockStyle.Top, Height = 52, Padding = new Padding(18, 14, 0, 0), ForeColor = Gold, Font = new Font("Segoe UI", 14, FontStyle.Bold) };
++                var title = new Label { Text = "CREATOR CAM STUDIO • BACKSTAGE CONTROL • CHATURBATE CONNECTOR READY", Dock = DockStyle.Top, Height = 52, Padding = new Padding(18, 14, 0, 0), ForeColor = Gold, Font = new Font("Segoe UI", 14, FontStyle.Bold) };
+                 mainTabs = new TabControl { Dock = DockStyle.Fill };
+                 mainTabs.TabPages.Add(BuildDashboardTab());
+                 mainTabs.TabPages.Add(BuildGamesTab());
+                 mainTabs.TabPages.Add(BuildActionDeckTab());
+                 mainTabs.TabPages.Add(BuildModulesTab());
++                mainTabs.TabPages.Add(BuildConnectorTab());
+                 mainTabs.TabPages.Add(BuildRulesTab());
+                 mainTabs.TabPages.Add(BuildLayoutTab());
+                 mainTabs.TabPages.Add(BuildSessionTab());

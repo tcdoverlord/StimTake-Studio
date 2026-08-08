@@ -1,0 +1,107 @@
+--- chaturbate-bridge-candidate/CreatorCamLauncher.cs
++++ top-tippers-sync-fix/CreatorCamLauncher.cs
+@@ -258,6 +258,8 @@
+                 LoadWheelChoices();
+                 LoadCrew();
+                 RenderCrew();
++                server.EventPublished += PlatformEventPublishedForCrew;
++                Disposed += delegate { server.EventPublished -= PlatformEventPublishedForCrew; };
+                 InitializeStudioV3();
+                 LoadDeckRecentSupporter();
+                 FormClosing += delegate(object sender, FormClosingEventArgs e)
+@@ -703,6 +705,95 @@
+                 crew.Add(new CrewMember("NightOwl", "VIP Viewer", "VIP", 8000));
+             }
+ 
++            private static string PlatformEventJsonString(string json, string field)
++            {
++                if (String.IsNullOrWhiteSpace(json) || String.IsNullOrWhiteSpace(field)) return "";
++                Match match = Regex.Match(
++                    json,
++                    "\"" + Regex.Escape(field) + "\"\\s*:\\s*\"(?<value>(?:\\\\.|[^\"\\\\])*)\"",
++                    RegexOptions.IgnoreCase);
++                if (!match.Success) return "";
++
++                string value = match.Groups["value"].Value;
++                try { value = Regex.Unescape(value); } catch { }
++                return Clean(value);
++            }
++
++            private static long PlatformEventJsonLong(string json, string field)
++            {
++                if (String.IsNullOrWhiteSpace(json) || String.IsNullOrWhiteSpace(field)) return 0;
++                Match match = Regex.Match(
++                    json,
++                    "\"" + Regex.Escape(field) + "\"\\s*:\\s*(?<value>-?[0-9]+)",
++                    RegexOptions.IgnoreCase);
++                long value;
++                return match.Success && Int64.TryParse(match.Groups["value"].Value, out value) ? value : 0;
++            }
++
++            private void PlatformEventPublishedForCrew(string type, string payloadJson)
++            {
++                if (!String.Equals(type, "platform-event", StringComparison.OrdinalIgnoreCase)) return;
++                if (!String.Equals(PlatformEventJsonString(payloadJson, "type"), "tip", StringComparison.OrdinalIgnoreCase)) return;
++
++                string username = PlatformEventJsonString(payloadJson, "username");
++                long amount = PlatformEventJsonLong(payloadJson, "amount");
++                if (username.Length == 0 || amount <= 0) return;
++
++                MethodInvoker apply = delegate { AddPlatformTipToCrew(username, amount); };
++
++                try
++                {
++                    if (IsDisposed || Disposing) return;
++                    if (InvokeRequired)
++                    {
++                        if (IsHandleCreated) BeginInvoke(apply);
++                    }
++                    else apply();
++                }
++                catch (InvalidOperationException) { }
++                catch (ObjectDisposedException) { }
++            }
++
++            private void AddPlatformTipToCrew(string username, long amount)
++            {
++                username = Clean(username);
++                if (username.Length == 0 || amount <= 0) return;
++
++                int index = crew.FindIndex(delegate(CrewMember member)
++                {
++                    return String.Equals(member.Name, username, StringComparison.OrdinalIgnoreCase);
++                });
++
++                if (index >= 0)
++                {
++                    CrewMember existing = crew[index];
++                    long updated = existing.LifetimeSupport > Int64.MaxValue - amount
++                        ? Int64.MaxValue
++                        : existing.LifetimeSupport + amount;
++
++                    // Preserve any creator-edited label and tier.
++                    crew[index] = new CrewMember(existing.Name, existing.Role, existing.Level, updated);
++                }
++                else
++                {
++                    // New real tipper enters the saved board automatically.
++                    crew.Add(new CrewMember(username, "Supporter", "Bronze", amount));
++                }
++
++                // Top supporters should actually rank as top supporters.
++                crew.Sort(delegate(CrewMember left, CrewMember right)
++                {
++                    int supportOrder = right.LifetimeSupport.CompareTo(left.LifetimeSupport);
++                    return supportOrder != 0
++                        ? supportOrder
++                        : StringComparer.OrdinalIgnoreCase.Compare(left.Name, right.Name);
++                });
++
++                SaveCrew();
++                RenderCrew();
++                PublishCrewSync();
++            }
++
+             private void SaveCrew()
+             {
+                 try

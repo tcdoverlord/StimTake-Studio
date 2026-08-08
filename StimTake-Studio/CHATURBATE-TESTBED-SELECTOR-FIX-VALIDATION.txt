@@ -1,0 +1,15 @@
+PASS - Environment selector field added
+PASS - LIVE option present
+PASS - TESTBED option present
+PASS - Bridge --testbed flag passed
+PASS - Environment saved
+PASS - Environment loaded
+PASS - Status names environment
+PASS - START CHATURBATE preserved
+PASS - TEST 25 TOKEN TIP preserved
+PASS - Top Tippers sync source unchanged
+PASS - Overlay payload unchanged
+PASS - Curly delimiters balanced
+PASS - Paren delimiters balanced
+
+Windows C# compile/runtime: NOT PERFORMED HERE

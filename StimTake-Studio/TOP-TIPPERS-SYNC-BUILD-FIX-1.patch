@@ -1,0 +1,44 @@
+--- failed/CreatorCamLauncher.cs
++++ buildfix1/CreatorCamLauncher.cs
+@@ -708,24 +708,24 @@
+             private static string PlatformEventJsonString(string json, string field)
+             {
+                 if (String.IsNullOrWhiteSpace(json) || String.IsNullOrWhiteSpace(field)) return "";
+-                Match match = Regex.Match(
++                System.Text.RegularExpressions.Match match = System.Text.RegularExpressions.Regex.Match(
+                     json,
+-                    "\"" + Regex.Escape(field) + "\"\\s*:\\s*\"(?<value>(?:\\\\.|[^\"\\\\])*)\"",
+-                    RegexOptions.IgnoreCase);
++                    "\"" + System.Text.RegularExpressions.Regex.Escape(field) + "\"\\s*:\\s*\"(?<value>(?:\\\\.|[^\"\\\\])*)\"",
++                    System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                 if (!match.Success) return "";
+ 
+                 string value = match.Groups["value"].Value;
+-                try { value = Regex.Unescape(value); } catch { }
++                try { value = System.Text.RegularExpressions.Regex.Unescape(value); } catch { }
+                 return Clean(value);
+             }
+ 
+             private static long PlatformEventJsonLong(string json, string field)
+             {
+                 if (String.IsNullOrWhiteSpace(json) || String.IsNullOrWhiteSpace(field)) return 0;
+-                Match match = Regex.Match(
++                System.Text.RegularExpressions.Match match = System.Text.RegularExpressions.Regex.Match(
+                     json,
+-                    "\"" + Regex.Escape(field) + "\"\\s*:\\s*(?<value>-?[0-9]+)",
+-                    RegexOptions.IgnoreCase);
++                    "\"" + System.Text.RegularExpressions.Regex.Escape(field) + "\"\\s*:\\s*(?<value>-?[0-9]+)",
++                    System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                 long value;
+                 return match.Success && Int64.TryParse(match.Groups["value"].Value, out value) ? value : 0;
+             }
+@@ -750,8 +750,8 @@
+                     }
+                     else apply();
+                 }
++                catch (ObjectDisposedException) { }
+                 catch (InvalidOperationException) { }
+-                catch (ObjectDisposedException) { }
+             }
+ 
+             private void AddPlatformTipToCrew(string username, long amount)

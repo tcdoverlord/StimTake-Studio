@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini Tip Overlay</title>
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  overflow: hidden;
+  font-family: "Arial Black", sans-serif;
+}
+#overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  background: radial-gradient(circle at center, rgba(0,0,0,0.5), rgba(0,0,0,0.9));
+  z-index: 100;
+}
+#miniPumpkin {
+  width: 100px;
+  height: 100px;
+  animation: bounce 1.5s ease-in-out infinite alternate;
+}
+@keyframes bounce {
+  0% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-25px) scale(1.1); }
+  100% { transform: translateY(0) scale(1); }
+}
+h2 {
+  color: gold;
+  text-shadow: 0 0 15px orange;
+  font-size: 32px;
+  margin-top: 15px;
+  animation: glow 2s ease-in-out infinite alternate;
+}
+@keyframes glow {
+  from { text-shadow: 0 0 10px orange; }
+  to { text-shadow: 0 0 25px gold; }
+}
+.spark {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: gold;
+  opacity: 0.8;
+  animation: sparkMove 2s linear infinite;
+}
+@keyframes sparkMove {
+  0% { transform: translateY(0) scale(1); opacity: 0.8; }
+  50% { transform: translateY(-30px) scale(1.3); opacity: 1; }
+  100% { transform: translateY(-60px) scale(0.5); opacity: 0; }
+}
+.storyText {
+  color: orange;
+  text-align: center;
+  margin-top: 10px;
+  font-size: 18px;
+  max-width: 400px;
+  animation: fadeInOut 6s ease-in-out forwards;
+  opacity: 0;
+}
+@keyframes fadeInOut {
+  0% { opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+</style>
+</head>
+<body>
+
+<div id="overlay">
+  <img src="cardimages/pumpkin.png" id="miniPumpkin" alt="Mini Pumpkin">
+  <h2>🍂 Thanks for your tip! 🍂</h2>
+  <div class="storyText">The Pumpkin winks at you and whispers: “Every heart counts, every tip sparks magic!”</div>
+</div>
+
+<script>
+// Create floating sparks
+function createSparks(count){
+  for(let i=0;i<count;i++){
+    const spark = document.createElement('div');
+    spark.classList.add('spark');
+    spark.style.left = Math.random()*window.innerWidth+'px';
+    spark.style.bottom = Math.random()*50+'px';
+    spark.style.animationDelay = Math.random()*1.5+'s';
+    document.body.appendChild(spark);
+  }
+}
+
+// Auto-start sparks
+createSparks(15);
+
+// Hide overlay after 6 seconds (mini celebration)
+setTimeout(()=>{
+  document.getElementById('overlay').style.display='none';
+  document.querySelectorAll('.spark').forEach(s=>s.remove());
+},6000);
+</script>
+
+</body>
+</html>

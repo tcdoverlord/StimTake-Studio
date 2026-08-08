@@ -1,0 +1,194 @@
+--- baseline/CreatorStudioV3.cs
++++ overlay-position-designer/CreatorStudioV3.cs
+@@ -247,7 +247,8 @@
+             private ComboBox alertAnimation;
+             private CheckBox alertSound;
+             private ComboBox layoutPreset, themePreset, moduleName;
+-            private NumericUpDown moduleX, moduleY, moduleScale, moduleOpacity, moduleWidth;
++            private NumericUpDown moduleX, moduleY, moduleScale, moduleOpacity, moduleWidth, moduleMoveStep;
++            private Label modulePositionStatus;
+             private TabControl mainTabs;
+ 
+             internal StudioDashboardForm(ControlDeckForm ownerForm)
+@@ -378,20 +379,62 @@
+                 presets.Controls.Add(ButtonAt("APPLY LAYOUT", 215, 55, 165, delegate { string value = layoutPreset.Text.ToLowerInvariant(); File.WriteAllText(owner.StudioPath("layout-v3.txt"), value); owner.server.Publish("layout", "{\"layout\":\"" + value + "\"}"); }));
+                 presets.Controls.Add(LabelAt("Theme", 430, 36)); themePreset = Combo(new string[] { "Neon", "Cyber Blue", "Halloween", "Christmas", "Minimal", "Dark", "Custom" }, 430, 58, 180); presets.Controls.Add(themePreset);
+                 presets.Controls.Add(ButtonAt("APPLY THEME", 625, 55, 165, delegate { string value = themePreset.Text.ToLowerInvariant().Replace(" ", "-"); File.WriteAllText(owner.StudioPath("theme-v3.txt"), value); owner.server.Publish("theme-preset", "{\"preset\":\"" + value + "\"}"); }));
+-                presets.Controls.Add(LabelAt("Creator Focus is the default and reserves the most camera space.", 18, 108));
+-
+-                var module = Group("PER-MODULE POSITION / SCALE / OPACITY", 15, 185, 915, 300); page.Controls.Add(module);
+-                module.Controls.Add(LabelAt("Element", 18, 38)); moduleName = Combo(new string[] { "Brand Panel", "Camera Frame", "Token Goal", "Top Tippers / Fans", "Last Tipper", "Recent Supporter", "Tip Ticker", "Alert Display", "Game Overlay Zone", "VIP Badge", "Background" }, 18, 60, 165); module.Controls.Add(moduleName);
+-                module.Controls.Add(LabelAt("Move X", 200, 38)); moduleX = NumberAt(0, -1500, 1500, 200, 60, 110, 0); module.Controls.Add(moduleX);
+-                module.Controls.Add(LabelAt("Move Y", 325, 38)); moduleY = NumberAt(0, -900, 900, 325, 60, 110, 0); module.Controls.Add(moduleY);
+-                module.Controls.Add(LabelAt("Scale", 450, 38)); moduleScale = NumberAt(1, .25m, 3, 450, 60, 110, 2); moduleScale.Increment = .05m; module.Controls.Add(moduleScale);
+-                module.Controls.Add(LabelAt("Opacity", 575, 38)); moduleOpacity = NumberAt(1, 0, 1, 575, 60, 110, 2); moduleOpacity.Increment = .05m; module.Controls.Add(moduleOpacity);
+-                module.Controls.Add(LabelAt("Width % (0=default)", 700, 38)); moduleWidth = NumberAt(0, 0, 100, 700, 60, 145, 0); module.Controls.Add(moduleWidth);
+-                module.Controls.Add(ButtonAt("APPLY ELEMENT", 680, 125, 165, delegate { ApplyModuleStyle(); }));
+-                module.Controls.Add(ButtonAt("RESET ELEMENT", 500, 125, 165, delegate { moduleX.Value = moduleY.Value = moduleWidth.Value = 0; moduleScale.Value = moduleOpacity.Value = 1; ApplyModuleStyle(); }));
+-                module.Controls.Add(LabelAt("Each module still has its independent show/hide button in the main Control Deck.", 18, 210));
+-                safeButton = ButtonAt("STREAM SAFE MODE", 18, 240, 190, delegate { owner.ToggleStreamSafeMode(); }); safeButtons.Add(safeButton); module.Controls.Add(safeButton);
+-                page.Controls.Add(BuildTemplateGroup());
++                presets.Controls.Add(LabelAt("Creator Focus is the default. Position changes below are saved per element and use the 1920 × 1080 overlay canvas.", 18, 108));
++
++                var module = Group("OVERLAY POSITION DESIGNER • 1920 × 1080 • PIXEL CONTROL", 15, 185, 915, 390); page.Controls.Add(module);
++
++                module.Controls.Add(LabelAt("Overlay element", 18, 35));
++                moduleName = Combo(new string[] {
++                    "Brand Panel", "Camera Frame", "Token Goal", "Top Tippers / Fans",
++                    "Last Tipper", "Recent Supporter", "Tip Ticker", "Alert Display",
++                    "Game Overlay Zone", "VIP Badge", "DMCA Watermark", "Background"
++                }, 18, 57, 195);
++                module.Controls.Add(moduleName);
++
++                module.Controls.Add(LabelAt("X position offset (px)", 230, 35));
++                moduleX = NumberAt(0, -1500, 1500, 230, 57, 120, 0); module.Controls.Add(moduleX);
++
++                module.Controls.Add(LabelAt("Y position offset (px)", 365, 35));
++                moduleY = NumberAt(0, -900, 900, 365, 57, 120, 0); module.Controls.Add(moduleY);
++
++                module.Controls.Add(LabelAt("Nudge step (px)", 500, 35));
++                moduleMoveStep = NumberAt(10, 1, 500, 500, 57, 105, 0); module.Controls.Add(moduleMoveStep);
++
++                module.Controls.Add(LabelAt("Size %", 620, 35));
++                moduleScale = NumberAt(100, 25, 300, 620, 57, 90, 0); moduleScale.Increment = 5; module.Controls.Add(moduleScale);
++
++                module.Controls.Add(LabelAt("Opacity %", 725, 35));
++                moduleOpacity = NumberAt(100, 0, 100, 725, 57, 90, 0); moduleOpacity.Increment = 5; module.Controls.Add(moduleOpacity);
++
++                module.Controls.Add(LabelAt("Width %", 825, 35));
++                moduleWidth = NumberAt(0, 0, 100, 825, 57, 70, 0); module.Controls.Add(moduleWidth);
++
++                module.Controls.Add(ButtonAt("← LEFT", 18, 112, 125, delegate { NudgeSelectedModule(-1, 0); }));
++                module.Controls.Add(ButtonAt("RIGHT →", 153, 112, 125, delegate { NudgeSelectedModule(1, 0); }));
++                module.Controls.Add(ButtonAt("↑ UP", 288, 112, 125, delegate { NudgeSelectedModule(0, -1); }));
++                module.Controls.Add(ButtonAt("DOWN ↓", 423, 112, 125, delegate { NudgeSelectedModule(0, 1); }));
++                module.Controls.Add(ButtonAt("APPLY / SAVE", 568, 112, 150, delegate { ApplyModuleStyle(); }));
++                module.Controls.Add(ButtonAt("RESET SELECTED", 728, 112, 167, delegate {
++                    moduleX.Value = 0; moduleY.Value = 0; moduleWidth.Value = 0;
++                    moduleScale.Value = 100; moduleOpacity.Value = 100;
++                    ApplyModuleStyle();
++                }));
++
++                module.Controls.Add(LabelAt("Examples: X = -110 moves left 110 px • X = 110 moves right • Y = -80 moves up • Y = 80 moves down.", 18, 170));
++                module.Controls.Add(LabelAt("Size and opacity are percentages. Width 0 keeps the overlay's original width. Nudge buttons save immediately.", 18, 197));
++
++                modulePositionStatus = LabelAt("Selected element: loading saved position…", 18, 235);
++                modulePositionStatus.ForeColor = Color.LightGreen;
++                modulePositionStatus.Font = new Font("Segoe UI", 9.5f, FontStyle.Bold);
++                module.Controls.Add(modulePositionStatus);
++
++                module.Controls.Add(LabelAt("Every item remains independently visible/hidden from the Control Deck. This designer only changes presentation.", 18, 270));
++                safeButton = ButtonAt("STREAM SAFE MODE", 18, 310, 190, delegate { owner.ToggleStreamSafeMode(); }); safeButtons.Add(safeButton); module.Controls.Add(safeButton);
++
++                moduleName.SelectedIndexChanged += delegate { LoadSelectedModuleStyle(); };
++                LoadSelectedModuleStyle();
++
++                page.Controls.Add(BuildTemplateGroup(595));
+                 return page;
+             }
+ 
+@@ -605,14 +648,87 @@
+                 File.WriteAllText(owner.StudioPath("alert-settings-v3.txt"), alertDuration.Value + "\t" + animation + "\t" + alertSound.Checked + "\t" + leaderboardMaximum.Value);
+             }
+ 
++            private void LoadSelectedModuleStyle()
++            {
++                if (moduleName == null || moduleX == null || moduleY == null || moduleScale == null || moduleOpacity == null || moduleWidth == null) return;
++
++                moduleX.Value = 0;
++                moduleY.Value = 0;
++                moduleScale.Value = 100;
++                moduleOpacity.Value = 100;
++                moduleWidth.Value = 0;
++
++                string moduleKey = ModuleKey(moduleName.Text);
++                string path = owner.StudioPath("module-styles-v3.txt");
++
++                try
++                {
++                    if (File.Exists(path))
++                    {
++                        foreach (string line in File.ReadAllLines(path))
++                        {
++                            string[] parts = line.Split('|');
++                            if (parts.Length < 6 || !parts[0].Equals(moduleKey, StringComparison.OrdinalIgnoreCase)) continue;
++
++                            decimal x, y, scale, opacity, width;
++                            if (Decimal.TryParse(parts[1], out x)) moduleX.Value = Math.Max(moduleX.Minimum, Math.Min(moduleX.Maximum, x));
++                            if (Decimal.TryParse(parts[2], out y)) moduleY.Value = Math.Max(moduleY.Minimum, Math.Min(moduleY.Maximum, y));
++                            if (Decimal.TryParse(parts[3], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out scale))
++                                moduleScale.Value = Math.Max(moduleScale.Minimum, Math.Min(moduleScale.Maximum, Decimal.Round(scale * 100m, 0)));
++                            if (Decimal.TryParse(parts[4], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out opacity))
++                                moduleOpacity.Value = Math.Max(moduleOpacity.Minimum, Math.Min(moduleOpacity.Maximum, Decimal.Round(opacity * 100m, 0)));
++                            if (Decimal.TryParse(parts[5], out width)) moduleWidth.Value = Math.Max(moduleWidth.Minimum, Math.Min(moduleWidth.Maximum, width));
++                            break;
++                        }
++                    }
++                }
++                catch { }
++
++                UpdateModulePositionStatus();
++            }
++
++            private void NudgeSelectedModule(int xDirection, int yDirection)
++            {
++                if (moduleMoveStep == null) return;
++                decimal step = moduleMoveStep.Value;
++                decimal nextX = moduleX.Value + (xDirection * step);
++                decimal nextY = moduleY.Value + (yDirection * step);
++                moduleX.Value = Math.Max(moduleX.Minimum, Math.Min(moduleX.Maximum, nextX));
++                moduleY.Value = Math.Max(moduleY.Minimum, Math.Min(moduleY.Maximum, nextY));
++                ApplyModuleStyle();
++            }
++
++            private void UpdateModulePositionStatus()
++            {
++                if (modulePositionStatus == null || moduleName == null) return;
++                modulePositionStatus.Text = moduleName.Text + " • X " + moduleX.Value + " px • Y " + moduleY.Value +
++                    " px • Size " + moduleScale.Value + "% • Opacity " + moduleOpacity.Value + "% • Width " +
++                    (moduleWidth.Value == 0 ? "default" : moduleWidth.Value + "%");
++            }
++
+             private void ApplyModuleStyle()
+             {
+                 string moduleKey = ModuleKey(moduleName.Text);
+-                string value = moduleKey + "|" + moduleX.Value + "|" + moduleY.Value + "|" + moduleScale.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) + "|" + moduleOpacity.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) + "|" + moduleWidth.Value;
++                decimal scale = moduleScale.Value / 100m;
++                decimal opacity = moduleOpacity.Value / 100m;
++
++                string value = moduleKey + "|" + moduleX.Value + "|" + moduleY.Value + "|" +
++                    scale.ToString(System.Globalization.CultureInfo.InvariantCulture) + "|" +
++                    opacity.ToString(System.Globalization.CultureInfo.InvariantCulture) + "|" + moduleWidth.Value;
++
+                 string path = owner.StudioPath("module-styles-v3.txt");
+-                var lines = new List<string>(); if (File.Exists(path)) lines.AddRange(File.ReadAllLines(path));
+-                lines.RemoveAll(delegate(string line) { return line.StartsWith(moduleKey + "|", StringComparison.OrdinalIgnoreCase); }); lines.Add(value); File.WriteAllLines(path, lines.ToArray());
+-                owner.server.Publish("module-style", "{\"module\":\"" + moduleKey + "\",\"x\":" + moduleX.Value + ",\"y\":" + moduleY.Value + ",\"scale\":" + moduleScale.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) + ",\"opacity\":" + moduleOpacity.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) + ",\"width\":" + moduleWidth.Value + "}");
++                var lines = new List<string>();
++                if (File.Exists(path)) lines.AddRange(File.ReadAllLines(path));
++                lines.RemoveAll(delegate(string line) { return line.StartsWith(moduleKey + "|", StringComparison.OrdinalIgnoreCase); });
++                lines.Add(value);
++                File.WriteAllLines(path, lines.ToArray());
++
++                owner.server.Publish("module-style", "{\"module\":\"" + moduleKey + "\",\"x\":" + moduleX.Value +
++                    ",\"y\":" + moduleY.Value + ",\"scale\":" + scale.ToString(System.Globalization.CultureInfo.InvariantCulture) +
++                    ",\"opacity\":" + opacity.ToString(System.Globalization.CultureInfo.InvariantCulture) +
++                    ",\"width\":" + moduleWidth.Value + "}");
++
++                UpdateModulePositionStatus();
+             }
+ 
+             private void SaveSession()
+@@ -2784,9 +2900,9 @@
+                 RefreshStats();
+             }
+ 
+-            private GroupBox BuildTemplateGroup()
+-            {
+-                var group = Group("JSON LAYOUT TEMPLATE SYSTEM", 15, 505, 915, 390);
++            private GroupBox BuildTemplateGroup(int top = 505)
++            {
++                var group = Group("JSON LAYOUT TEMPLATE SYSTEM", 15, top, 915, 390);
+                 group.Controls.Add(LabelAt("Template name", 18, 35)); templateName = Box("My Creator Layout", 18, 57, 250); group.Controls.Add(templateName);
+                 group.Controls.Add(LabelAt("Saved templates", 285, 35)); templateSelector = Combo(new string[] { }, 285, 57, 250); group.Controls.Add(templateSelector);
+                 templateSelector.SelectedIndexChanged += delegate { LoadTemplateEditor(); };

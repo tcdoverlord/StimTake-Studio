@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Halloween Overlay – Side Animations & Top Drops</title>
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: transparent;
+}
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+</style>
+</head>
+<body>
+<canvas id="overlay"></canvas>
+
+<script>
+const canvas = document.getElementById('overlay');
+const ctx = canvas.getContext('2d');
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+window.addEventListener('resize', () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+
+// ---------- Side Flying PNGs ----------
+const sideWidth = 55; // limit to 55px width on left and right
+const pngSources = [
+  'cardimages/witch.png',
+  'cardimages/ghost.png',
+  'cardimages/pumpkin.png',
+  'cardimages/warlock.png',
+  'cardimages/cat.png'
+];
+
+class SideFlyingPNG {
+  constructor(src, side) {
+    this.img = new Image();
+    this.img.src = src;
+    this.side = side; // 'left' or 'right'
+    this.reset();
+  }
+  reset() {
+    this.y = canvas.height + Math.random()*200;
+    this.size = Math.random()*40+30;
+    this.vy = Math.random()*-2-1;
+    this.rotation = Math.random()*Math.PI;
+    this.rotationSpeed = (Math.random()*0.04)-0.02;
+    this.x = this.side === 'left' ? Math.random()*sideWidth : canvas.width - sideWidth + Math.random()*sideWidth;
+  }
+  update() {
+    this.y += this.vy;
+    this.rotation += this.rotationSpeed;
+    if(this.y < -100) this.reset();
+  }
+  draw() {
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.rotation);
+    ctx.drawImage(this.img, -this.size/2, -this.size/2, this.size, this.size);
+    ctx.restore();
+  }
+}
+
+// Create PNGs on both sides
+const sidePNGs = [];
+for (let i=0;i<10;i++) {
+  sidePNGs.push(new SideFlyingPNG(pngSources[i % pngSources.length], i%2===0?'left':'right'));
+}
+
+// ---------- Top Dropping Tip Statements ----------
+const tipLines = [
+  "TIP $10 TO SHOW LOVE 💖",
+  "LOYALTY UNLOCKS REWARDS 🎁",
+  "YOU ROCK! 🔥",
+  "GLOW YOUR NAME ON ME 🌟",
+  "TIP & SEE MAGIC ✨"
+];
+
+class TopDropText {
+  constructor() {
+    this.reset();
+  }
+  reset() {
+    this.text = tipLines[Math.floor(Math.random()*tipLines.length)];
+    this.x = Math.random()*canvas.width;
+    this.y = -50;
+    this.vy = Math.random()*1.5+0.5;
+    this.size = Math.random()*20+18;
+    this.alpha = 1;
+  }
+  update() {
+    this.y += this.vy;
+    this.alpha -= 0.001;
+    if(this.y > canvas.height) this.reset();
+  }
+  draw() {
+    ctx.globalAlpha = this.alpha;
+    ctx.fillStyle = 'gold';
+    ctx.font = `${this.size}px "Arial Black"`;
+    ctx.textAlign = 'center';
+    ctx.fillText(this.text, this.x, this.y);
+    ctx.globalAlpha = 1;
+  }
+}
+
+const topDrops = [];
+for(let i=0;i<8;i++) topDrops.push(new TopDropText());
+
+// ---------- Animate ----------
+function animate() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  // Side flying PNGs
+  sidePNGs.forEach(p => { p.update(); p.draw(); });
+
+  // Top dropping tip statements
+  topDrops.forEach(t => { t.update(); t.draw(); });
+
+  requestAnimationFrame(animate);
+}
+animate();
+</script>
+</body>
+</html>

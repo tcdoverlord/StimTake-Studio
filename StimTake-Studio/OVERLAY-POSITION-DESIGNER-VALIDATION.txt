@@ -1,0 +1,13 @@
+STIMTAKE OVERLAY POSITION DESIGNER - STATIC VALIDATION
+====================================================
+PASS - BuildLayoutTab present
+PASS - LoadSelectedModuleStyle present
+PASS - NudgeSelectedModule present
+PASS - Percentage conversion present
+PASS - Old module style persistence retained
+PASS - delimiter {
+PASS - delimiter (
+PASS - delimiter [
+PASS - CreatorCamPayload.zip unchanged
+
+Windows compilation and live OBS runtime testing: NOT PERFORMED

@@ -1,0 +1,16 @@
+PASS - System.Diagnostics added
+PASS - username field added
+PASS - password field enabled
+PASS - start connector method
+PASS - stop connector method
+PASS - token environment variable
+PASS - token textbox cleared
+PASS - local endpoint preserved
+PASS - bridge bundled
+PASS - payload unchanged
+PASS - curly count balanced
+PASS - paren count balanced
+PASS - bracket count balanced
+
+Windows C# compile/runtime: NOT PERFORMED
+Live Chaturbate API: NOT PERFORMED

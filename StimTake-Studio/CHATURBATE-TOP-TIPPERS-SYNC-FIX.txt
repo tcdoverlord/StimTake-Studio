@@ -1,0 +1,78 @@
+STIMTAKE v9 - CHATURBATE TOP TIPPERS / FANS SYNC FIX
+=====================================================
+
+Observed live test
+------------------
+Working:
+- normalized test tip reached StimTake
+- Last Tipper updated
+- tip popup appeared
+
+Not working:
+- the Windows Top Tippers / Fans board did not add/update the tipper
+
+Root cause found in source
+--------------------------
+The overlay platform-event path received TIP events, but the ControlDeckForm
+persistent `crew` list (the source for the Windows Top Tippers / Fans table)
+was only changed by its manual Add/Update controls.
+
+Fix
+---
+ControlDeckForm now listens to the existing StaticServer EventPublished event.
+
+For a normalized platform event:
+  type = tip
+  username = viewer
+  amount = token count
+
+StimTake now:
+1. Finds that username case-insensitively.
+2. Adds the tip amount to the existing lifetime support total, OR creates a
+   new Supporter/Bronze row if the viewer is new.
+3. Preserves an existing creator-edited custom label and tier.
+4. Re-sorts the board by lifetime support, highest first.
+5. Saves the existing tippers.tsv file.
+6. Publishes supporters-sync so the OBS supporter board receives the refreshed
+   saved ranking.
+
+No fake Chaturbate API behavior was added. The connector format remains the
+same.
+
+Protection
+----------
+Baseline source:
+  stimtake_v9_chaturbate_bridge_candidate.zip
+
+Changed:
+  CreatorCamLauncher.cs only
+
+Preserved:
+- Chaturbate connector
+- Last Tipper behavior
+- tip popup behavior
+- Token Goal/overlay platform-event path
+- manual Top Tippers/Fans editing
+- manual labels and tiers
+- backups/session controls
+- CreatorStudioV3.cs
+- CreatorCamPayload.zip
+
+Windows test
+------------
+1. Keep the working build untouched.
+2. Build this candidate in a separate folder.
+3. Press TEST 25 TOKEN TIP once.
+4. Confirm ConnectorTest appears in Top Tippers / Fans with 25.
+5. Press it a second time.
+6. Confirm the SAME row becomes 50, not a duplicate.
+7. Manually give that row a custom label/tier.
+8. Press the test again.
+9. Confirm the total rises to 75 while the custom label/tier remain.
+10. Only after that use a small controlled real Chaturbate tip.
+
+Not tested here:
+- Windows C# compilation
+- WinForms runtime
+- live OBS
+- live Chaturbate API

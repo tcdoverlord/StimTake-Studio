@@ -1,0 +1,11 @@
+PASS - Connector method already present
+PASS - Connector tab now registered
+PASS - Start Chaturbate control present
+PASS - Stop control present
+PASS - Test tip control present
+PASS - Top-tipper sync preserved
+PASS - Curly delimiters balanced
+PASS - Paren delimiters balanced
+PASS - CreatorCamPayload unchanged
+
+Windows C# compile/runtime: NOT PERFORMED HERE

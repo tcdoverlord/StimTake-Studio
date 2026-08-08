@@ -1,0 +1,35 @@
+DUAL ACTION DECK LOADER - VALIDATION RECORD
+===========================================
+Source baseline:
+  stimtake_v1_waiting_for_vip_dmca_controls_source_patch.zip
+
+Changed implementation:
+  CreatorStudioV3.cs
+
+Preserved behaviors:
+  Existing single-slot Action HTML replacement
+  Existing Action ON/OFF buttons
+  STOP ALL
+  CLEAR SLOT
+  REFRESH
+  Waiting for VIP work from baseline
+  Protected live broadcast / DMCA work from baseline
+
+Added:
+  Complete 20-pack ZIP discovery and validation
+  Staged all-20 import
+  Automatic pre-import recovery snapshot
+  Automatic rollback attempt on import failure
+  Restore previous 20-pack control
+  Safe archive path checks
+  Per-file and expanded-size limits
+
+Static checks:
+  PASS - delimiter balance
+  PASS - all twenty Obsidian_Pack slots discovered by importer pattern
+  PASS - both RETRO and 20-PACK UI paths present
+
+Not performed:
+  Windows compiler validation
+  WinForms visual runtime validation
+  OBS browser overlay runtime validation

@@ -1,0 +1,66 @@
+STIMTAKE V1 - CLEANER LAYOUT UI - BUILD FIX 1
+================================================
+
+Compiler error supplied from Windows
+------------------------------------
+CS0122:
+ControlDeckForm.PublishStudioBootstrap() is inaccessible due to its protection level.
+
+Cause
+-----
+The new native Layout Pack import/restore code in StudioDashboardForm legitimately
+asks its owning ControlDeckForm to republish the complete saved Studio bootstrap
+after replacing module-styles-v3.txt.
+
+PublishStudioBootstrap() already existed and was previously private to
+ControlDeckForm, so the new dashboard calls could not compile.
+
+Smallest fix
+------------
+Changed exactly one method declaration:
+
+    private void PublishStudioBootstrap()
+
+to:
+
+    internal void PublishStudioBootstrap()
+
+No implementation logic was changed.
+
+Why internal
+------------
+The method is only being made callable inside this executable/assembly. It is not
+made public API, and its existing behavior is preserved.
+
+Preserved
+---------
+- Cleaner grouped Layout UI
+- Legacy JSON templates
+- Native full Layout Pack ZIP import/export/restore
+- Overlay Position Designer
+- Dual Action Deck loader
+- Waiting for VIP controls
+- Protected-live-broadcast / DMCA controls
+- CreatorCamPayload.zip unchanged
+
+Validation here
+---------------
+- Exactly one access-modifier change was made in CreatorStudioV3.cs.
+- All four failing owner.PublishStudioBootstrap() call sites remain intact.
+- Delimiter balance remains unchanged.
+- CreatorCamPayload.zip SHA-256 remains identical to the failed candidate.
+
+Not yet validated here
+----------------------
+- Windows .NET Framework compilation
+- WinForms runtime
+- OBS runtime
+
+Windows retest
+--------------
+Extract to a separate folder and run:
+
+    0-BUILD-AND-START-UPDATED-V1.cmd
+
+If compilation reports another error, preserve the build log and use that exact
+evidence for the next smallest repair.

@@ -1,0 +1,49 @@
+TCDOVERLORD CREATOR CAM 4.0 v8 - ACTION SLOTS 1-20
+===================================================
+
+ACTION DECK
+- Expanded the Creator Action buttons from 12 to 20.
+- All slots 1-20 start empty in a new actions-v4 configuration.
+- Replaced the two-step upload/library/assign workflow with one slot-based BROWSE / REPLACE HTML button.
+- Each slot uses a fixed module identity so replacing one overlay cannot break another slot.
+- Added per-slot name, duration, status, run, refresh, and clear controls.
+- Legacy action modules are disabled as startup preloads; their existing files are not deleted.
+
+HTML RELIABILITY
+- Fixed the external-module base URL being treated as an absolute URL even though the server returned a relative path. That exception was the root cause preventing uploaded HTML actions from mounting.
+- Fixed the browser ActionManager slot filter so Actions 13-20 can run.
+- Action triggering now reloads and retries when a newly imported module has not reached the catalog yet.
+- Restart-on-trigger HTML is no longer loaded or executed while hidden during overlay startup.
+- Each trigger reloads the selected HTML and starts its JavaScript from the beginning.
+- The show-duration timer begins after the HTML frame finishes loading.
+- Repeated triggers invalidate stale load callbacks and keep only the newest run authoritative.
+- Added managed copying/serving for module scripts, styles, images, audio, fonts, and MP4/WebM assets.
+
+PRELOADS
+- The six former Action 1-6 overlays are no longer assigned automatically.
+- They are delivered separately in TCDOVERLORD-Action-Overlay-Preloads-Editable.zip for editing and manual assignment.
+
+PRESERVED
+- v7 Clean Tease and Last Supporter behavior is retained.
+- Games, wheels, floating ticker HTML, DMCA HTML, watermark, themes, layouts, and connector behavior are unchanged.
+
+PERSISTENT ACTION RUNTIME FIX
+- Action slots no longer auto-hide based on Studio/module duration values.
+- Action HTML remains visible indefinitely by default.
+- Only the Action HTML/JavaScript itself can end or hide the visual.
+- Game/result timers remain separate and unchanged.
+
+MANUAL ACTION STOP UPDATE
+- Action overlays remain persistent by default.
+- Added STOP SELECTED to immediately stop/unload the selected Action HTML.
+- Added STOP ALL to immediately stop/unload every Action slot.
+- Stopping an Action cancels its host timer state, hides its iframe, and unloads restart-on-trigger HTML so animation/audio/JavaScript stop too.
+- Running the Action again starts its HTML fresh from the beginning.
+
+V1 Toggle Action + Visible Camera startup update
+- Action number buttons are true toggles: click once ON, click again OFF.
+- No Studio host timeout is used for Action slots.
+- Running Action buttons are visually highlighted.
+- STOP SELECTED and STOP ALL remain available as backup controls.
+- My Secret Show starts UNLOCKED with the camera visible; LOCK must be clicked intentionally.
+- Bundled example profile viewer/tipper history is cleaned from the release package.

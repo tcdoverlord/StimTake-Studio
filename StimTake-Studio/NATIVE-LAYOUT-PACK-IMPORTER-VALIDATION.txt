@@ -1,0 +1,16 @@
+NATIVE FULL LAYOUT PACK IMPORTER - STATIC VALIDATION
+====================================================
+PASS - legacy_import_preserved
+PASS - legacy_export_preserved
+PASS - new_import_button
+PASS - new_export_button
+PASS - new_restore_button
+PASS - full_12_validation
+PASS - recovery_history
+PASS - football_layout_validation
+PASS - curly_balanced
+PASS - paren_balanced
+PASS - bracket_balanced
+PASS - creator_cam_payload_unchanged
+
+Windows compiler + live OBS runtime: NOT PERFORMED

@@ -1,0 +1,18 @@
+PASS - event subscription added
+PASS - event unsubscribe added
+PASS - tip type checked
+PASS - username parsed
+PASS - amount parsed
+PASS - existing totals increment
+PASS - new tipper created
+PASS - ranking sort added
+PASS - crew persisted
+PASS - OBS board sync published
+PASS - CreatorStudioV3 unchanged
+PASS - CreatorCamPayload unchanged
+PASS - curly counts balanced
+PASS - paren counts balanced
+PASS - bracket counts balanced
+
+Windows C# compile/runtime: NOT PERFORMED HERE
+Live Chaturbate API: NOT PERFORMED HERE

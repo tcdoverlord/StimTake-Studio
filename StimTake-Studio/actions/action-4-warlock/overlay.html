@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Warlock Tip Overlay – Upgraded $40</title>
+<style>
+html, body {
+  margin:0; padding:0; overflow:hidden; background: transparent;
+  font-family:"Arial Black", sans-serif;
+}
+canvas { position:absolute; top:0; left:0; z-index:0; }
+
+#textContainer {
+  position:absolute;
+  bottom:20px; left:50%;
+  transform:translateX(-50%);
+  background: rgba(0,0,0,0.6);
+  border-radius:12px;
+  padding:12px 20px;
+  text-align:center;
+  max-width:500px;
+  z-index:5;
+}
+#textContainer h2 {
+  margin:0;
+  font-size:28px;
+  color:white;
+  text-shadow:0 0 20px violet;
+  animation: glowText 2s ease-in-out infinite alternate;
+}
+@keyframes glowText {
+  from { text-shadow:0 0 10px violet; }
+  to { text-shadow:0 0 25px purple; }
+}
+</style>
+</head>
+<body>
+<canvas id="overlay"></canvas>
+<div id="textContainer">
+  <h2>✨ The Warlock Thanks You for Your Mystic Tip! ✨</h2>
+</div>
+
+<script>
+const canvas=document.getElementById('overlay');
+const ctx=canvas.getContext('2d');
+canvas.width=window.innerWidth; canvas.height=window.innerHeight;
+window.addEventListener('resize',()=>{canvas.width=window.innerWidth; canvas.height=window.innerHeight;});
+
+function randomColor(){ 
+  const colors=['violet','cyan','gold','indigo','lime','magenta','fuchsia']; 
+  return colors[Math.floor(Math.random()*colors.length)]; 
+}
+function randomRange(min,max){ return min+Math.random()*(max-min); }
+
+// ---------- Particle ----------
+class Particle {
+  constructor(x,y,color,vy,vx,size){
+    this.x=x; this.y=y;
+    this.vx=vx||randomRange(-1,1);
+    this.vy=vy||randomRange(-2,-0.5);
+    this.size=size||randomRange(2,5);
+    this.alpha=1;
+    this.color=color||randomColor();
+  }
+  update(){ this.x+=this.vx; this.y+=this.vy; this.alpha-=0.02; }
+  draw(){ ctx.globalAlpha=this.alpha; ctx.fillStyle=this.color; ctx.beginPath(); ctx.arc(this.x,this.y,this.size,0,Math.PI*2); ctx.fill(); ctx.globalAlpha=1; }
+}
+const particles=[];
+
+// ---------- Floating Glyphs ----------
+const glyphs=["✦","✧","☽","☾","♆","⚡","✹","☆"];
+class FloatingGlyph {
+  constructor(){
+    this.reset();
+  }
+  reset(){
+    this.text=glyphs[Math.floor(Math.random()*glyphs.length)];
+    this.x=randomRange(0,canvas.width);
+    this.y=canvas.height+randomRange(0,100);
+    this.alpha=1;
+    this.size=randomRange(18,32);
+    this.vy=randomRange(-1.5,-0.5);
+    this.vx=randomRange(-0.3,0.3);
+    this.color=randomColor();
+    this.spin=randomRange(-0.03,0.03);
+    this.angle=0;
+  }
+  update(){ this.y+=this.vy; this.x+=this.vx; this.angle+=this.spin; this.alpha-=0.003; if(this.alpha<=0) this.reset(); }
+  draw(){
+    ctx.save();
+    ctx.globalAlpha=this.alpha;
+    ctx.translate(this.x,this.y);
+    ctx.rotate(this.angle);
+    ctx.fillStyle=this.color;
+    ctx.font=`${this.size}px Arial Black`;
+    ctx.textAlign='center';
+    ctx.fillText(this.text,0,0);
+    ctx.restore();
+  }
+}
+const floatingGlyphs=[]; for(let i=0;i<20;i++) floatingGlyphs.push(new FloatingGlyph());
+
+// ---------- Orbiting Magic Orbs ----------
+class MagicOrb{
+  constructor(parent){
+    this.parent=parent;
+    this.angle=randomRange(0,Math.PI*2);
+    this.radius=randomRange(40,70);
+    this.size=randomRange(12,20);
+    this.speed=randomRange(0.02,0.05);
+    this.color=randomColor();
+  }
+  update(){ this.angle+=this.speed; }
+  draw(){
+    const x=this.parent.x+Math.cos(this.angle)*this.radius;
+    const y=this.parent.y+Math.sin(this.angle)*this.radius;
+    ctx.save();
+    ctx.globalAlpha=0.6+0.3*Math.sin(this.angle*5);
+    ctx.fillStyle=this.color;
+    ctx.beginPath(); ctx.arc(x,y,this.size,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+}
+
+// ---------- Warlock ----------
+class Warlock {
+  constructor(imgSrc){
+    this.img=new Image(); this.img.src=imgSrc;
+    this.x=randomRange(100,canvas.width-100);
+    this.y=randomRange(100,canvas.height-100);
+    this.size=randomRange(80,120);
+    this.speedX=randomRange(-1,1);
+    this.speedY=randomRange(-0.5,0.5);
+    this.angle=0;
+    this.orbs=[];
+    for(let i=0;i<5;i++) this.orbs.push(new MagicOrb(this));
+    this.auraColor=randomColor();
+  }
+  update(){
+    this.x+=this.speedX; this.y+=this.speedY;
+    if(this.x<0 || this.x>canvas.width) this.speedX*=-1;
+    if(this.y<0 || this.y>canvas.height) this.speedY*=-1;
+    this.angle+=0.02;
+    this.orbs.forEach(o=>o.update());
+    if(Math.random()<0.6) particles.push(new Particle(this.x+randomRange(-30,30),this.y+randomRange(-30,30),this.auraColor));
+  }
+  draw(){
+    // Aura
+    ctx.save();
+    ctx.globalAlpha=0.3+0.3*Math.sin(this.angle*4);
+    ctx.fillStyle=this.auraColor;
+    ctx.beginPath(); ctx.arc(this.x,this.y,this.size*0.9,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+
+    // Warlock
+    ctx.save();
+    ctx.translate(this.x,this.y);
+    ctx.rotate(Math.sin(this.angle)*0.05);
+    ctx.drawImage(this.img,-this.size/2,-this.size/2,this.size,this.size);
+    ctx.restore();
+
+    // Orbs
+    this.orbs.forEach(o=>o.draw());
+
+    // Spell circles behind
+    ctx.save();
+    ctx.translate(this.x,this.y);
+    for(let i=0;i<3;i++){
+      ctx.beginPath();
+      ctx.arc(0,0,30+i*15,0,Math.PI*2);
+      ctx.strokeStyle=`rgba(${Math.floor(Math.random()*255)},${Math.floor(Math.random()*255)},255,0.3)`;
+      ctx.lineWidth=2;
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+}
+
+// ---------- Shooting Magic Streaks ----------
+class MagicStreak{
+  constructor(){
+    this.x=randomRange(0,canvas.width);
+    this.y=randomRange(0,canvas.height);
+    this.vx=randomRange(-3,3);
+    this.vy=randomRange(-3,3);
+    this.length=randomRange(20,40);
+    this.color=randomColor();
+    this.alpha=1;
+  }
+  update(){ this.x+=this.vx; this.y+=this.vy; this.alpha-=0.02; if(this.alpha<=0) this.reset(); }
+  reset(){ this.x=randomRange(0,canvas.width); this.y=randomRange(0,canvas.height); this.vx=randomRange(-3,3); this.vy=randomRange(-3,3); this.alpha=1; this.color=randomColor(); this.length=randomRange(20,40); }
+  draw(){
+    ctx.save();
+    ctx.globalAlpha=this.alpha;
+    ctx.strokeStyle=this.color;
+    ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.moveTo(this.x,this.y);
+    ctx.lineTo(this.x-this.vx*this.length,this.y-this.vy*this.length);
+    ctx.stroke();
+    ctx.restore();
+  }
+}
+const magicStreaks=[]; for(let i=0;i<8;i++) magicStreaks.push(new MagicStreak());
+
+// ---------- Initialize Warlocks ----------
+const warlocks=[];
+for(let i=0;i<4;i++) warlocks.push(new Warlock('cardimages/warlock.png'));
+
+// ---------- Animate ----------
+function animate(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  // Warlocks
+  warlocks.forEach(w=>{ w.update(); w.draw(); });
+
+  // Glyphs
+  floatingGlyphs.forEach(f=>{ f.update(); f.draw(); });
+
+  // Magic streaks
+  magicStreaks.forEach(s=>{ s.update(); s.draw(); });
+
+  // Particles
+  for(let i=particles.length-1;i>=0;i--){ particles[i].update(); particles[i].draw(); if(particles[i].alpha<=0) particles.splice(i,1); }
+
+  requestAnimationFrame(animate);
+}
+animate();
+
+// Auto-hide after 25 seconds
+setTimeout(()=>{
+  document.getElementById('textContainer').style.display='none';
+  canvas.style.display='none';
+},25000);
+</script>
+</body>
+</html>

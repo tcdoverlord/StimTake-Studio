@@ -1,0 +1,28 @@
+PROTECTED LIVE BROADCAST WATERMARK - CHANGE RECORD
+==================================================
+Base candidate:
+  stimtake_v1_waiting_for_vip_toggle_source_patch.zip
+
+Changed source:
+  CreatorStudioV3.cs
+
+Added documentation:
+  PROTECTED-LIVE-BROADCAST-WATERMARK-README.txt
+
+Preserved:
+  CreatorCamPayload.zip
+  Existing action slots and Halloween overlays
+  Existing Waiting for VIP toggle patch
+  Existing optional custom DMCA HTML upload workflow
+  Existing EXE (not rebuilt here)
+
+Behavior added:
+  Editable model/username for built-in protected watermark
+  Saved opacity levels from 10% through 95%
+  Save/show/hide controls in the DMCA area
+  Backward-compatible persistence for older four-field watermark settings
+
+Not validated:
+  Windows .NET Framework compilation
+  Live WinForms layout
+  OBS browser-source runtime behavior

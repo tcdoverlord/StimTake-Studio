@@ -1,0 +1,42 @@
+STIMTAKE v9 - CHATURBATE CONNECTOR TAB FIX
+============================================
+
+Finding
+-------
+The Chaturbate connector UI code was already present in CreatorStudioV3.cs,
+including START CHATURBATE, STOP, TEST 25 TOKEN TIP, username/token fields,
+and connector settings.
+
+The problem was simpler:
+BuildConnectorTab() was never added to mainTabs.TabPages.
+
+That is why the CONNECTORS page did not appear in Backstage.
+
+Fix
+---
+Added exactly one tab registration:
+
+    mainTabs.TabPages.Add(BuildConnectorTab());
+
+Also updated the stale Backstage title that still said "NO SITE APIS".
+
+Preserved
+---------
+- Top Tippers / Fans automatic tip sync
+- Chaturbate bridge code
+- actions
+- layouts
+- skins
+- session tools
+- CreatorCamPayload.zip
+
+Windows test
+------------
+1. Extract to a separate folder.
+2. Run 0-BUILD-AND-START-UPDATED-V1.cmd.
+3. Open Backstage Dashboard.
+4. Confirm a CONNECTORS tab is visible.
+5. Press TEST 25 TOKEN TIP before using a real Chaturbate token.
+6. Confirm Last Tipper, popup, and Top Tippers/Fans all update.
+
+Windows compilation was not performed here.

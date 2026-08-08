@@ -1,0 +1,11 @@
+--- failed-candidate/CreatorStudioV3.cs
++++ buildfix1/CreatorStudioV3.cs
+@@ -50,7 +50,7 @@
+                 catch { }
+             }
+ 
+-            private void PublishStudioBootstrap()
++            internal void PublishStudioBootstrap()
+             {
+                 try
+                 {

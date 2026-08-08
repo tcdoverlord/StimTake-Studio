@@ -1,0 +1,31 @@
+CREATOR CAM v8 ACTION SLOT LIVE TEST RESULTS
+============================================
+
+Build
+- C# compilation: PASSED
+- Embedded JavaScript module parsing: PASSED (11 files)
+- Embedded My Secret Show inline script parsing: PASSED
+- Embedded payload CRC check: PASSED (73 files)
+
+Uploaded HTML runtime
+- External module catalog loading: PASSED
+- Relative external-module base URL normalized to an absolute URL: PASSED
+- No uploaded Action HTML executed during overlay startup: PASSED
+- Classic local script.js execution: PASSED
+- Local ES-module module.mjs execution: PASSED
+- Local style.css loading: PASSED
+- Fresh creatorCamRun URL generated on trigger: PASSED
+- Automatic hide after duration: PASSED
+
+Action slots
+- Slot 1: PASSED
+- Slot 7: PASSED
+- Slot 10: PASSED
+- Slot 13 added after startup and run through automatic reload/retry: PASSED
+- Slot 20: PASSED
+
+Safety
+- The v7 source/build folder was not changed.
+- Test enabled-module and actions-v4 state was backed up before testing.
+- Test slot folders 01, 07, 10, 13, and 20 were restored absence-for-absence afterward.
+- The temporary v8 process was stopped after testing.

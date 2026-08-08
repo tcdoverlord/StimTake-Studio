@@ -1,0 +1,17 @@
+CLEANER LAYOUT UI - STATIC VALIDATION
+====================================
+PASS - json_group_present
+PASS - layout_pack_group_present
+PASS - import_json_explicit
+PASS - export_json_explicit
+PASS - import_pack_explicit
+PASS - export_pack_explicit
+PASS - restore_layout_present
+PASS - legacy_import_method_preserved
+PASS - pack_import_method_preserved
+PASS - curly_balanced
+PASS - paren_balanced
+PASS - bracket_balanced
+PASS - creator_cam_payload_unchanged
+
+Windows compile/runtime validation: NOT PERFORMED

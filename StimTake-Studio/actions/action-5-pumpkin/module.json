@@ -1,0 +1,12 @@
+{
+  "id": "action-5-pumpkin",
+  "name": "Pumpkin",
+  "version": "1.0.0",
+  "type": "ALERT",
+  "canvas": { "width": 1920, "height": 1080 },
+  "overlay": "overlay.html",
+  "defaultEnabled": false,
+  "restartOnTrigger": true,
+  "duration": 10,
+  "actions": ["run"]
+}

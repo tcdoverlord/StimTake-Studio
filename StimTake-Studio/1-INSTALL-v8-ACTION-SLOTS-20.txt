@@ -1,0 +1,24 @@
+TCDOVERLORD CREATOR CAM 4.0 v8 - ACTION SLOTS 1-20
+===================================================
+
+FAST START
+1. Extract the entire v8 ZIP to its own folder.
+2. Double-click Creator-Cam-Overlay-Kit.exe.
+3. Keep the app running while OBS is using the overlay.
+4. Open Backstage Dashboard > ACTION DECK.
+5. Select Action slot 1-20.
+6. Click BROWSE / REPLACE HTML and choose the overlay HTML file.
+7. Click the numbered Action button or RUN SELECTED.
+
+OBS BROWSER SOURCE
+http://127.0.0.1:8787/index.html
+Canvas: 1920 x 1080
+
+IMPORTANT
+- All 20 Action slots start empty. v8 does not automatically assign the old Halloween overlays.
+- Browsing copies the selected HTML and supported local assets into a managed slot backup.
+- Browsing again swaps only the selected slot.
+- The original HTML file is never changed.
+- Use the separate TCDOVERLORD-Action-Overlay-Preloads-Editable.zip if you want the six former included overlays to edit and assign manually.
+
+If OBS was already open, use Refresh cache of current page after starting v8.

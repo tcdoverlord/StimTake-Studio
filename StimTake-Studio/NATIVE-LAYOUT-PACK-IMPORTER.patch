@@ -1,0 +1,432 @@
+--- overlay-position-designer/CreatorStudioV3.cs
++++ native-layout-pack-importer/CreatorStudioV3.cs
+@@ -2902,17 +2902,27 @@
+ 
+             private GroupBox BuildTemplateGroup(int top = 505)
+             {
+-                var group = Group("JSON LAYOUT TEMPLATE SYSTEM", 15, top, 915, 390);
++                var group = Group("JSON LAYOUT TEMPLATE + FULL LAYOUT PACK SYSTEM", 15, top, 915, 500);
+                 group.Controls.Add(LabelAt("Template name", 18, 35)); templateName = Box("My Creator Layout", 18, 57, 250); group.Controls.Add(templateName);
+                 group.Controls.Add(LabelAt("Saved templates", 285, 35)); templateSelector = Combo(new string[] { }, 285, 57, 250); group.Controls.Add(templateSelector);
+                 templateSelector.SelectedIndexChanged += delegate { LoadTemplateEditor(); };
+                 templateEditor = MultiBox(DefaultTemplateJson(), 18, 105, 875, 165); group.Controls.Add(templateEditor);
+-                group.Controls.Add(ButtonAt("SAVE TEMPLATE", 18, 290, 150, delegate { SaveTemplate(); }));
+-                group.Controls.Add(ButtonAt("LOAD TEMPLATE", 178, 290, 150, delegate { PublishTemplate(); }));
+-                group.Controls.Add(ButtonAt("DUPLICATE", 338, 290, 130, delegate { DuplicateTemplate(); }));
+-                group.Controls.Add(ButtonAt("IMPORT", 478, 290, 120, delegate { ImportTemplate(); }));
+-                group.Controls.Add(ButtonAt("EXPORT", 608, 290, 120, delegate { ExportTemplate(); }));
+-                group.Controls.Add(LabelAt("Templates use a 1920×1080 canvas and define Camera, Game, Alert, Goal, Supporter, Recent, Ticker, Brand, and VIP zones.", 18, 345));
++
++                group.Controls.Add(LabelAt("LEGACY JSON TEMPLATE • one editable Creator Cam zone template", 18, 277));
++                group.Controls.Add(ButtonAt("SAVE TEMPLATE", 18, 300, 150, delegate { SaveTemplate(); }));
++                group.Controls.Add(ButtonAt("LOAD TEMPLATE", 178, 300, 150, delegate { PublishTemplate(); }));
++                group.Controls.Add(ButtonAt("DUPLICATE", 338, 300, 130, delegate { DuplicateTemplate(); }));
++                group.Controls.Add(ButtonAt("IMPORT JSON", 478, 300, 120, delegate { ImportTemplate(); }));
++                group.Controls.Add(ButtonAt("EXPORT JSON", 608, 300, 130, delegate { ExportTemplate(); }));
++
++                group.Controls.Add(LabelAt("FULL LAYOUT PACK • swaps all saved X/Y/size/opacity/width positions together", 18, 355));
++                group.Controls.Add(ButtonAt("IMPORT LAYOUT PACK ZIP", 18, 378, 235, delegate { ImportLayoutPackZip(); }));
++                group.Controls.Add(ButtonAt("EXPORT CURRENT PACK", 263, 378, 210, delegate { ExportCurrentLayoutPackZip(); }));
++                group.Controls.Add(ButtonAt("RESTORE PREVIOUS LAYOUT", 483, 378, 225, delegate { RestorePreviousLayoutPack(); }));
++
++                var help = LabelAt("JSON IMPORT remains available for old Creator Cam zone templates. Layout Pack ZIP is a separate package type and validates all 12 movable 1920×1080 overlay elements before replacing the current position set.", 18, 435);
++                help.Size = new Size(855, 45); help.AutoSize = false; group.Controls.Add(help);
++
+                 RefreshTemplateList();
+                 return group;
+             }
+@@ -3407,7 +3417,393 @@
+                 if (templateSelector.Items.Count > 0 && templateSelector.SelectedIndex < 0) templateSelector.SelectedIndex = 0;
+             }
+ 
+-            private void SaveTemplate()
++            
++            private static string[] FullLayoutPackModules()
++            {
++                return new string[] {
++                    "brand", "camera", "goal", "supporters", "last-tipper", "recent",
++                    "ticker", "alert", "game-zone", "vip", "dmca", "background"
++                };
++            }
++
++            private string LayoutPackHistoryFolder()
++            {
++                string folder = owner.StudioPath("layout-pack-history");
++                Directory.CreateDirectory(folder);
++                return folder;
++            }
++
++            private string CreateLayoutPackRecoverySnapshot(string label)
++            {
++                string safe = Regex.Replace(label ?? "layout", "[^A-Za-z0-9._ -]+", "-").Trim();
++                if (safe.Length == 0) safe = "layout";
++                if (safe.Length > 48) safe = safe.Substring(0, 48);
++
++                string stamp = DateTime.Now.ToString("yyyyMMdd-HHmmss");
++                string snapshot = Path.Combine(LayoutPackHistoryFolder(), stamp + "-" + safe + ".txt");
++                string current = owner.StudioPath("module-styles-v3.txt");
++
++                if (File.Exists(current))
++                {
++                    File.Copy(current, snapshot, true);
++                }
++                else
++                {
++                    File.WriteAllText(snapshot, "", new UTF8Encoding(false));
++                }
++
++                return snapshot;
++            }
++
++            private bool TryNormalizeFullLayoutStyles(string text, out string normalized, out string summary, out string error)
++            {
++                normalized = "";
++                summary = "";
++                error = "";
++
++                var allowed = new HashSet<string>(FullLayoutPackModules(), StringComparer.OrdinalIgnoreCase);
++                var found = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
++
++                string[] lines = (text ?? "").Replace("\r", "").Split('\n');
++                for (int index = 0; index < lines.Length; index++)
++                {
++                    string line = lines[index].Trim();
++                    if (line.Length == 0) continue;
++
++                    string[] parts = line.Split('|');
++                    if (parts.Length < 6)
++                    {
++                        error = "Line " + (index + 1) + " does not contain module|x|y|scale|opacity|width.";
++                        return false;
++                    }
++
++                    string module = parts[0].Trim().ToLowerInvariant();
++                    if (!allowed.Contains(module))
++                    {
++                        error = "Unsupported layout module: " + module;
++                        return false;
++                    }
++                    if (found.ContainsKey(module))
++                    {
++                        error = "Duplicate layout module: " + module;
++                        return false;
++                    }
++
++                    decimal x, y, scale, opacity, width;
++                    if (!Decimal.TryParse(parts[1], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out x) &&
++                        !Decimal.TryParse(parts[1], out x))
++                    {
++                        error = module + ": invalid X value.";
++                        return false;
++                    }
++                    if (!Decimal.TryParse(parts[2], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out y) &&
++                        !Decimal.TryParse(parts[2], out y))
++                    {
++                        error = module + ": invalid Y value.";
++                        return false;
++                    }
++                    if (!Decimal.TryParse(parts[3], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out scale))
++                    {
++                        error = module + ": invalid scale value.";
++                        return false;
++                    }
++                    if (!Decimal.TryParse(parts[4], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out opacity))
++                    {
++                        error = module + ": invalid opacity value.";
++                        return false;
++                    }
++                    if (!Decimal.TryParse(parts[5], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out width) &&
++                        !Decimal.TryParse(parts[5], out width))
++                    {
++                        error = module + ": invalid width value.";
++                        return false;
++                    }
++
++                    if (x < -1500 || x > 1500) { error = module + ": X must be between -1500 and 1500."; return false; }
++                    if (y < -900 || y > 900) { error = module + ": Y must be between -900 and 900."; return false; }
++                    if (scale < .25m || scale > 3m) { error = module + ": scale must be between 0.25 and 3.00."; return false; }
++                    if (opacity < 0m || opacity > 1m) { error = module + ": opacity must be between 0 and 1."; return false; }
++                    if (width < 0m || width > 100m) { error = module + ": width must be between 0 and 100."; return false; }
++
++                    found[module] =
++                        module + "|" +
++                        x.ToString(System.Globalization.CultureInfo.InvariantCulture) + "|" +
++                        y.ToString(System.Globalization.CultureInfo.InvariantCulture) + "|" +
++                        scale.ToString(System.Globalization.CultureInfo.InvariantCulture) + "|" +
++                        opacity.ToString(System.Globalization.CultureInfo.InvariantCulture) + "|" +
++                        width.ToString(System.Globalization.CultureInfo.InvariantCulture);
++                }
++
++                string[] required = FullLayoutPackModules();
++                var missing = new List<string>();
++                foreach (string module in required)
++                {
++                    if (!found.ContainsKey(module)) missing.Add(module);
++                }
++
++                if (missing.Count > 0)
++                {
++                    error = "This is not a complete layout pack. Missing: " + String.Join(", ", missing.ToArray());
++                    return false;
++                }
++
++                var output = new List<string>();
++                var preview = new List<string>();
++                foreach (string module in required)
++                {
++                    output.Add(found[module]);
++                    string[] p = found[module].Split('|');
++                    preview.Add(module.PadRight(14) + " X " + p[1].PadLeft(5) + "  Y " + p[2].PadLeft(5) +
++                        "  Size " + (Decimal.Parse(p[3], System.Globalization.CultureInfo.InvariantCulture) * 100m).ToString("0") + "%" +
++                        "  Opacity " + (Decimal.Parse(p[4], System.Globalization.CultureInfo.InvariantCulture) * 100m).ToString("0") + "%");
++                }
++
++                normalized = String.Join(Environment.NewLine, output.ToArray()) + Environment.NewLine;
++                summary = String.Join(Environment.NewLine, preview.ToArray());
++                return true;
++            }
++
++            private string ReadLayoutPackEntry(ZipArchive archive, string fileName, long maximumBytes)
++            {
++                ZipArchiveEntry found = null;
++                foreach (ZipArchiveEntry entry in archive.Entries)
++                {
++                    string clean = (entry.FullName ?? "").Replace('\\', '/');
++                    if (clean.StartsWith("/") || clean.Contains("../") || clean.Contains("/.."))
++                        throw new InvalidDataException("Unsafe ZIP path: " + clean);
++
++                    if (String.Equals(Path.GetFileName(clean), fileName, StringComparison.OrdinalIgnoreCase))
++                    {
++                        if (found != null) throw new InvalidDataException("Layout pack contains more than one " + fileName + ".");
++                        found = entry;
++                    }
++                }
++
++                if (found == null) throw new InvalidDataException("Layout pack is missing " + fileName + ".");
++                if (found.Length > maximumBytes) throw new InvalidDataException(fileName + " exceeds the allowed size.");
++
++                using (Stream stream = found.Open())
++                using (var reader = new StreamReader(stream, Encoding.UTF8, true))
++                {
++                    string text = reader.ReadToEnd();
++                    if (Encoding.UTF8.GetByteCount(text) > maximumBytes)
++                        throw new InvalidDataException(fileName + " exceeds the allowed size.");
++                    return text;
++                }
++            }
++
++            private void ImportLayoutPackZip()
++            {
++                using (var dialog = new OpenFileDialog {
++                    Filter = "StimTake Layout Pack (*.zip)|*.zip",
++                    CheckFileExists = true,
++                    Title = "Import Full StimTake Layout Pack"
++                })
++                {
++                    if (dialog.ShowDialog(this) != DialogResult.OK) return;
++
++                    var info = new FileInfo(dialog.FileName);
++                    if (info.Length > 16L * 1024L * 1024L)
++                    {
++                        MessageBox.Show("Layout Pack ZIP exceeds the 16 MB safety limit.");
++                        return;
++                    }
++
++                    try
++                    {
++                        string manifestText;
++                        string stylesText;
++
++                        using (var file = new FileStream(dialog.FileName, FileMode.Open, FileAccess.Read, FileShare.Read))
++                        using (var archive = new ZipArchive(file, ZipArchiveMode.Read, false))
++                        {
++                            if (archive.Entries.Count > 100)
++                                throw new InvalidDataException("Layout Pack contains too many archive entries.");
++
++                            manifestText = ReadLayoutPackEntry(archive, "layout-pack.json", 256 * 1024);
++                            stylesText = ReadLayoutPackEntry(archive, "module-styles-v3.txt", 256 * 1024);
++                        }
++
++                        if (!Regex.IsMatch(manifestText, "\"type\"\\s*:\\s*\"stimtake-layout-pack\"", RegexOptions.IgnoreCase))
++                        {
++                            MessageBox.Show("That ZIP is not a StimTake Layout Pack.\r\n\r\nUse IMPORT JSON for old Creator Cam zone templates.");
++                            return;
++                        }
++
++                        string normalized, summary, error;
++                        if (!TryNormalizeFullLayoutStyles(stylesText, out normalized, out summary, out error))
++                        {
++                            MessageBox.Show("Layout Pack validation failed.\r\n\r\n" + error, "StimTake Layout Pack", MessageBoxButtons.OK, MessageBoxIcon.Error);
++                            return;
++                        }
++
++                        DialogResult approval = MessageBox.Show(
++                            "Full Layout Pack validated successfully.\r\n\r\n" + summary +
++                            "\r\n\r\nThis will replace all 12 saved overlay position records.\r\nThe current layout will be backed up first.\r\n\r\nContinue?",
++                            "Import Full Layout Pack",
++                            MessageBoxButtons.YesNo,
++                            MessageBoxIcon.Question);
++                        if (approval != DialogResult.Yes) return;
++
++                        string recovery = CreateLayoutPackRecoverySnapshot(Path.GetFileNameWithoutExtension(dialog.FileName));
++                        string target = owner.StudioPath("module-styles-v3.txt");
++                        string staging = target + ".layout-stage-" + Guid.NewGuid().ToString("N");
++
++                        File.WriteAllText(staging, normalized, new UTF8Encoding(false));
++                        string stagedText = File.ReadAllText(staging, Encoding.UTF8);
++                        string stagedNormalized, stagedSummary, stagedError;
++                        if (!TryNormalizeFullLayoutStyles(stagedText, out stagedNormalized, out stagedSummary, out stagedError))
++                            throw new InvalidDataException("Staged layout failed validation: " + stagedError);
++
++                        try
++                        {
++                            File.Copy(staging, target, true);
++                            owner.PublishStudioBootstrap();
++                            LoadSelectedModuleStyle();
++                            MessageBox.Show(
++                                "Full Layout Pack applied.\r\n\r\nPrevious positions were preserved at:\r\n" + recovery,
++                                "StimTake Layout Pack");
++                        }
++                        catch
++                        {
++                            try
++                            {
++                                if (File.Exists(recovery)) File.Copy(recovery, target, true);
++                                owner.PublishStudioBootstrap();
++                            }
++                            catch { }
++                            throw;
++                        }
++                        finally
++                        {
++                            try { if (File.Exists(staging)) File.Delete(staging); } catch { }
++                        }
++                    }
++                    catch (Exception error)
++                    {
++                        MessageBox.Show(
++                            "Layout Pack was not applied.\r\n\r\n" + error.Message,
++                            "StimTake Layout Pack",
++                            MessageBoxButtons.OK,
++                            MessageBoxIcon.Error);
++                    }
++                }
++            }
++
++            private void ExportCurrentLayoutPackZip()
++            {
++                string stylesPath = owner.StudioPath("module-styles-v3.txt");
++                if (!File.Exists(stylesPath))
++                {
++                    MessageBox.Show("No saved module position file exists yet. Move/save the overlay elements first.");
++                    return;
++                }
++
++                string normalized, summary, error;
++                if (!TryNormalizeFullLayoutStyles(File.ReadAllText(stylesPath, Encoding.UTF8), out normalized, out summary, out error))
++                {
++                    MessageBox.Show(
++                        "Current layout cannot be exported as a FULL pack yet.\r\n\r\n" + error +
++                        "\r\n\r\nOpen the Overlay Position Designer and save/reset each missing element once.",
++                        "StimTake Layout Pack");
++                    return;
++                }
++
++                string defaultName = SafeTemplateName(templateName != null ? templateName.Text : "My Layout") + "_Layout_Pack.zip";
++                using (var dialog = new SaveFileDialog {
++                    Filter = "StimTake Layout Pack (*.zip)|*.zip",
++                    FileName = defaultName,
++                    OverwritePrompt = true
++                })
++                {
++                    if (dialog.ShowDialog(this) != DialogResult.OK) return;
++
++                    string manifest =
++                        "{\r\n" +
++                        "  \"schemaVersion\": 1,\r\n" +
++                        "  \"type\": \"stimtake-layout-pack\",\r\n" +
++                        "  \"name\": \"" + ControlDeckForm.Json(Path.GetFileNameWithoutExtension(dialog.FileName)) + "\",\r\n" +
++                        "  \"canvas\": { \"width\": 1920, \"height\": 1080 },\r\n" +
++                        "  \"sourceFormat\": \"module-styles-v3.txt\",\r\n" +
++                        "  \"moduleCount\": 12\r\n" +
++                        "}\r\n";
++
++                    using (var file = new FileStream(dialog.FileName, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
++                    using (var archive = new ZipArchive(file, ZipArchiveMode.Create, false))
++                    {
++                        ZipArchiveEntry manifestEntry = archive.CreateEntry("layout-pack.json", CompressionLevel.Optimal);
++                        using (var writer = new StreamWriter(manifestEntry.Open(), new UTF8Encoding(false))) writer.Write(manifest);
++
++                        ZipArchiveEntry stylesEntry = archive.CreateEntry("module-styles-v3.txt", CompressionLevel.Optimal);
++                        using (var writer = new StreamWriter(stylesEntry.Open(), new UTF8Encoding(false))) writer.Write(normalized);
++
++                        ZipArchiveEntry readmeEntry = archive.CreateEntry("README.txt", CompressionLevel.Optimal);
++                        using (var writer = new StreamWriter(readmeEntry.Open(), new UTF8Encoding(false)))
++                        {
++                            writer.Write(
++                                "StimTake Full Layout Pack\r\n" +
++                                "Canvas: 1920 x 1080\r\n" +
++                                "Modules: 12\r\n" +
++                                "Import from LAYOUT + THEMES > JSON LAYOUT TEMPLATE + FULL LAYOUT PACK SYSTEM.\r\n");
++                        }
++                    }
++
++                    MessageBox.Show("Full Layout Pack exported successfully.", "StimTake Layout Pack");
++                }
++            }
++
++            private void RestorePreviousLayoutPack()
++            {
++                string history = LayoutPackHistoryFolder();
++                string[] backups = Directory.GetFiles(history, "*.txt");
++                if (backups.Length == 0)
++                {
++                    MessageBox.Show("No previous Layout Pack recovery backup exists yet.");
++                    return;
++                }
++
++                Array.Sort(backups, StringComparer.OrdinalIgnoreCase);
++                string previous = backups[backups.Length - 1];
++
++                if (MessageBox.Show(
++                    "Restore the most recent saved layout positions?\r\n\r\n" + Path.GetFileName(previous) +
++                    "\r\n\r\nThe current position set will be backed up first.",
++                    "Restore Previous Layout",
++                    MessageBoxButtons.YesNo,
++                    MessageBoxIcon.Question) != DialogResult.Yes) return;
++
++                string currentRecovery = CreateLayoutPackRecoverySnapshot("before-layout-restore");
++                string target = owner.StudioPath("module-styles-v3.txt");
++
++                try
++                {
++                    string normalized, summary, error;
++                    if (!TryNormalizeFullLayoutStyles(File.ReadAllText(previous, Encoding.UTF8), out normalized, out summary, out error))
++                        throw new InvalidDataException("Backup validation failed: " + error);
++
++                    File.WriteAllText(target, normalized, new UTF8Encoding(false));
++                    owner.PublishStudioBootstrap();
++                    LoadSelectedModuleStyle();
++                    MessageBox.Show("Previous full layout restored successfully.", "StimTake Layout Pack");
++                }
++                catch (Exception error)
++                {
++                    try
++                    {
++                        if (File.Exists(currentRecovery)) File.Copy(currentRecovery, target, true);
++                        owner.PublishStudioBootstrap();
++                    }
++                    catch { }
++
++                    MessageBox.Show(
++                        "Previous layout could not be restored.\r\n\r\n" + error.Message,
++                        "StimTake Layout Pack",
++                        MessageBoxButtons.OK,
++                        MessageBoxIcon.Error);
++                }
++            }
++
++private void SaveTemplate()
+             {
+                 if (!ControlDeckForm.IsTemplateJson(templateEditor.Text)) { MessageBox.Show("Template JSON must contain a valid zones object."); return; }
+                 string name = SafeTemplateName(templateName.Text);

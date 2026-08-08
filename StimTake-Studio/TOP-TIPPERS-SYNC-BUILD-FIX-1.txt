@@ -1,0 +1,42 @@
+STIMTAKE v9 - TOP TIPPERS SYNC - BUILD FIX 1
+================================================
+
+Windows compiler evidence received
+----------------------------------
+CS0122 / CS0103 / CS1061 around Match, Regex, RegexOptions.
+CS0160 because ObjectDisposedException was placed after InvalidOperationException.
+
+Cause
+-----
+1. CreatorCamLauncher.cs already imports System.IO.Compression. The new parser
+   used unqualified Match / Regex names without importing the regular-expression
+   namespace, so the old .NET compiler resolved Match incorrectly.
+
+2. ObjectDisposedException derives from InvalidOperationException. The general
+   catch was placed before the specific catch, making the second catch unreachable.
+
+Smallest repair
+---------------
+- Fully qualified only the new regular-expression types:
+  System.Text.RegularExpressions.Match
+  System.Text.RegularExpressions.Regex
+  System.Text.RegularExpressions.RegexOptions
+
+- Reordered the two catch clauses:
+  ObjectDisposedException first
+  InvalidOperationException second
+
+No tip logic, supporter logic, connector logic, UI logic, payload, or Studio V3
+logic was rewritten.
+
+Expected retest
+---------------
+Run 0-BUILD-AND-START-UPDATED-V1.cmd in a separate test folder.
+
+If the build succeeds:
+1. Press TEST 25 TOKEN TIP once -> ConnectorTest should appear at 25.
+2. Press it again -> same row should become 50.
+3. Confirm no duplicate row is created.
+4. Only after that move to a controlled real Chaturbate tip.
+
+Windows compilation has NOT been performed in this environment.

@@ -1,0 +1,384 @@
+--- baseline/CreatorStudioV3.cs
++++ dual-action-loader/CreatorStudioV3.cs
+@@ -1094,6 +1094,322 @@
+                         MessageBox.Show("Action " + slot + " could not import that HTML safely.\r\n\r\n" + error.Message, "Creator Cam Studio", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                         return false;
+                     }
++                }
++            }
++
++
++            private string ActionPackHistoryFolder()
++            {
++                string folder = StudioPath("backupscripts_action_v4_pack_history");
++                Directory.CreateDirectory(folder);
++                return folder;
++            }
++
++            private string CreateActionPackRecoverySnapshot(string label)
++            {
++                string safeLabel = Regex.Replace(CleanActionField(label), "[^A-Za-z0-9._ -]+", "-").Trim();
++                if (safeLabel.Length == 0) safeLabel = "action-pack";
++                if (safeLabel.Length > 48) safeLabel = safeLabel.Substring(0, 48);
++                string stamp = DateTime.Now.ToString("yyyyMMdd-HHmmss");
++                string snapshot = Path.Combine(ActionPackHistoryFolder(), stamp + "-" + safeLabel);
++                Directory.CreateDirectory(snapshot);
++
++                string actionConfig = StudioPath("actions-v4.txt");
++                if (File.Exists(actionConfig)) File.Copy(actionConfig, Path.Combine(snapshot, "actions-v4.txt"), true);
++
++                for (int slot = 1; slot <= 20; slot++)
++                {
++                    string source = ActionSlotBackupFolder(slot);
++                    if (!Directory.Exists(source)) continue;
++                    string destination = Path.Combine(snapshot, "slot-" + slot.ToString("00"));
++                    CopyHtmlModuleAssets(source, destination);
++                }
++
++                File.WriteAllText(
++                    Path.Combine(snapshot, "RECOVERY.txt"),
++                    "StimTake Action Deck recovery snapshot\r\nCreated: " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") +
++                    "\r\nReason: " + safeLabel +
++                    "\r\nRestore from the Action Deck using RESTORE PREVIOUS 20-PACK.\r\n",
++                    new UTF8Encoding(false));
++                return snapshot;
++            }
++
++            private static bool IsSafeActionPackAssetExtension(string extension)
++            {
++                return Regex.IsMatch(extension ?? "", "^\\.(json|html|htm|css|js|mjs|png|jpg|jpeg|gif|webp|svg|wav|mp3|ogg|txt|woff|woff2|ttf|otf|mp4|webm)$", RegexOptions.IgnoreCase);
++            }
++
++            private static string ActionPackFolderDisplayName(string prefix, string manifest)
++            {
++                string name = ManifestValue(manifest, "name");
++                if (name.Length > 0) return name.Length > 80 ? name.Substring(0, 80) : name;
++                string trimmed = (prefix ?? "").TrimEnd('/');
++                int slash = trimmed.LastIndexOf('/');
++                string folder = slash >= 0 ? trimmed.Substring(slash + 1) : trimmed;
++                folder = Regex.Replace(folder, "^(action|slot)-(0[1-9]|1[0-9]|20)-?", "", RegexOptions.IgnoreCase).Replace('-', ' ').Trim();
++                if (folder.Length == 0) folder = "Action";
++                return folder.Length > 80 ? folder.Substring(0, 80) : folder;
++            }
++
++            private void RestoreActionDeckSnapshot(string snapshot)
++            {
++                if (String.IsNullOrWhiteSpace(snapshot) || !Directory.Exists(snapshot)) throw new DirectoryNotFoundException("The Action Pack recovery snapshot is missing.");
++
++                string restoreStage = Path.Combine(ActionSlotsFolder(), ".restore-pack-" + Guid.NewGuid().ToString("N"));
++                Directory.CreateDirectory(restoreStage);
++                try
++                {
++                    var restoredLines = new List<string>();
++                    string savedConfig = Path.Combine(snapshot, "actions-v4.txt");
++                    var names = new Dictionary<int, string>();
++                    if (File.Exists(savedConfig))
++                    {
++                        foreach (string line in File.ReadAllLines(savedConfig))
++                        {
++                            string[] parts = line.Split('|'); int slot;
++                            if (parts.Length >= 3 && Int32.TryParse(parts[0], out slot) && slot >= 1 && slot <= 20)
++                                names[slot] = parts[1];
++                        }
++                    }
++
++                    for (int slot = 1; slot <= 20; slot++)
++                    {
++                        string source = Path.Combine(snapshot, "slot-" + slot.ToString("00"));
++                        string id = ActionSlotId(slot);
++                        if (!Directory.Exists(source) || !File.Exists(Path.Combine(source, "overlay.html")))
++                        {
++                            restoredLines.Add(slot + "|Empty||run|fade");
++                            continue;
++                        }
++
++                        string slotStage = Path.Combine(restoreStage, "slot-" + slot.ToString("00"));
++                        CopyHtmlModuleAssets(source, slotStage);
++                        string displayName = names.ContainsKey(slot) ? CleanActionField(names[slot]) : "Action " + slot;
++                        if (displayName.Length == 0) displayName = "Action " + slot;
++                        WriteActionBackupManifest(slotStage, id, displayName);
++                        restoredLines.Add(slot + "|" + displayName + "|" + id + "|run|fade");
++                    }
++
++                    for (int slot = 1; slot <= 20; slot++)
++                    {
++                        string id = ActionSlotId(slot);
++                        string staged = Path.Combine(restoreStage, "slot-" + slot.ToString("00"));
++                        string backupDestination = ActionSlotBackupFolder(slot);
++                        string moduleDestination = Path.Combine(ModulesFolder(), id);
++
++                        if (Directory.Exists(staged))
++                        {
++                            string backupStage = Path.Combine(ActionSlotsFolder(), ".restore-backup-" + Guid.NewGuid().ToString("N"));
++                            string moduleStage = Path.Combine(ModulesFolder(), ".restore-module-" + Guid.NewGuid().ToString("N"));
++                            CopyHtmlModuleAssets(staged, backupStage);
++                            CopyHtmlModuleAssets(staged, moduleStage);
++                            CommitActionDirectory(backupStage, backupDestination);
++                            CommitActionDirectory(moduleStage, moduleDestination);
++                        }
++                        else
++                        {
++                            if (Directory.Exists(backupDestination)) Directory.Delete(backupDestination, true);
++                            if (Directory.Exists(moduleDestination)) Directory.Delete(moduleDestination, true);
++                        }
++                    }
++
++                    File.WriteAllLines(StudioPath("actions-v4.txt"), restoredLines.ToArray());
++                    var enabled = LoadEnabledModules();
++                    enabled.RemoveAll(delegate(string id) { return IsActionSlotModuleId(id); });
++                    foreach (string line in restoredLines)
++                    {
++                        string[] parts = line.Split('|');
++                        if (parts.Length >= 3 && parts[2].Length > 0 && !enabled.Contains(parts[2])) enabled.Add(parts[2]);
++                    }
++                    SaveEnabledModules(enabled);
++                    server.Publish("modules-reload", "{}");
++                    server.Publish("action-config", "{\"actions\":[" + ActionDefinitionsJson() + "]}");
++                }
++                finally
++                {
++                    try { if (Directory.Exists(restoreStage)) Directory.Delete(restoreStage, true); } catch { }
++                }
++            }
++
++            internal bool InstallActionPackZip()
++            {
++                using (var dialog = new OpenFileDialog
++                {
++                    Filter = "StimTake 20-Action Pack (*.zip)|*.zip",
++                    CheckFileExists = true,
++                    Title = "Choose a StimTake 20-Action Pack"
++                })
++                {
++                    if (dialog.ShowDialog(this) != DialogResult.OK) return false;
++                    if (new FileInfo(dialog.FileName).Length > 300L * 1024L * 1024L)
++                    {
++                        MessageBox.Show("Action Pack is larger than the 300 MB safety limit.");
++                        return false;
++                    }
++
++                    string stagingRoot = Path.Combine(ActionSlotsFolder(), ".pack-import-" + Guid.NewGuid().ToString("N"));
++                    string recoverySnapshot = "";
++                    try
++                    {
++                        var prefixes = new Dictionary<int, string>();
++                        var manifests = new Dictionary<int, string>();
++                        long expandedBytes = 0;
++
++                        using (var archive = ZipFile.OpenRead(dialog.FileName))
++                        {
++                            if (archive.Entries.Count > 1200) throw new InvalidDataException("Action Pack contains too many files.");
++
++                            foreach (ZipArchiveEntry entry in archive.Entries)
++                            {
++                                string normalized = entry.FullName.Replace('\\', '/').TrimStart('/');
++                                Match match = Regex.Match(normalized, "(?:^|/)(?<folder>(?:action|slot)-(?<slot>0[1-9]|1[0-9]|20)(?:-[^/]+)?)/overlay\\.html$", RegexOptions.IgnoreCase);
++                                if (!match.Success) continue;
++                                int slot = Int32.Parse(match.Groups["slot"].Value);
++                                string prefix = normalized.Substring(0, normalized.Length - "overlay.html".Length);
++                                if (prefixes.ContainsKey(slot) && !String.Equals(prefixes[slot], prefix, StringComparison.OrdinalIgnoreCase))
++                                    throw new InvalidDataException("Action Pack contains more than one overlay for slot " + slot + ".");
++                                prefixes[slot] = prefix;
++                            }
++
++                            var missing = new List<string>();
++                            for (int slot = 1; slot <= 20; slot++) if (!prefixes.ContainsKey(slot)) missing.Add(slot.ToString());
++                            if (missing.Count > 0) throw new InvalidDataException("This is not a complete 20-Action Pack. Missing slot(s): " + String.Join(", ", missing.ToArray()));
++
++                            Directory.CreateDirectory(stagingRoot);
++                            for (int slot = 1; slot <= 20; slot++)
++                            {
++                                string prefix = prefixes[slot];
++                                string slotStage = Path.Combine(stagingRoot, "slot-" + slot.ToString("00"));
++                                string safeStage = Path.GetFullPath(slotStage) + Path.DirectorySeparatorChar;
++                                Directory.CreateDirectory(slotStage);
++
++                                foreach (ZipArchiveEntry entry in archive.Entries)
++                                {
++                                    if (String.IsNullOrEmpty(entry.Name)) continue;
++                                    string normalized = entry.FullName.Replace('\\', '/').TrimStart('/');
++                                    if (!normalized.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) continue;
++                                    string relative = normalized.Substring(prefix.Length).TrimStart('/');
++                                    if (relative.Length == 0) continue;
++                                    if (relative.Contains("../") || relative.StartsWith("..", StringComparison.Ordinal)) throw new InvalidDataException("Unsafe Action Pack path was blocked.");
++                                    if (entry.Length > 32L * 1024L * 1024L) throw new InvalidDataException("An Action Pack file exceeds the 32 MB safety limit.");
++                                    expandedBytes += entry.Length;
++                                    if (expandedBytes > 500L * 1024L * 1024L) throw new InvalidDataException("Expanded Action Pack exceeds the 500 MB safety limit.");
++                                    string extension = Path.GetExtension(relative);
++                                    if (!IsSafeActionPackAssetExtension(extension)) continue;
++                                    string destination = Path.GetFullPath(Path.Combine(slotStage, relative.Replace('/', Path.DirectorySeparatorChar)));
++                                    if (!destination.StartsWith(safeStage, StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("Unsafe Action Pack destination was blocked.");
++                                    Directory.CreateDirectory(Path.GetDirectoryName(destination));
++                                    entry.ExtractToFile(destination, true);
++                                }
++
++                                string overlay = Path.Combine(slotStage, "overlay.html");
++                                if (!File.Exists(overlay)) throw new InvalidDataException("Slot " + slot + " did not stage overlay.html correctly.");
++
++                                string manifestPath = Path.Combine(slotStage, "module.json");
++                                string manifest = File.Exists(manifestPath) ? File.ReadAllText(manifestPath, Encoding.UTF8) : "";
++                                string displayName = ActionPackFolderDisplayName(prefix, manifest);
++                                manifests[slot] = displayName;
++                                WriteActionBackupManifest(slotStage, ActionSlotId(slot), displayName);
++                            }
++                        }
++
++                        string preview = "";
++                        for (int slot = 1; slot <= 20; slot++) preview += slot.ToString("00") + "  " + manifests[slot] + "\r\n";
++                        DialogResult approval = MessageBox.Show(
++                            "20-Action Pack validated successfully.\r\n\r\n" + preview +
++                            "\r\nThis will replace ALL 20 current Action slots.\r\nA recovery snapshot will be created first.\r\n\r\nContinue?",
++                            "Import 20-Action Pack",
++                            MessageBoxButtons.YesNo,
++                            MessageBoxIcon.Question);
++                        if (approval != DialogResult.Yes) return false;
++
++                        recoverySnapshot = CreateActionPackRecoverySnapshot(Path.GetFileNameWithoutExtension(dialog.FileName));
++
++                        var newLines = new List<string>();
++                        for (int slot = 1; slot <= 20; slot++)
++                        {
++                            string id = ActionSlotId(slot);
++                            string displayName = manifests[slot];
++                            string staged = Path.Combine(stagingRoot, "slot-" + slot.ToString("00"));
++
++                            string backupStage = Path.Combine(ActionSlotsFolder(), ".pack-backup-" + Guid.NewGuid().ToString("N"));
++                            string moduleStage = Path.Combine(ModulesFolder(), ".pack-module-" + Guid.NewGuid().ToString("N"));
++                            CopyHtmlModuleAssets(staged, backupStage);
++                            CopyHtmlModuleAssets(staged, moduleStage);
++                            CommitActionDirectory(backupStage, ActionSlotBackupFolder(slot));
++                            CommitActionDirectory(moduleStage, Path.Combine(ModulesFolder(), id));
++                            newLines.Add(slot + "|" + CleanActionField(displayName) + "|" + id + "|run|fade");
++                        }
++
++                        File.WriteAllLines(StudioPath("actions-v4.txt"), newLines.ToArray());
++                        var enabled = LoadEnabledModules();
++                        enabled.RemoveAll(delegate(string id) { return IsActionSlotModuleId(id); });
++                        for (int slot = 1; slot <= 20; slot++) enabled.Add(ActionSlotId(slot));
++                        SaveEnabledModules(enabled);
++                        server.Publish("modules-reload", "{}");
++                        server.Publish("action-config", "{\"actions\":[" + ActionDefinitionsJson() + "]}");
++                        MessageBox.Show(
++                            "20-Action Pack installed.\r\n\r\nThe previous Action Deck was preserved at:\r\n" + recoverySnapshot,
++                            "Creator Cam Studio");
++                        return true;
++                    }
++                    catch (Exception error)
++                    {
++                        if (recoverySnapshot.Length > 0)
++                        {
++                            try { RestoreActionDeckSnapshot(recoverySnapshot); }
++                            catch (Exception restoreError)
++                            {
++                                MessageBox.Show(
++                                    "Action Pack import failed and automatic rollback also reported an error.\r\n\r\nImport error:\r\n" + error.Message +
++                                    "\r\n\r\nRollback error:\r\n" + restoreError.Message +
++                                    "\r\n\r\nRecovery snapshot:\r\n" + recoverySnapshot,
++                                    "Creator Cam Studio",
++                                    MessageBoxButtons.OK,
++                                    MessageBoxIcon.Error);
++                                return false;
++                            }
++                        }
++                        MessageBox.Show("Action Pack was not installed.\r\n\r\n" + error.Message, "Creator Cam Studio", MessageBoxButtons.OK, MessageBoxIcon.Error);
++                        return false;
++                    }
++                    finally
++                    {
++                        try { if (Directory.Exists(stagingRoot)) Directory.Delete(stagingRoot, true); } catch { }
++                    }
++                }
++            }
++
++            internal bool RestorePreviousActionPack()
++            {
++                string history = ActionPackHistoryFolder();
++                string[] snapshots = Directory.GetDirectories(history);
++                if (snapshots.Length == 0)
++                {
++                    MessageBox.Show("No previous 20-Action Pack recovery snapshot exists yet.");
++                    return false;
++                }
++                Array.Sort(snapshots, StringComparer.OrdinalIgnoreCase);
++                string snapshot = snapshots[snapshots.Length - 1];
++                if (MessageBox.Show(
++                    "Restore the most recent Action Deck snapshot?\r\n\r\n" + Path.GetFileName(snapshot) +
++                    "\r\n\r\nThe current Action Deck will be preserved first.",
++                    "Restore Previous 20-Pack",
++                    MessageBoxButtons.YesNo,
++                    MessageBoxIcon.Question) != DialogResult.Yes) return false;
++
++                string currentSnapshot = CreateActionPackRecoverySnapshot("before-restore");
++                try
++                {
++                    RestoreActionDeckSnapshot(snapshot);
++                    MessageBox.Show("Previous Action Deck restored successfully.", "Creator Cam Studio");
++                    return true;
++                }
++                catch (Exception error)
++                {
++                    try { RestoreActionDeckSnapshot(currentSnapshot); } catch { }
++                    MessageBox.Show("Previous Action Deck could not be restored.\r\n\r\n" + error.Message, "Creator Cam Studio", MessageBoxButtons.OK, MessageBoxIcon.Error);
++                    return false;
+                 }
+             }
+ 
+@@ -1965,19 +2281,46 @@
+                     deck.Controls.Add(actionButtons[i]);
+                 }
+ 
+-                var scripts = Group("BROWSE / REPLACE ACTION HTML • NO PRELOADS", 15, 235, 915, 300); page.Controls.Add(scripts);
+-                scripts.Controls.Add(LabelAt("Action slot", 18, 36));
+-                actionSlot = Combo(new string[] { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20" }, 18, 58, 75); scripts.Controls.Add(actionSlot);
++                var scripts = Group("ACTION DECK LOADER • RETRO SINGLE-SLOT + NEW 20-PACK MODE", 15, 235, 915, 405); page.Controls.Add(scripts);
++
++                scripts.Controls.Add(LabelAt("RETRO MODE • replace one Action at a time", 18, 28));
++                scripts.Controls.Add(LabelAt("Action slot", 18, 58));
++                actionSlot = Combo(new string[] { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20" }, 18, 80, 75); scripts.Controls.Add(actionSlot);
+                 actionSlot.SelectedIndexChanged += delegate { RefreshActionSlotEditor(); };
+-                scripts.Controls.Add(LabelAt("Overlay name (optional)", 110, 36));
+-                actionSlotName = Box("", 110, 58, 300); scripts.Controls.Add(actionSlotName);
+-                scripts.Controls.Add(ButtonAt("BROWSE / REPLACE HTML", 430, 55, 250, delegate { BrowseActionSlotHtml(); }));
+-                scripts.Controls.Add(ButtonAt("STOP ALL", 18, 110, 125, delegate { StopAllActions(); }));
+-                scripts.Controls.Add(ButtonAt("CLEAR SLOT", 153, 110, 135, delegate { ClearSelectedActionSlot(); }));
+-                scripts.Controls.Add(ButtonAt("REFRESH", 298, 110, 125, delegate { RefreshActionSlotEditor(); RefreshActionButtons(); }));
+-                actionSlotStatus = LabelAt("Slot 1: EMPTY", 18, 165); actionSlotStatus.Size = new Size(855, 45); actionSlotStatus.AutoSize = false; scripts.Controls.Add(actionSlotStatus);
+-                var actionHelp = LabelAt("Choose a slot, click Browse / Replace HTML, and select the overlay.html file anywhere on your PC. Creator Cam copies the HTML plus local scripts, styles, images, audio, fonts, and video into that slot. Selecting a new file swaps only that slot.", 18, 215);
+-                actionHelp.Size = new Size(850, 60); actionHelp.AutoSize = false; scripts.Controls.Add(actionHelp);
++                scripts.Controls.Add(LabelAt("Overlay name (optional)", 110, 58));
++                actionSlotName = Box("", 110, 80, 300); scripts.Controls.Add(actionSlotName);
++                scripts.Controls.Add(ButtonAt("BROWSE / REPLACE ONE HTML", 430, 77, 250, delegate { BrowseActionSlotHtml(); }));
++
++                scripts.Controls.Add(LabelAt("20-PACK MODE • validate, back up, then replace all twenty slots together", 18, 132));
++                scripts.Controls.Add(ButtonAt("IMPORT / REPLACE 20-PACK ZIP", 18, 158, 270, delegate
++                {
++                    StopAllActions();
++                    if (owner.InstallActionPackZip())
++                    {
++                        activeActionSlots.Clear();
++                        RefreshActionButtons();
++                        RefreshActionSlotEditor();
++                        SetEvent("20-Action Pack imported");
++                    }
++                }));
++                scripts.Controls.Add(ButtonAt("RESTORE PREVIOUS 20-PACK", 298, 158, 245, delegate
++                {
++                    StopAllActions();
++                    if (owner.RestorePreviousActionPack())
++                    {
++                        activeActionSlots.Clear();
++                        RefreshActionButtons();
++                        RefreshActionSlotEditor();
++                        SetEvent("Previous Action Pack restored");
++                    }
++                }));
++
++                scripts.Controls.Add(ButtonAt("STOP ALL", 18, 218, 125, delegate { StopAllActions(); }));
++                scripts.Controls.Add(ButtonAt("CLEAR SLOT", 153, 218, 135, delegate { ClearSelectedActionSlot(); }));
++                scripts.Controls.Add(ButtonAt("REFRESH", 298, 218, 125, delegate { RefreshActionSlotEditor(); RefreshActionButtons(); }));
++                actionSlotStatus = LabelAt("Slot 1: EMPTY", 18, 270); actionSlotStatus.Size = new Size(855, 45); actionSlotStatus.AutoSize = false; scripts.Controls.Add(actionSlotStatus);
++                var actionHelp = LabelAt("RETRO keeps the original one-slot-at-a-time workflow. 20-PACK imports a complete ZIP with action-01...action-20 (or slot-01...slot-20) folders. The entire pack is validated before replacement, and the old deck is saved for recovery.", 18, 325);
++                actionHelp.Size = new Size(850, 64); actionHelp.AutoSize = false; scripts.Controls.Add(actionHelp);
+                 RefreshActionButtons();
+                 RefreshActionSlotEditor();
+                 return page;

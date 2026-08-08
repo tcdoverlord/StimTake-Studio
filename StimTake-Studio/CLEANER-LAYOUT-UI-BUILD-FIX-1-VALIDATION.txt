@@ -1,0 +1,10 @@
+CLEANER LAYOUT UI BUILD FIX 1 - STATIC VALIDATION
+=================================================
+PASS - PublishStudioBootstrap is internal
+PASS - private declaration removed
+PASS - four dashboard owner calls retained
+PASS - curly delimiter count unchanged
+PASS - paren delimiter count unchanged
+PASS - CreatorCamPayload.zip unchanged
+
+Windows compiler validation: NOT PERFORMED HERE

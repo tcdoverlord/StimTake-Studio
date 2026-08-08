@@ -1,0 +1,16 @@
+PASS - No unqualified Match declarations
+PASS - Regex Match fully qualified twice
+PASS - RegexOptions fully qualified twice
+PASS - Regex Unescape fully qualified
+PASS - ObjectDisposed catch before InvalidOperation catch
+PASS - Top-tipper event subscription preserved
+PASS - Tip accumulation preserved
+PASS - New tipper creation preserved
+PASS - Ranking sort preserved
+PASS - Persist + OBS sync preserved
+PASS - Curly delimiters balanced
+PASS - Paren delimiters balanced
+PASS - CreatorCamPayload unchanged
+PASS - CreatorStudioV3 unchanged
+
+Windows C# compilation: NOT PERFORMED HERE

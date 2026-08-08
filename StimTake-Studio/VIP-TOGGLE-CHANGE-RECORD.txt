@@ -1,0 +1,41 @@
+STIMTAKE V1 - WAITING FOR VIP TOGGLE CHANGE RECORD
+
+SOURCE ARCHIVE PRESERVED
+Original: stimtake_v1_session_backup_fix.zip
+Original SHA-256: 70302abf0dfebed75fed046162e7e49638f8f4946212f20bf69f45df50fb40f7
+
+REQUEST
+Add an ON/OFF control in StimTake Studio for the VIP badge that displays WAITING FOR VIP.
+
+IMPLEMENTATION
+- Added WAITING FOR VIP: ON/OFF button to the existing overlay display control group.
+- Added a third persisted visibility value, vipBadge, alongside Last Tipper and Last Supporter.
+- OFF hides the complete [data-module="vip"] card only.
+- VIP/supporter/tip/session data is not erased.
+- Older two-value supporter-overlay-visibility-v1.txt files remain compatible and default VIP visibility to ON.
+- Updated the embedded CreatorCamPayload.zip overlay JavaScript to apply the persisted VIP visibility.
+
+PRESERVED
+- Original uploaded ZIP unchanged.
+- Existing compiled EXE files preserved unchanged inside this candidate package.
+- Existing Last Tipper and Last Supporter toggle semantics preserved.
+- Existing action slots and Halloween overlays untouched.
+
+VALIDATION PERFORMED
+- JavaScript syntax: PASSED with node --check.
+- Embedded payload ZIP integrity: PASSED.
+- Embedded payload file set: 73 files before and after; no file missing or added.
+- C# targeted structural checks: expected new fields/method/payload/button present.
+- Raw delimiter counts in CreatorStudioV3.cs remained balanced.
+
+NOT VALIDATED HERE
+- Windows .NET Framework C# compilation.
+- WinForms layout rendering.
+- Live OBS/browser overlay behavior.
+- Persistence across a real Windows app restart.
+
+NEXT RESPONSIBLE ACTION
+On the Windows build machine, close the running Studio and run:
+    0-BUILD-AND-START-UPDATED-V1.cmd
+
+Then perform the manual toggle test in WAITING-FOR-VIP-TOGGLE-README.txt.

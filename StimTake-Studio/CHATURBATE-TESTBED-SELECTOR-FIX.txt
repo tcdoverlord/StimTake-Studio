@@ -1,0 +1,48 @@
+STIMTAKE v9 - CHATURBATE LIVE / TESTBED SELECTOR FIX
+=====================================================
+
+Evidence
+--------
+The supplied Chaturbate test URL uses:
+  events.testbed.cb.dev
+
+The existing StimTake Python bridge already supports:
+  --testbed
+
+But the Windows CONNECTORS UI never passed that switch. Therefore every
+START CHATURBATE launch used the LIVE Events API even while the broadcaster
+and tipper were operating on Chaturbate's isolated TESTBED.
+
+Fix
+---
+Added an Environment selector:
+  LIVE
+  TESTBED
+
+When TESTBED is selected, StimTake launches the existing bridge with:
+  --testbed
+
+The status now explicitly says LIVE or TESTBED so "RUNNING" is no longer
+ambiguous.
+
+No event parsing, tip totals, overlay payload, or Top Tippers logic was
+changed.
+
+Test
+----
+1. Build in a separate folder.
+2. Open Backstage > CONNECTORS.
+3. Select TESTBED.
+4. Enter the testbed broadcaster username.
+5. Enter a newly generated Events API testbed token.
+6. Click START CHATURBATE.
+7. Confirm status says RUNNING • TESTBED.
+8. Send 1 testbed token from the second test account.
+9. Confirm Events Received becomes 1 and Last Event changes.
+10. Confirm Last Tipper / Top Tippers update.
+
+Important:
+Any Events API token exposed in chat or screenshots should be revoked and
+re-generated after debugging.
+
+Windows compilation/runtime and live Chaturbate test were NOT performed here.

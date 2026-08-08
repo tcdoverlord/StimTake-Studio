@@ -1,0 +1,10 @@
+PASS - python_compiles
+PASS - mock_endpoint_exit_zero
+PASS - mock_received_one_tip
+PASS - mock_type_tip
+PASS - mock_username
+PASS - mock_amount
+PASS - mock_request_detected
+
+Live Chaturbate API test: NOT PERFORMED
+Windows StimTake runtime test: NOT PERFORMED

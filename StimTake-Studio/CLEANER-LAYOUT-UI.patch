@@ -1,0 +1,69 @@
+--- native-layout-pack-importer/CreatorStudioV3.cs
++++ cleaner-layout-ui/CreatorStudioV3.cs
+@@ -2902,26 +2902,47 @@
+ 
+             private GroupBox BuildTemplateGroup(int top = 505)
+             {
+-                var group = Group("JSON LAYOUT TEMPLATE + FULL LAYOUT PACK SYSTEM", 15, top, 915, 500);
+-                group.Controls.Add(LabelAt("Template name", 18, 35)); templateName = Box("My Creator Layout", 18, 57, 250); group.Controls.Add(templateName);
+-                group.Controls.Add(LabelAt("Saved templates", 285, 35)); templateSelector = Combo(new string[] { }, 285, 57, 250); group.Controls.Add(templateSelector);
++                var group = Group("LAYOUT LIBRARY • JSON TEMPLATES + FULL PACKS", 15, top, 915, 570);
++
++                // Header / identity
++                group.Controls.Add(LabelAt("Template / package name", 18, 30));
++                templateName = Box("My Creator Layout", 18, 52, 260); group.Controls.Add(templateName);
++
++                group.Controls.Add(LabelAt("Saved JSON templates", 295, 30));
++                templateSelector = Combo(new string[] { }, 295, 52, 270); group.Controls.Add(templateSelector);
+                 templateSelector.SelectedIndexChanged += delegate { LoadTemplateEditor(); };
+-                templateEditor = MultiBox(DefaultTemplateJson(), 18, 105, 875, 165); group.Controls.Add(templateEditor);
+-
+-                group.Controls.Add(LabelAt("LEGACY JSON TEMPLATE • one editable Creator Cam zone template", 18, 277));
+-                group.Controls.Add(ButtonAt("SAVE TEMPLATE", 18, 300, 150, delegate { SaveTemplate(); }));
+-                group.Controls.Add(ButtonAt("LOAD TEMPLATE", 178, 300, 150, delegate { PublishTemplate(); }));
+-                group.Controls.Add(ButtonAt("DUPLICATE", 338, 300, 130, delegate { DuplicateTemplate(); }));
+-                group.Controls.Add(ButtonAt("IMPORT JSON", 478, 300, 120, delegate { ImportTemplate(); }));
+-                group.Controls.Add(ButtonAt("EXPORT JSON", 608, 300, 130, delegate { ExportTemplate(); }));
+-
+-                group.Controls.Add(LabelAt("FULL LAYOUT PACK • swaps all saved X/Y/size/opacity/width positions together", 18, 355));
+-                group.Controls.Add(ButtonAt("IMPORT LAYOUT PACK ZIP", 18, 378, 235, delegate { ImportLayoutPackZip(); }));
+-                group.Controls.Add(ButtonAt("EXPORT CURRENT PACK", 263, 378, 210, delegate { ExportCurrentLayoutPackZip(); }));
+-                group.Controls.Add(ButtonAt("RESTORE PREVIOUS LAYOUT", 483, 378, 225, delegate { RestorePreviousLayoutPack(); }));
+-
+-                var help = LabelAt("JSON IMPORT remains available for old Creator Cam zone templates. Layout Pack ZIP is a separate package type and validates all 12 movable 1920×1080 overlay elements before replacing the current position set.", 18, 435);
+-                help.Size = new Size(855, 45); help.AutoSize = false; group.Controls.Add(help);
++
++                // Legacy JSON section
++                var jsonBox = Group("JSON TEMPLATE • SINGLE CREATOR-CAM ZONE LAYOUT", 18, 95, 860, 245);
++                group.Controls.Add(jsonBox);
++
++                templateEditor = MultiBox(DefaultTemplateJson(), 15, 28, 825, 135);
++                jsonBox.Controls.Add(templateEditor);
++
++                jsonBox.Controls.Add(ButtonAt("SAVE JSON", 15, 175, 135, delegate { SaveTemplate(); }));
++                jsonBox.Controls.Add(ButtonAt("LOAD JSON", 160, 175, 135, delegate { PublishTemplate(); }));
++                jsonBox.Controls.Add(ButtonAt("DUPLICATE", 305, 175, 125, delegate { DuplicateTemplate(); }));
++                jsonBox.Controls.Add(ButtonAt("IMPORT JSON TEMPLATE", 440, 175, 175, delegate { ImportTemplate(); }));
++                jsonBox.Controls.Add(ButtonAt("EXPORT JSON TEMPLATE", 625, 175, 175, delegate { ExportTemplate(); }));
++
++                // Full pack section
++                var packBox = Group("FULL LAYOUT PACK • ALL 12 MOVABLE 1920 × 1080 ELEMENTS", 18, 355, 860, 145);
++                group.Controls.Add(packBox);
++
++                packBox.Controls.Add(ButtonAt("IMPORT LAYOUT PACK ZIP", 15, 42, 225, delegate { ImportLayoutPackZip(); }));
++                packBox.Controls.Add(ButtonAt("EXPORT CURRENT LAYOUT PACK", 250, 42, 235, delegate { ExportCurrentLayoutPackZip(); }));
++                packBox.Controls.Add(ButtonAt("RESTORE LAST LAYOUT", 495, 42, 190, delegate { RestorePreviousLayoutPack(); }));
++
++                var packHelp = LabelAt(
++                    "Use this for Football, Halloween, Couple Show, or any complete studio position pack. " +
++                    "It swaps Brand, Camera, Goal, Tippers, Last Tipper, Recent, Ticker, Alert, Game Zone, VIP, DMCA, and Background together.",
++                    15, 88);
++                packHelp.AutoSize = false; packHelp.Size = new Size(815, 42); packBox.Controls.Add(packHelp);
++
++                var footer = LabelAt(
++                    "Tip: JSON buttons only handle old Creator Cam zone templates. Layout Pack buttons only handle StimTake full-layout ZIP packages.",
++                    18, 520);
++                footer.AutoSize = false; footer.Size = new Size(850, 32); footer.ForeColor = Color.LightGreen; group.Controls.Add(footer);
+ 
+                 RefreshTemplateList();
+                 return group;

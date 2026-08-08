@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ultimate Witch Tip Overlay</title>
+<style>
+html, body {
+  margin:0; padding:0; overflow:hidden; background:transparent; font-family:"Arial Black", sans-serif;
+}
+canvas { position:absolute; top:0; left:0; z-index:0; }
+#textContainer {
+  position:absolute;
+  bottom:20px; left:50%;
+  transform:translateX(-50%);
+  background: rgba(0,0,0,0.6);
+  border-radius:12px;
+  padding:12px 20px;
+  text-align:center;
+  max-width:600px;
+  z-index:5;
+}
+#textContainer h2 {
+  margin:0;
+  font-size:32px;
+  color:white;
+  text-shadow:0 0 20px violet;
+  animation: glowText 2s ease-in-out infinite alternate;
+}
+@keyframes glowText {
+  from { text-shadow:0 0 10px violet; }
+  to { text-shadow:0 0 30px magenta; }
+}
+</style>
+</head>
+<body>
+<canvas id="overlay"></canvas>
+<div id="textContainer">
+  <h2>🧙‍♀️ The Witch arrives to spook your pants off! 🧙‍♀️</h2>
+</div>
+
+<script>
+// Basic utilities
+const canvas=document.getElementById('overlay');
+const ctx=canvas.getContext('2d');
+canvas.width=window.innerWidth; canvas.height=window.innerHeight;
+window.addEventListener('resize',()=>{canvas.width=window.innerWidth; canvas.height=window.innerHeight;});
+function randomRange(min,max){ return min+Math.random()*(max-min); }
+function randomColor(){ const colors=['violet','cyan','gold','indigo','lime','magenta','fuchsia','orange']; return colors[Math.floor(Math.random()*colors.length)]; }
+
+// Particle system
+class Particle {
+  constructor(x,y,color,vy,vx,size){
+    this.x=x; this.y=y; this.vx=vx||randomRange(-1,1); this.vy=vy||randomRange(-2,-0.5);
+    this.size=size||randomRange(2,5); this.alpha=1; this.color=color||randomColor();
+  }
+  update(){ this.x+=this.vx; this.y+=this.vy; this.alpha-=0.02; }
+  draw(){ ctx.globalAlpha=this.alpha; ctx.fillStyle=this.color; ctx.beginPath(); ctx.arc(this.x,this.y,this.size,0,Math.PI*2); ctx.fill(); ctx.globalAlpha=1; }
+}
+const particles=[];
+
+// Floating glyphs
+const glyphs=["✦","✧","☽","☾","♆","⚡","✹","☆"];
+class FloatingGlyph {
+  constructor(){ this.reset(); }
+  reset(){
+    this.text=glyphs[Math.floor(Math.random()*glyphs.length)];
+    this.x=randomRange(0,canvas.width);
+    this.y=canvas.height+randomRange(0,100);
+    this.alpha=1; this.size=randomRange(18,32); this.vy=randomRange(-1.5,-0.5); 
+    this.vx=randomRange(-0.3,0.3); this.color=randomColor(); this.spin=randomRange(-0.03,0.03); this.angle=0;
+  }
+  update(){ this.y+=this.vy; this.x+=this.vx; this.angle+=this.spin; this.alpha-=0.003; if(this.alpha<=0) this.reset(); }
+  draw(){ ctx.save(); ctx.globalAlpha=this.alpha; ctx.translate(this.x,this.y); ctx.rotate(this.angle); ctx.fillStyle=this.color; ctx.font=`${this.size}px Arial Black`; ctx.textAlign='center'; ctx.fillText(this.text,0,0); ctx.restore(); }
+}
+const floatingGlyphs=[]; for(let i=0;i<25;i++) floatingGlyphs.push(new FloatingGlyph());
+
+// Magic orbs around characters
+class MagicOrb{ constructor(parent){ this.parent=parent; this.angle=randomRange(0,Math.PI*2); this.radius=randomRange(40,70); this.size=randomRange(12,20); this.speed=randomRange(0.02,0.05); this.color=randomColor(); } update(){ this.angle+=this.speed; } draw(){ const x=this.parent.x+Math.cos(this.angle)*this.radius; const y=this.parent.y+Math.sin(this.angle)*this.radius; ctx.save(); ctx.globalAlpha=0.6+0.3*Math.sin(this.angle*5); ctx.fillStyle=this.color; ctx.beginPath(); ctx.arc(x,y,this.size,0,Math.PI*2); ctx.fill(); ctx.restore(); }}
+
+// Base characters
+class Character{
+  constructor(imgSrc){
+    this.img=new Image(); this.img.src=imgSrc;
+    this.x=randomRange(100,canvas.width-100); this.y=randomRange(100,canvas.height-100);
+    this.size=randomRange(60,120); this.speedX=randomRange(-1,1); this.speedY=randomRange(-0.5,0.5);
+    this.angle=0; this.orbs=[]; for(let i=0;i<5;i++) this.orbs.push(new MagicOrb(this));
+    this.auraColor=randomColor();
+  }
+  update(){ 
+    this.x+=this.speedX; this.y+=this.speedY;
+    if(this.x<0||this.x>canvas.width)this.speedX*=-1;
+    if(this.y<0||this.y>canvas.height)this.speedY*=-1;
+    this.angle+=0.02; this.orbs.forEach(o=>o.update());
+    if(Math.random()<0.6) particles.push(new Particle(this.x+randomRange(-30,30),this.y+randomRange(-30,30),this.auraColor));
+  }
+  draw(){
+    ctx.save(); ctx.globalAlpha=0.3+0.3*Math.sin(this.angle*4); ctx.fillStyle=this.auraColor; ctx.beginPath(); ctx.arc(this.x,this.y,this.size*0.9,0,Math.PI*2); ctx.fill(); ctx.restore();
+    ctx.save(); ctx.translate(this.x,this.y); ctx.rotate(Math.sin(this.angle)*0.05); ctx.drawImage(this.img,-this.size/2,-this.size/2,this.size,this.size); ctx.restore();
+    this.orbs.forEach(o=>o.draw());
+    ctx.save(); ctx.translate(this.x,this.y); for(let i=0;i<3;i++){ ctx.beginPath(); ctx.arc(0,0,30+i*15,0,Math.PI*2); ctx.strokeStyle=`rgba(${Math.floor(Math.random()*255)},${Math.floor(Math.random()*255)},255,0.3)`; ctx.lineWidth=2; ctx.stroke(); } ctx.restore();
+  }
+}
+
+// Shooting streaks
+class MagicStreak{ constructor(){ this.x=randomRange(0,canvas.width); this.y=randomRange(0,canvas.height); this.vx=randomRange(-3,3); this.vy=randomRange(-3,3); this.length=randomRange(20,40); this.color=randomColor(); this.alpha=1; } update(){ this.x+=this.vx; this.y+=this.vy; this.alpha-=0.02; if(this.alpha<=0) this.reset(); } reset(){ this.x=randomRange(0,canvas.width); this.y=randomRange(0,canvas.height); this.vx=randomRange(-3,3); this.vy=randomRange(-3,3); this.alpha=1; this.color=randomColor(); this.length=randomRange(20,40); } draw(){ ctx.save(); ctx.globalAlpha=this.alpha; ctx.strokeStyle=this.color; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(this.x,this.y); ctx.lineTo(this.x-this.vx*this.length,this.y-this.vy*this.length); ctx.stroke(); ctx.restore(); }}
+
+// Characters
+const pumpkin=new Character('cardimages/pumpkin.png');
+const cat=new Character('cardimages/cat.png');
+const ghost=new Character('cardimages/ghost.png');
+const warlock=new Character('cardimages/warlock.png');
+const witch=new Character('cardimages/witch.png');
+witch.size=150; witch.x=canvas.width/2; witch.y=canvas.height+200; // offscreen
+
+const streaks=[]; for(let i=0;i<10;i++) streaks.push(new MagicStreak());
+const chars=[pumpkin,cat,ghost,warlock];
+
+// Witch entrance
+let witchEntering=true; let witchTimer=0;
+
+// Animate
+function animate(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  chars.forEach(c=>{ c.update(); c.draw(); });
+  floatingGlyphs.forEach(f=>{ f.update(); f.draw(); });
+  streaks.forEach(s=>{ s.update(); s.draw(); });
+  for(let i=particles.length-1;i>=0;i--){ particles[i].update(); particles[i].draw(); if(particles[i].alpha<=0) particles.splice(i,1); }
+
+  // Witch entrance
+  if(witchEntering){ witch.y-=2; witchTimer++; 
+    if(witchTimer>500){ witchEntering=false; document.getElementById('textContainer').innerHTML='<h2>🧙‍♀️ Thanks to my big tipper! 🧙‍♀️</h2>'; } 
+  } else { if(witchTimer>900){ chars.length=0; floatingGlyphs.length=0; streaks.length=0; particles.length=0; canvas.style.display='none'; document.getElementById('textContainer').style.display='none'; } witchTimer++; }
+
+  witch.update(); witch.draw();
+  requestAnimationFrame(animate);
+}
+animate();
+</script>
+</body>
+</html>
