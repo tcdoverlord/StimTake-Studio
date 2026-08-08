@@ -68,79 +68,44 @@ Both methods ultimately produce the same kind of StimTake event.
 
 ------------------------------------------------------------------------
 
-# Infrastructure Map
+# V1 Runtime Architecture
 
-``` mermaid
-flowchart LR
-    DESKTOP[desktop-bjmnpla<br/>Windows Desktop<br/>OBS + Main Host]
-    PI400[stimpi400<br/>Pi 400<br/>Linux Development]
-    PI5[tcd-server<br/>Pi 5<br/>Server + API + Docker]
-    TEST[Test Laptop<br/>Clean QA Machine]
+StimTake Studio V1 is designed to run on the creator's own Windows PC.
 
-    DESKTOP ---|Tailscale| PI400
-    DESKTOP ---|Tailscale| PI5
-    DESKTOP ---|Tailscale| TEST
-    PI400 ---|SSH / Git / Deploy| PI5
+No Raspberry Pi, Tailscale network, remote server, Docker host, or second computer is required for the core product.
+
+```mermaid
+flowchart TD
+    CB[Chaturbate]
+    CHROME[Chrome]
+    BRIDGE[StimTake Chrome Bridge]
+    STUDIO[StimTake Studio]
+    OBS[OBS Studio]
+    OVERLAY[StimTake Browser Overlay]
+
+    CB --> CHROME
+    CHROME --> BRIDGE
+    BRIDGE --> STUDIO
+    STUDIO --> OVERLAY
+    OVERLAY --> OBS
 ```
 
-------------------------------------------------------------------------
+The intended creator setup is:
 
-# Machine Roles
-
-## Windows Desktop
-
-**Role:** Main production and streaming machine
-
--   OBS Studio
--   Main StimTake control dashboard
--   Overlay testing
--   Local development tools
--   Final production control
-
-## Pi 400 --- `stimpi400`
-
-**Role:** Linux learning and development machine
-
--   Linux command-line practice
--   Python development
--   Git workflows
--   Adapter testing
--   Safe service experiments
--   Remote SSH access
-
-**SSH command:**
-
-``` powershell
-ssh tcdoverlord@100.99.239.36
+```text
+Windows PC
+├── StimTake Studio
+├── Chrome
+├── StimTake Chrome Bridge
+└── OBS Studio
 ```
 
-## Pi 5 --- `tcd-server`
+The product should remain useful on one computer without requiring extra hardware.
 
-**Role:** Main server
-
-Planned services:
-
--   StimTake API
--   Docker services
--   Database
--   Event processing
--   WebSocket service
--   RTMP services
--   Monitoring
-
-## Test Laptop
-
-**Role:** Clean user testing environment
-
--   Install testing
--   First-run testing
--   Update testing
--   User experience testing
--   Proof-of-concept validation
-
-------------------------------------------------------------------------
+---
 
 # Project Folder Layout
+
 
 ``` text
 D:\StimTake-Studio
@@ -162,9 +127,6 @@ D:\StimTake-Studio
 ├── dashboard
 ├── overlay-engine
 ├── game-engine
-├── api
-├── database
-├── docker
 ├── scripts
 ├── tests
 ├── docs
@@ -648,6 +610,30 @@ Before increasing the V1 percentage:
     available
 
 ------------------------------------------------------------------------
+
+# V1 Product Boundary
+
+StimTake V1 should not require infrastructure that belongs outside the creator's own computer.
+
+The core product boundary is:
+
+```text
+Chaturbate
+    ↓
+Chrome
+    ↓
+StimTake Chrome Bridge
+    ↓
+StimTake Studio
+    ↓
+OBS
+```
+
+Future servers, Raspberry Pi systems, RTMP relays, monitoring services, databases, or remote-control systems can be separate optional projects if they are useful later.
+
+They are not required dependencies of StimTake Studio V1.
+
+---
 
 # Vision
 
