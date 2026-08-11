@@ -10,13 +10,14 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
+using StimTakeShared;
 
-[assembly: AssemblyTitle("Creator Cam Overlay Kit")]
-[assembly: AssemblyProduct("Creator Cam Overlay Kit")]
+[assembly: AssemblyTitle("StimTake Studio 6.0")]
+[assembly: AssemblyProduct("StimTake Studio 6.0")]
 [assembly: AssemblyCompany("Talented Creative Design and TCDOVERLORD")]
 [assembly: AssemblyCopyright("Copyright 2026 Talented Creative Design and TCDOVERLORD")]
-[assembly: AssemblyVersion("3.1.4.0")]
-[assembly: AssemblyFileVersion("3.1.4.0")]
+[assembly: AssemblyVersion("6.0.0.0")]
+[assembly: AssemblyFileVersion("6.0.0.0")]
 
 namespace CreatorCamOverlayKit
 {
@@ -26,6 +27,17 @@ namespace CreatorCamOverlayKit
         private const string BaseUrl = "http://127.0.0.1:8787/";
         private static Mutex instanceMutex;
 
+        internal static string LocalDataRoot()
+        {
+            string isolated = (Environment.GetEnvironmentVariable("STIMTAKE_RUNTIME_ROOT") ?? "").Trim();
+            if (isolated.Length > 0 && Path.IsPathRooted(isolated))
+            {
+                Directory.CreateDirectory(isolated);
+                return Path.GetFullPath(isolated);
+            }
+            return Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        }
+
         [STAThread]
         private static void Main(string[] args)
         {
@@ -34,8 +46,8 @@ namespace CreatorCamOverlayKit
             instanceMutex = new Mutex(true, "CreatorCamOverlayKit.Singleton", out created);
             if (!created)
             {
-                MessageBox.Show("Creator Cam is already running. Open its Control Deck from the notification-area icon.",
-                    "Creator Cam Overlay Kit", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("StimTake Studio is already running. Open it from the notification-area icon.",
+                    "StimTake Studio 6.0", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
@@ -98,7 +110,7 @@ namespace CreatorCamOverlayKit
         {
             try
             {
-                string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CreatorCamOverlayKit");
+                string folder = Path.Combine(LocalDataRoot(), "CreatorCamOverlayKit");
                 Directory.CreateDirectory(folder);
                 string entry = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " | " + area + Environment.NewLine +
                     error.GetType().FullName + ": " + error.Message + Environment.NewLine + error.StackTrace + Environment.NewLine + Environment.NewLine;
@@ -112,15 +124,27 @@ namespace CreatorCamOverlayKit
             internal readonly StaticServer server;
             private readonly NotifyIcon tray;
             private readonly ControlDeckForm controlDeck;
+            private readonly StimTakeStudioV6Form studioV6;
 
             internal RustyContext(bool quiet)
             {
                 server = new StaticServer(Port);
                 server.Start();
+
+                // Preserve the proven Creator Cam / Backstage implementation as the
+                // backend and advanced/manual tool surface.  V6 is a new front-of-house
+                // shell over the same local event server, not a second competing backend.
                 controlDeck = new ControlDeckForm(server);
+                studioV6 = new StimTakeStudioV6Form(
+                    server,
+                    ShowControlDeck,
+                    delegate { ExitThread(); },
+                    controlDeck.ActivateValidatedShowPack,
+                    controlDeck.TriggerShowPackAction);
 
                 var menu = new ContextMenuStrip();
-                menu.Items.Add("Open Control Deck", null, delegate { ShowControlDeck(); });
+                menu.Items.Add("Open StimTake Studio 6.0", null, delegate { ShowStudioV6(); });
+                menu.Items.Add("Open Backstage / Manual Tools", null, delegate { ShowControlDeck(); });
                 menu.Items.Add("Open Overlay Preview", null, delegate { OpenUrl(BaseUrl + "index.html"); });
                 menu.Items.Add(new ToolStripSeparator());
                 menu.Items.Add("Copy OBS URL", null, delegate
@@ -128,31 +152,41 @@ namespace CreatorCamOverlayKit
                     try
                     {
                         Clipboard.SetText(BaseUrl + "index.html");
-                        tray.ShowBalloonTip(1500, "Creator Cam Overlay Kit", "OBS URL copied to the clipboard.", ToolTipIcon.Info);
+                        tray.ShowBalloonTip(1500, "StimTake Studio 6.0", "OBS URL copied to the clipboard.", ToolTipIcon.Info);
                     }
                     catch (Exception error)
                     {
                         LogRuntimeError("Copy OBS URL", error);
                         MessageBox.Show("Copying failed. Use this OBS URL:\n\n" + BaseUrl + "index.html",
-                            "Creator Cam Overlay Kit", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            "StimTake Studio 6.0", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
                 });
-                menu.Items.Add("Exit Creator Cam", null, delegate { ExitThread(); });
+                menu.Items.Add("Exit StimTake Studio", null, delegate { ExitThread(); });
 
                 tray = new NotifyIcon
                 {
                     Icon = SystemIcons.Application,
-                    Text = "Creator Cam Overlay Kit - running on port 8787",
+                    Text = "StimTake Studio 6.0 - local backend running",
                     ContextMenuStrip = menu,
                     Visible = true
                 };
-                tray.DoubleClick += delegate { ShowControlDeck(); };
+                tray.DoubleClick += delegate { ShowStudioV6(); };
+
                 if (!quiet)
                 {
-                    tray.ShowBalloonTip(2500, "Creator Cam is online",
-                        "The Control Deck is open. Right-click this tray icon for OBS tools.", ToolTipIcon.Info);
-                    ShowControlDeck();
+                    tray.ShowBalloonTip(2200, "StimTake Studio 6.0",
+                        "Studio and the local backend are running. Backstage remains available from the tray.",
+                        ToolTipIcon.Info);
+                    ShowStudioV6();
                 }
+            }
+
+            private void ShowStudioV6()
+            {
+                if (!studioV6.Visible) studioV6.Show();
+                if (studioV6.WindowState == FormWindowState.Minimized) studioV6.WindowState = FormWindowState.Normal;
+                studioV6.Activate();
+                studioV6.BringToFront();
             }
 
             private void ShowControlDeck()
@@ -166,9 +200,15 @@ namespace CreatorCamOverlayKit
             protected override void ExitThreadCore()
             {
                 server.Dispose();
+
+                studioV6.AllowClose = true;
+                studioV6.Close();
+                studioV6.Dispose();
+
                 controlDeck.AllowClose = true;
                 controlDeck.Close();
                 controlDeck.Dispose();
+
                 tray.Visible = false;
                 tray.Dispose();
                 base.ExitThreadCore();
@@ -184,7 +224,7 @@ namespace CreatorCamOverlayKit
             internal CrewMember(string name, string role, string level, long lifetimeSupport = 0) { Name = name; Role = role; Level = level; LifetimeSupport = Math.Max(0, lifetimeSupport); }
         }
 
-        private sealed partial class ControlDeckForm : Form
+        internal sealed partial class ControlDeckForm : Form
         {
             private static readonly Color Background = Color.FromArgb(18, 20, 17);
             private static readonly Color PanelColor = Color.FromArgb(32, 35, 31);
@@ -229,7 +269,7 @@ namespace CreatorCamOverlayKit
             internal ControlDeckForm(StaticServer server)
             {
                 this.server = server;
-                string dataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CreatorCamOverlayKit");
+                string dataFolder = Path.Combine(LocalDataRoot(), "CreatorCamOverlayKit");
                 crewFile = Path.Combine(dataFolder, "tippers.tsv");
                 crewProfileFile = Path.Combine(dataFolder, "viewer-profiles-v3.json");
                 crewBackupFile = Path.Combine(dataFolder, "tippers-manual-backup.tsv");
@@ -238,10 +278,10 @@ namespace CreatorCamOverlayKit
                 crewLastSessionProfileFile = Path.Combine(dataFolder, "viewer-profiles-last-session-v3.json");
                 SnapshotLastSessionData();
                 brandFile = Path.Combine(dataFolder, "brand.tsv");
-                goalFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CreatorCamOverlayKit", "goal.tsv");
-                tipMenuFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CreatorCamOverlayKit", "tip-menu.txt");
-                wheelFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CreatorCamOverlayKit", "wheel.txt");
-                backgroundFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CreatorCamOverlayKit", "background.txt");
+                goalFile = Path.Combine(LocalDataRoot(), "CreatorCamOverlayKit", "goal.tsv");
+                tipMenuFile = Path.Combine(LocalDataRoot(), "CreatorCamOverlayKit", "tip-menu.txt");
+                wheelFile = Path.Combine(LocalDataRoot(), "CreatorCamOverlayKit", "wheel.txt");
+                backgroundFile = Path.Combine(LocalDataRoot(), "CreatorCamOverlayKit", "background.txt");
                 Text = "Creator Cam Overlay Kit - Control Deck";
                 Icon = SystemIcons.Application;
                 BackColor = Background;
@@ -746,11 +786,10 @@ namespace CreatorCamOverlayKit
                 if (!String.Equals(type, "platform-event", StringComparison.OrdinalIgnoreCase)) return;
                 if (!String.Equals(PlatformEventJsonString(payloadJson, "type"), "tip", StringComparison.OrdinalIgnoreCase)) return;
 
-                string username = PlatformEventJsonString(payloadJson, "username");
-                long amount = PlatformEventJsonLong(payloadJson, "amount");
-                if (username.Length == 0 || amount <= 0) return;
-
-                MethodInvoker apply = delegate { AddPlatformTipToCrew(username, amount); };
+                // StaticServer has already validated the locked room, persisted the
+                // event_id and updated the authoritative lifetime file. Backstage only
+                // reloads that accepted state; it must not add the amount a second time.
+                MethodInvoker apply = delegate { LoadCrew(); RenderCrew(); PublishCrewSync(); };
 
                 try
                 {
@@ -886,10 +925,13 @@ namespace CreatorCamOverlayKit
             private readonly object eventGate = new object();
             private long lastEventAt;
 
-            internal StaticServer(int port)
+            internal StaticServer(int port) : this(port, null) { }
+
+            internal StaticServer(int port, string runtimeRoot)
             {
                 this.port = port;
                 LoadAssets();
+                InitializeV6Runtime(runtimeRoot);
             }
 
             private void LoadAssets()
@@ -922,7 +964,7 @@ namespace CreatorCamOverlayKit
                 }
                 catch (SocketException)
                 {
-                    throw new InvalidOperationException("Port 8787 is already in use. Close the other local overlay app, then start Creator Cam again.");
+                    throw new InvalidOperationException("Port 8787 is already in use. Close the stale or competing local backend, then start StimTake Studio again.");
                 }
                 running = true;
                 thread = new Thread(ListenLoop) { IsBackground = true, Name = "Creator Cam local server" };
@@ -1010,14 +1052,24 @@ namespace CreatorCamOverlayKit
                             return;
                         }
                         string raw = Uri.UnescapeDataString(target.Substring(dataIndex + 6).Replace("+", " "));
-                        Publish("platform-event", raw);
-                        WriteResponse(network, "204 No Content", "text/plain", new byte[0], true);
+                        string responseStatus;
+                        string responseText;
+                        AcceptPlatformEvent(raw, out responseStatus, out responseText);
+                        byte[] responseBody = Encoding.UTF8.GetBytes(responseText ?? "");
+                        WriteResponse(network, responseStatus, "text/plain; charset=utf-8", responseBody, responseStatus.StartsWith("204 "));
+                        return;
+                    }
+
+                    if (path == "/api/studio-status")
+                    {
+                        byte[] statusBody = Encoding.UTF8.GetBytes(GetStudioStatusJson());
+                        WriteResponse(network, "200 OK", "application/json; charset=utf-8", statusBody, requestLine.StartsWith("HEAD "));
                         return;
                     }
 
                     if (path == "/api/profile-state")
                     {
-                        string profilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CreatorCamOverlayKit", "viewer-profiles-v3.json");
+                        string profilePath = Path.Combine(LocalDataRoot(), "CreatorCamOverlayKit", "viewer-profiles-v3.json");
                         int dataIndex = target.IndexOf("?data=", StringComparison.Ordinal);
                         if (dataIndex >= 0)
                         {

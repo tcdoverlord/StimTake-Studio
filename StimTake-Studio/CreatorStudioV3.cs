@@ -8,12 +8,13 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using StimTakeShared;
 
 namespace CreatorCamOverlayKit
 {
     internal static partial class Program
     {
-        private sealed partial class ControlDeckForm
+        internal sealed partial class ControlDeckForm
         {
             private const int WmHotkey = 0x0312;
             private const int SafeHotkeyId = 7301;
@@ -32,7 +33,7 @@ namespace CreatorCamOverlayKit
 
             private void InitializeStudioV3()
             {
-                studioDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CreatorCamOverlayKit");
+                studioDataFolder = Path.Combine(LocalDataRoot(), "CreatorCamOverlayKit");
                 EnsureBundledWheelBackups();
                 DisableLegacyActionPreloadsForV4();
                 EnsureSecretShowStartsInactive();
@@ -792,7 +793,7 @@ namespace CreatorCamOverlayKit
 {
     internal static partial class Program
     {
-        private sealed partial class ControlDeckForm
+        internal sealed partial class ControlDeckForm
         {
             private string EvolutionBootstrapFragment()
             {
@@ -1215,6 +1216,107 @@ namespace CreatorCamOverlayKit
                         return false;
                     }
                 }
+            }
+
+            internal string ActivateValidatedShowPack(ShowPackValidation pack)
+            {
+                if (pack == null || !pack.IsValid || String.IsNullOrWhiteSpace(pack.InstalledPath))
+                    return "The Show Pack was not validated and installed.";
+                string installedRoot = Path.GetFullPath(pack.InstalledPath).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+                if (!Directory.Exists(installedRoot)) return "The installed Show Pack folder is missing.";
+
+                string snapshot = "";
+                var stagingFolders = new List<string>();
+                try
+                {
+                    snapshot = CreateActionPackRecoverySnapshot(pack.PackId + "-before-activation");
+                    var preparedModules = new Dictionary<int, string>();
+                    var preparedBackups = new Dictionary<int, string>();
+
+                    foreach (ShowPackAction action in pack.Actions)
+                    {
+                        string source = Path.GetFullPath(Path.Combine(installedRoot, "actions", "action-" + action.Slot.ToString("00")));
+                        if (!source.StartsWith(installedRoot, StringComparison.OrdinalIgnoreCase) || !Directory.Exists(source) || !File.Exists(Path.Combine(source, "overlay.html")))
+                            throw new InvalidDataException("Action " + action.Slot.ToString("00") + " is missing its installed overlay.");
+
+                        string id = ActionSlotId(action.Slot);
+                        string moduleStage = Path.Combine(ModulesFolder(), ".show-pack-" + Guid.NewGuid().ToString("N"));
+                        string backupStage = Path.Combine(ActionSlotsFolder(), ".show-pack-" + Guid.NewGuid().ToString("N"));
+                        CopyHtmlModuleAssets(source, moduleStage);
+                        WriteActionBackupManifest(moduleStage, id, action.Name);
+                        CopyHtmlModuleAssets(moduleStage, backupStage);
+                        preparedModules[action.Slot] = moduleStage;
+                        preparedBackups[action.Slot] = backupStage;
+                        stagingFolders.Add(moduleStage);
+                        stagingFolders.Add(backupStage);
+                    }
+
+                    var lines = new List<string>();
+                    var enabled = LoadEnabledModules();
+                    enabled.RemoveAll(delegate(string id) { return IsActionSlotModuleId(id); });
+                    for (int slot = 1; slot <= 20; slot++)
+                    {
+                        ShowPackAction action = pack.Actions.Find(delegate(ShowPackAction item) { return item.Slot == slot; });
+                        if (action == null)
+                        {
+                            lines.Add(slot + "|Empty||run|fade");
+                            continue;
+                        }
+                        string id = ActionSlotId(slot);
+                        CommitActionDirectory(preparedBackups[slot], ActionSlotBackupFolder(slot));
+                        CommitActionDirectory(preparedModules[slot], Path.Combine(ModulesFolder(), id));
+                        lines.Add(slot + "|" + CleanActionField(action.Name) + "|" + id + "|run|fade");
+                        enabled.Add(id);
+                    }
+
+                    File.WriteAllLines(StudioPath("actions-v4.txt"), lines.ToArray(), new UTF8Encoding(false));
+                    SaveEnabledModules(enabled);
+                    server.Publish("modules-reload", "{}");
+                    server.Publish("action-config", "{\"actions\":[" + ActionDefinitionsJson() + "]}");
+                    return "";
+                }
+                catch (Exception error)
+                {
+                    Program.LogRuntimeError("Activate Show Pack", error);
+                    if (snapshot.Length > 0)
+                    {
+                        try { RestoreActionDeckSnapshot(snapshot); }
+                        catch (Exception restoreError) { Program.LogRuntimeError("Restore Action Deck after failed Show Pack activation", restoreError); }
+                    }
+                    return error.Message;
+                }
+                finally
+                {
+                    foreach (string folder in stagingFolders)
+                        try { if (Directory.Exists(folder)) Directory.Delete(folder, true); } catch { }
+                }
+            }
+
+            internal bool TriggerShowPackAction(ShowPackAction action)
+            {
+                if (action == null || action.Slot < 1 || action.Slot > 20) return false;
+                if (!LoadActionSlotHtml(action.Slot)) return false;
+                string id = ActionSlotId(action.Slot);
+                string definition = "{\"slot\":" + action.Slot + ",\"name\":\"" + Json(action.Name) + "\",\"module\":\"" + Json(id) + "\",\"action\":\"run\",\"animation\":\"fade\"}";
+                var launchTimer = new System.Windows.Forms.Timer { Interval = 250 };
+                launchTimer.Tick += delegate
+                {
+                    launchTimer.Stop();
+                    launchTimer.Dispose();
+                    server.Publish("action-trigger", "{\"slot\":" + action.Slot + ",\"definition\":" + definition + "}");
+                    server.Publish("show-action-triggered", "{\"slot\":" + action.Slot + ",\"id\":\"" + Json(action.Id) + "\",\"name\":\"" + Json(action.Name) + "\"}");
+
+                    var stopTimer = new System.Windows.Forms.Timer { Interval = Math.Max(1, Math.Min(3600, action.DurationSeconds)) * 1000 };
+                    stopTimer.Tick += delegate
+                    {
+                        stopTimer.Stop();
+                        stopTimer.Dispose();
+                        server.Publish("module-action", "{\"id\":\"" + Json(id) + "\",\"action\":\"stop\",\"name\":\"" + Json(action.Name) + "\"}");
+                    };
+                    stopTimer.Start();
+                };
+                launchTimer.Start();
+                return true;
             }
 
 
@@ -4287,7 +4389,7 @@ private void SaveTemplate()
 
             private string ExternalModulesFolder()
             {
-                string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CreatorCamOverlayKit", "Modules");
+                string folder = Path.Combine(LocalDataRoot(), "CreatorCamOverlayKit", "Modules");
                 Directory.CreateDirectory(folder);
                 return folder;
             }
@@ -4361,7 +4463,7 @@ private void SaveTemplate()
                 if (!isTip) return;
                 try
                 {
-                    string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CreatorCamOverlayKit", "recent-supporter-v3.txt");
+                    string path = Path.Combine(LocalDataRoot(), "CreatorCamOverlayKit", "recent-supporter-v3.txt");
                     if (File.Exists(path)) File.Delete(path);
                 }
                 catch (Exception error) { Program.LogRuntimeError("Replace manual Last Supporter", error); }
@@ -4369,7 +4471,7 @@ private void SaveTemplate()
 
             private string BuildManualRecentSupporterState()
             {
-                string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CreatorCamOverlayKit", "recent-supporter-v3.txt");
+                string path = Path.Combine(LocalDataRoot(), "CreatorCamOverlayKit", "recent-supporter-v3.txt");
                 if (!File.Exists(path)) return "null";
                 string[] values = File.ReadAllText(path, Encoding.UTF8).Split('\t');
                 string username = values.Length > 0 ? values[0].Replace("\r", " ").Replace("\n", " ").Trim() : "";
@@ -4386,7 +4488,7 @@ private void SaveTemplate()
             private string BuildMovingWatermarkState()
             {
                 string[] values = new string[] { "OBSIDIAN", "STALLION", "LIVE • VERIFIED • HD", "False", "82" };
-                string settingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CreatorCamOverlayKit", "moving-watermark-v4.txt");
+                string settingsPath = Path.Combine(LocalDataRoot(), "CreatorCamOverlayKit", "moving-watermark-v4.txt");
                 if (File.Exists(settingsPath))
                 {
                     string[] saved = File.ReadAllText(settingsPath, Encoding.UTF8).Split('\t');

@@ -20,7 +20,7 @@ if not exist "%CSC%" (
   exit /b 1
 )
 
-echo Building Creator Cam Studio 4.0 with My Secret Show...
+echo Building StimTake Studio 6.0 to the preserved Creator-Cam output path...
 echo Close Creator-Cam-Overlay-Kit.exe before continuing.
 echo.
 
@@ -32,9 +32,13 @@ if exist "%BUILD_OUTPUT%" del /q "%BUILD_OUTPUT%"
   /reference:System.Drawing.dll ^
   /reference:System.IO.Compression.dll ^
   /reference:System.IO.Compression.FileSystem.dll ^
+  /reference:System.Web.Extensions.dll ^
   /resource:"%SCRIPT_DIR%CreatorCamPayload.zip",CreatorCamPayload.zip ^
   "%SCRIPT_DIR%CreatorCamLauncher.cs" ^
-  "%SCRIPT_DIR%CreatorStudioV3.cs" >"%BUILD_LOG%" 2>&1
+  "%SCRIPT_DIR%CreatorStudioV3.cs" ^
+  "%SCRIPT_DIR%StimTakePlatformRuntime.cs" ^
+  "%SCRIPT_DIR%StimTakeShowPack.cs" ^
+  "%SCRIPT_DIR%StimTakeStudioV6.cs" >"%BUILD_LOG%" 2>&1
 
 if errorlevel 1 (
   echo BUILD FAILED
