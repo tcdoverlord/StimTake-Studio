@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "StimTake Chrome Bridge",
+  "version": "2.0.0",
+  "description": "Receiver-only Chaturbate tip bridge with live diagnostics for StimTake Studio.",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://chaturbate.com/*",
+    "https://*.chaturbate.com/*",
+    "https://*.cb.dev/*",
+    "http://127.0.0.1:8787/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://chaturbate.com/*",
+        "https://*.chaturbate.com/*",
+        "https://*.cb.dev/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "StimTake Chrome Bridge",
+    "default_popup": "popup.html"
+  }
+}

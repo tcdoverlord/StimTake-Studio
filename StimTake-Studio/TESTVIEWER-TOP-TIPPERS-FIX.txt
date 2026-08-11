@@ -1,0 +1,35 @@
+StimTake Studio - TestViewer Top Tippers/Fans fix
+Date: 2026-08-11
+
+BUG
+A synthetic manual/test viewer could remain in overlay session/profile state and appear in Top Tippers instead of the loaded saved list.
+
+FIX
+- The manual simulator no longer defaults to TestViewer.
+- A manual fake tip requires an explicitly typed username.
+- PublishStudioTip no longer invents TestViewer for an empty username.
+- The overlay scrubs the two known synthetic identities:
+  TestViewer
+  StimTakeTestViewer
+- Synthetic test identities are excluded during migration, restore, recording, and final Top Tippers ranking.
+- Backup restore still replaces the overlay ranking with the exact restored real member list.
+- Real usernames, real Chrome Bridge tips, and saved real supporters are not filtered.
+
+PRESERVED
+- Chrome Bridge receiver/parser
+- model-friendly Connectors work
+- real tip accumulation
+- normal supporter synchronization
+- Top Tippers/Fans backups
+- unrelated manual controls and overlay assets
+
+STATIC VALIDATION
+- C# brace balance checked
+- embedded payload ZIP verified
+- JavaScript syntax checked with node --check
+- known synthetic identities are absent from the ranking path
+- TestViewer is no longer the default manual fake-tip username
+
+RUNTIME STATUS
+NOT YET PROVEN in Windows/OBS.
+Manual LOAD BACKUP retest is still required before calling the bug fixed.

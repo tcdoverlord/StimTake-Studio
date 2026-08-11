@@ -132,7 +132,7 @@ namespace CreatorCamOverlayKit
 
             internal void PublishStudioTip(string username, int amount)
             {
-                string name = Clean(username); if (name.Length == 0) name = "TestViewer";
+                string name = Clean(username); if (name.Length == 0) return;
                 server.Publish("tip", "{\"username\":\"" + Json(name) + "\",\"amount\":" + Math.Max(0, amount) + "}");
             }
 
@@ -299,7 +299,7 @@ namespace CreatorCamOverlayKit
                 StatusLabel(statistics, "Today: 0 tips • 0 tokens • 0 dice • 0 wheels", 18, 158, status, 875);
 
                 var simulator = Group("MANUAL EVENT BUTTONS", 15, 255, 915, 260); page.Controls.Add(simulator);
-                simulator.Controls.Add(LabelAt("Viewer username", 18, 36)); simulatorName = Box("TestViewer", 18, 58, 220); simulator.Controls.Add(simulatorName);
+                simulator.Controls.Add(LabelAt("Viewer username", 18, 36)); simulatorName = Box("", 18, 58, 220); simulator.Controls.Add(simulatorName);
                 simulator.Controls.Add(LabelAt("Tip amount", 255, 36)); simulatorAmount = Box("25", 255, 58, 110); simulator.Controls.Add(simulatorAmount);
                 simulator.Controls.Add(ButtonAt("FAKE TIP", 18, 105, 145, delegate { FakeTip(); }));
                 simulator.Controls.Add(ButtonAt("FAKE FOLLOW", 172, 105, 145, delegate { FakeFollow(); }));
@@ -486,9 +486,11 @@ namespace CreatorCamOverlayKit
 
             private void FakeTip()
             {
+                string username = (simulatorName.Text ?? "").Trim();
+                if (username.Length == 0) { MessageBox.Show("Enter a viewer username before sending a manual test event."); return; }
                 int amount; if (!Int32.TryParse(simulatorAmount.Text, out amount) || amount < 0) { MessageBox.Show("Enter a valid fake tip amount."); return; }
-                owner.PublishStudioTip(simulatorName.Text, amount); tipCount++; tokenCount += amount;
-                lastTip.Text = "Last Tip: " + simulatorName.Text + " • " + amount + " tokens"; topSupporter.Text = "Top Supporter: " + simulatorName.Text; SetEvent("Fake tip"); RefreshStats();
+                owner.PublishStudioTip(username, amount); tipCount++; tokenCount += amount;
+                lastTip.Text = "Last Tip: " + username + " • " + amount + " tokens"; topSupporter.Text = "Top Supporter: " + username; SetEvent("Fake tip"); RefreshStats();
             }
 
             private void FakeFollow() { owner.PublishStudioFollow(simulatorName.Text); SetEvent("Fake follow"); }
@@ -2382,6 +2384,9 @@ namespace CreatorCamOverlayKit
             private ComboBox templateSelector;
             private ComboBox connectorPlatform;
             private Label connectorStatus, connectorLastEvent, connectorCount;
+            private Label chromeBridgeStatus, chromeBridgeRoom, chromeBridgeLastTip, chromeBridgeCount, chromeBridgeModelStatus;
+            private int chromeBridgeEvents;
+            private TextBox chromeBridgeModelAddress;
             private TextBox connectorUsername, connectorToken;
             private ComboBox connectorEnvironment;
             private CheckBox connectorAutoGameRequests;
@@ -2959,82 +2964,177 @@ namespace CreatorCamOverlayKit
             {
                 var page = Page("CONNECTORS");
 
-                var chaturbate = Group("CHATURBATE → STIMTAKE TIP BRIDGE", 15, 15, 915, 360);
-                page.Controls.Add(chaturbate);
+                var model = Group("MY CHATURBATE MODEL", 15, 15, 915, 285);
+                page.Controls.Add(model);
 
-                chaturbate.Controls.Add(LabelAt("Model username", 18, 35));
-                connectorUsername = Box("", 18, 57, 220); chaturbate.Controls.Add(connectorUsername);
+                model.Controls.Add(LabelAt("Model address", 18, 35));
+                chromeBridgeModelAddress = Box("", 18, 57, 620);
+                model.Controls.Add(chromeBridgeModelAddress);
 
-                chaturbate.Controls.Add(LabelAt("Events API token • held in memory only", 255, 35));
-                connectorToken = Box("", 255, 57, 305);
-                connectorToken.UseSystemPasswordChar = true;
-                chaturbate.Controls.Add(connectorToken);
+                model.Controls.Add(ButtonAt("SAVE MODEL", 655, 54, 120, delegate { SaveChromeBridgeModel(); }));
+                model.Controls.Add(ButtonAt("DELETE MODEL", 785, 54, 110, delegate { DeleteChromeBridgeModel(); }));
 
-                chaturbate.Controls.Add(LabelAt("Environment", 585, 35));
-                connectorEnvironment = Combo(new string[] { "LIVE", "TESTBED" }, 585, 57, 110);
-                connectorEnvironment.SelectedIndex = 0;
-                chaturbate.Controls.Add(connectorEnvironment);
+                var example = LabelAt("Example: https://chaturbate.com/obsidian_stallion/", 18, 90);
+                example.ForeColor = Color.Silver;
+                example.Size = new Size(845, 24);
+                model.Controls.Add(example);
 
-                connectorAutoGameRequests = new CheckBox {
-                    Text = "AUTO-RUN EXPLICIT !dice / !wheel REQUESTS",
-                    Location = new Point(710, 58), AutoSize = true,
-                    ForeColor = TextColor, BackColor = Color.Transparent
-                };
-                chaturbate.Controls.Add(connectorAutoGameRequests);
+                chromeBridgeModelStatus = LabelAt("Model: NOT SAVED", 18, 125);
+                chromeBridgeModelStatus.ForeColor = Color.LightGreen;
+                chromeBridgeModelStatus.Size = new Size(845, 26);
+                model.Controls.Add(chromeBridgeModelStatus);
 
-                chaturbate.Controls.Add(LabelAt("Dice minimum tokens", 18, 105));
-                connectorDiceMinimum = NumberAt(1, 1, 999999, 18, 127, 130, 0);
-                chaturbate.Controls.Add(connectorDiceMinimum);
+                chromeBridgeStatus = LabelAt("Bridge: WAITING FOR TIP", 18, 158);
+                chromeBridgeStatus.ForeColor = Color.LightGreen;
+                chromeBridgeStatus.Size = new Size(845, 26);
+                model.Controls.Add(chromeBridgeStatus);
 
-                chaturbate.Controls.Add(LabelAt("Wheel minimum tokens", 165, 105));
-                connectorWheelMinimum = NumberAt(1, 1, 999999, 165, 127, 130, 0);
-                chaturbate.Controls.Add(connectorWheelMinimum);
+                chromeBridgeRoom = LabelAt("Room: Waiting", 18, 190);
+                chromeBridgeRoom.Size = new Size(410, 26);
+                model.Controls.Add(chromeBridgeRoom);
 
-                chaturbate.Controls.Add(ButtonAt("START CHATURBATE", 320, 123, 190, delegate { StartChaturbateConnector(); }));
-                chaturbate.Controls.Add(ButtonAt("STOP", 520, 123, 110, delegate { StopChaturbateConnector(); }));
-                chaturbate.Controls.Add(ButtonAt("TEST 25 TOKEN TIP", 640, 123, 205, delegate {
-                    owner.server.Publish("platform-event", "{\"type\":\"tip\",\"username\":\"ConnectorTest\",\"amount\":25,\"message\":\"!dice\",\"request\":\"dice\",\"source\":\"local-test\"}");
-                }));
+                chromeBridgeCount = LabelAt("Tips received: 0", 450, 190);
+                chromeBridgeCount.Size = new Size(395, 26);
+                model.Controls.Add(chromeBridgeCount);
 
-                connectorStatus = LabelAt("Connection Status: STOPPED", 18, 185);
-                connectorStatus.ForeColor = Color.LightGreen; connectorStatus.Size = new Size(845, 28);
-                chaturbate.Controls.Add(connectorStatus);
-
-                connectorLastEvent = LabelAt("Last Event: None", 18, 222);
-                connectorLastEvent.Size = new Size(845, 28); chaturbate.Controls.Add(connectorLastEvent);
-
-                connectorCount = LabelAt("Events Received: 0", 18, 258);
-                connectorCount.Size = new Size(845, 28); chaturbate.Controls.Add(connectorCount);
+                chromeBridgeLastTip = LabelAt("Last tip: None", 18, 222);
+                chromeBridgeLastTip.Size = new Size(827, 26);
+                model.Controls.Add(chromeBridgeLastTip);
 
                 var note = LabelAt(
-                    "The connector forwards TIP username + token amount + message into this existing UI. " +
-                    "The token is never saved by StimTake. Tip messages can be detected as !dice / !roll / !wheel / !spin. " +
-                    "Automatic game triggering is OFF unless the model checks the box above.",
-                    18, 298);
-                note.AutoSize = false; note.Size = new Size(845, 48); chaturbate.Controls.Add(note);
+                    "Save your Chaturbate room once. To use a different model later, delete this model and save the new room.",
+                    18, 252);
+                note.AutoSize = false;
+                note.Size = new Size(845, 28);
+                model.Controls.Add(note);
 
-                var generic = Group("LOCAL CONNECTOR API • ADVANCED / OTHER ADAPTERS", 15, 395, 915, 175);
-                page.Controls.Add(generic);
-                generic.Controls.Add(LabelAt("Platform", 18, 35));
-                connectorPlatform = Combo(new string[] { "Chaturbate Adapter", "Generic Local Adapter", "Stripchat Adapter", "Custom Adapter" }, 18, 57, 245);
-                generic.Controls.Add(connectorPlatform);
-                generic.Controls.Add(ButtonAt("SAVE PLATFORM", 280, 54, 160, delegate { File.WriteAllText(owner.StudioPath("connector-v3.txt"), connectorPlatform.Text); }));
-                generic.Controls.Add(LabelAt("Local endpoint: http://127.0.0.1:8787/api/platform-event?data=<URL-ENCODED EVENT JSON>", 18, 105));
-                generic.Controls.Add(LabelAt("No platform password is accepted by this endpoint. It only receives normalized local events.", 18, 138));
+                LoadChromeBridgeModel();
 
-                var safety = Group("CONNECTOR SAFETY", 15, 590, 915, 160);
-                page.Controls.Add(safety);
-                safety.Controls.Add(LabelAt("Each model uses her own Chaturbate Events API username + token on her own PC.", 18, 38));
-                safety.Controls.Add(LabelAt("The token is passed to the bridge process through an environment variable and cleared from the UI after startup.", 18, 75));
-                safety.Controls.Add(LabelAt("Tip logs contain tip data only — never the API token.", 18, 112));
-
-                LoadChaturbateConnectorSettings();
                 owner.server.EventPublished += ConnectorEventPublished;
                 Disposed += delegate {
                     owner.server.EventPublished -= ConnectorEventPublished;
                     StopChaturbateConnector();
                 };
                 return page;
+            }
+
+            private string ChromeBridgeModelPath()
+            {
+                return owner.StudioPath("chaturbate-model-address-v1.txt");
+            }
+
+            private string ChromeBridgeModelName(string address)
+            {
+                if (String.IsNullOrWhiteSpace(address)) return "";
+
+                Uri uri;
+                if (!Uri.TryCreate(address.Trim(), UriKind.Absolute, out uri)) return "";
+                if (!String.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase)) return "";
+
+                string host = (uri.Host ?? "").Trim().ToLowerInvariant();
+                if (host != "chaturbate.com" && host != "www.chaturbate.com") return "";
+
+                string path = (uri.AbsolutePath ?? "").Trim('/');
+                if (path.Length == 0 || path.Contains("/")) return "";
+                if (!Regex.IsMatch(path, "^[A-Za-z0-9_]+$")) return "";
+
+                return path;
+            }
+
+            private string NormalizeChromeBridgeModelAddress(string address)
+            {
+                string model = ChromeBridgeModelName(address);
+                if (model.Length == 0) return "";
+                return "https://chaturbate.com/" + model + "/";
+            }
+
+            private void LoadChromeBridgeModel()
+            {
+                if (chromeBridgeModelAddress == null || chromeBridgeModelStatus == null) return;
+
+                try
+                {
+                    string path = ChromeBridgeModelPath();
+                    if (!File.Exists(path))
+                    {
+                        chromeBridgeModelAddress.Text = "";
+                        chromeBridgeModelAddress.ReadOnly = false;
+                        chromeBridgeModelStatus.Text = "Model: NOT SAVED";
+                        return;
+                    }
+
+                    string saved = NormalizeChromeBridgeModelAddress(File.ReadAllText(path, Encoding.UTF8).Trim());
+                    if (saved.Length == 0)
+                    {
+                        chromeBridgeModelAddress.Text = "";
+                        chromeBridgeModelAddress.ReadOnly = false;
+                        chromeBridgeModelStatus.Text = "Model: SAVED ADDRESS NEEDS ATTENTION";
+                        return;
+                    }
+
+                    chromeBridgeModelAddress.Text = saved;
+                    chromeBridgeModelAddress.ReadOnly = true;
+                    chromeBridgeModelStatus.Text = "Model: " + ChromeBridgeModelName(saved) + " • SAVED";
+                }
+                catch
+                {
+                    chromeBridgeModelAddress.ReadOnly = false;
+                    chromeBridgeModelStatus.Text = "Model: COULD NOT LOAD SAVED ADDRESS";
+                }
+            }
+
+            private void SaveChromeBridgeModel()
+            {
+                if (chromeBridgeModelAddress == null) return;
+
+                string normalized = NormalizeChromeBridgeModelAddress(chromeBridgeModelAddress.Text);
+                if (normalized.Length == 0)
+                {
+                    MessageBox.Show(
+                        "Enter a Chaturbate model address like:\r\nhttps://chaturbate.com/obsidian_stallion/",
+                        "StimTake Studio",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                    return;
+                }
+
+                try
+                {
+                    File.WriteAllText(ChromeBridgeModelPath(), normalized, new UTF8Encoding(false));
+                    chromeBridgeModelAddress.Text = normalized;
+                    chromeBridgeModelAddress.ReadOnly = true;
+                    chromeBridgeModelStatus.Text = "Model: " + ChromeBridgeModelName(normalized) + " • SAVED";
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Could not save the model address.\r\n\r\n" + ex.Message, "StimTake Studio");
+                }
+            }
+
+            private void DeleteChromeBridgeModel()
+            {
+                if (chromeBridgeModelAddress == null) return;
+
+                if (MessageBox.Show(
+                    "Delete the saved Chaturbate model connection?\r\n\r\nYou can enter a different model after it is deleted.",
+                    "StimTake Studio",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question) != DialogResult.Yes)
+                    return;
+
+                try
+                {
+                    string path = ChromeBridgeModelPath();
+                    if (File.Exists(path)) File.Delete(path);
+                    chromeBridgeModelAddress.ReadOnly = false;
+                    chromeBridgeModelAddress.Text = "";
+                    chromeBridgeModelStatus.Text = "Model: NOT SAVED";
+                    chromeBridgeModelAddress.Focus();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Could not delete the saved model address.\r\n\r\n" + ex.Message, "StimTake Studio");
+                }
             }
 
 
@@ -3185,16 +3285,58 @@ namespace CreatorCamOverlayKit
                 }
             }
 
+            private static string ConnectorJsonString(string json, string field)
+            {
+                if (String.IsNullOrWhiteSpace(json) || String.IsNullOrWhiteSpace(field)) return "";
+                Match match = Regex.Match(
+                    json,
+                    "\"" + Regex.Escape(field) + "\"\\s*:\\s*\"(?<value>(?:\\\\.|[^\"\\\\])*)\"",
+                    RegexOptions.IgnoreCase);
+                if (!match.Success) return "";
+                string value = match.Groups["value"].Value;
+                try { value = Regex.Unescape(value); } catch { }
+                return (value ?? "").Replace("\r", " ").Replace("\n", " ").Trim();
+            }
+
+            private static long ConnectorJsonLong(string json, string field)
+            {
+                if (String.IsNullOrWhiteSpace(json) || String.IsNullOrWhiteSpace(field)) return 0;
+                Match match = Regex.Match(
+                    json,
+                    "\"" + Regex.Escape(field) + "\"\\s*:\\s*(?<value>[0-9]+)",
+                    RegexOptions.IgnoreCase);
+                long value;
+                return match.Success && Int64.TryParse(match.Groups["value"].Value, out value) ? value : 0;
+            }
+
             private void ConnectorEventPublished(string type, string payload)
             {
-                if (type != "platform-event") return;
+                if (!String.Equals(type, "platform-event", StringComparison.OrdinalIgnoreCase)) return;
                 if (IsDisposed || !IsHandleCreated) return;
+
+                string source = ConnectorJsonString(payload, "source");
+                string eventType = ConnectorJsonString(payload, "type");
+                string username = ConnectorJsonString(payload, "username");
+                string room = ConnectorJsonString(payload, "room");
+                long amount = ConnectorJsonLong(payload, "amount");
+
                 BeginInvoke((MethodInvoker)delegate
                 {
                     connectorEvents++;
-                    connectorStatus.Text = "Connection Status: EVENT RECEIVED";
-                    connectorLastEvent.Text = "Last Event: " + (payload.Length > 100 ? payload.Substring(0, 100) + "..." : payload);
-                    connectorCount.Text = "Events Received: " + connectorEvents;
+                    if (connectorStatus != null) connectorStatus.Text = "Connection Status: EVENT RECEIVED";
+                    if (connectorLastEvent != null) connectorLastEvent.Text = "Last Event: " + (payload.Length > 100 ? payload.Substring(0, 100) + "..." : payload);
+                    if (connectorCount != null) connectorCount.Text = "Events Received: " + connectorEvents;
+
+                    if (String.Equals(source, "chaturbate-browser", StringComparison.OrdinalIgnoreCase) &&
+                        String.Equals(eventType, "tip", StringComparison.OrdinalIgnoreCase) &&
+                        username.Length > 0 && amount > 0)
+                    {
+                        chromeBridgeEvents++;
+                        chromeBridgeStatus.Text = "Bridge: RECEIVING";
+                        chromeBridgeRoom.Text = "Room: " + (room.Length > 0 ? room : "Unknown");
+                        chromeBridgeCount.Text = "Tips received: " + chromeBridgeEvents;
+                        chromeBridgeLastTip.Text = "Last tip: " + username + " • " + amount + (amount == 1 ? " token" : " tokens");
+                    }
                 });
             }
 

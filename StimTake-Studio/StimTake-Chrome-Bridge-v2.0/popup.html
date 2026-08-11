@@ -1,0 +1,133 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>StimTake Chrome Bridge</title>
+<style>
+  :root { color-scheme: dark; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    width: 390px;
+    margin: 0;
+    padding: 14px;
+    background: #101211;
+    color: #f3f3f3;
+  }
+  h1 { font-size: 18px; margin: 0; }
+  .sub { color: #aaa; font-size: 12px; margin: 3px 0 12px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .card {
+    background: #1b1e1c;
+    border: 1px solid #303632;
+    padding: 10px;
+    border-radius: 8px;
+    margin: 8px 0;
+  }
+  .label { color: #aaa; font-size: 10px; text-transform: uppercase; letter-spacing: .5px; }
+  .value { margin-top: 3px; word-break: break-word; font-size: 13px; }
+  .good { color: #8ef0a7; }
+  .warn { color: #ffd37a; }
+  .bad { color: #ff8f8f; }
+  .muted { color: #aaa; }
+  .big { font-size: 20px; font-weight: 700; }
+  pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 11px;
+    line-height: 1.35;
+    max-height: 175px;
+    overflow: auto;
+    background: #111311;
+    padding: 8px;
+    border-radius: 6px;
+    margin: 7px 0 0;
+  }
+  button {
+    width: 100%;
+    padding: 9px;
+    margin-top: 7px;
+    cursor: pointer;
+    border-radius: 6px;
+    border: 1px solid #555;
+  }
+  .primary { font-weight: 700; }
+</style>
+</head>
+<body>
+  <h1>StimTake Chrome Bridge <span class="good">v2.0</span></h1>
+  <div class="sub">Receiver-only Chaturbate → local StimTake bridge</div>
+
+  <div class="card">
+    <div class="label">Page observer</div>
+    <div id="observerStatus" class="value warn">WAITING</div>
+    <div id="observerMessage" class="value muted">Waiting for status...</div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="label">Delivered tips</div>
+      <div id="sent" class="value big">0</div>
+    </div>
+    <div class="card">
+      <div class="label">Duplicates suppressed</div>
+      <div id="duplicates" class="value big">0</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="label">DOM mutations seen</div>
+      <div id="mutations" class="value">0</div>
+    </div>
+    <div class="card">
+      <div class="label">Room</div>
+      <div id="room" class="value">None</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="label">Last detected username</div>
+      <div id="lastUsername" class="value">None</div>
+    </div>
+    <div class="card">
+      <div class="label">Last detected token amount</div>
+      <div id="lastAmount" class="value">None</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="label">Last raw tip row</div>
+    <pre id="lastRawTipRow">None</pre>
+  </div>
+
+  <div class="card">
+    <div class="label">Current page</div>
+    <div id="pageTitle" class="value">None</div>
+    <div id="pageUrl" class="value muted">None</div>
+  </div>
+
+  <div class="card">
+    <div class="label">Last delivered tip</div>
+    <pre id="lastTip">None yet</pre>
+  </div>
+
+  <div class="card">
+    <div class="label">Last tip-like candidate</div>
+    <div class="value"><span id="candidates">0</span> candidate(s) seen</div>
+    <pre id="lastCandidate">None yet</pre>
+  </div>
+
+  <div class="card">
+    <div class="label">Last StimTake delivery</div>
+    <div id="lastDelivery" class="value">None</div>
+    <div class="label" style="margin-top:8px">Last error</div>
+    <div id="lastError" class="value good">None</div>
+  </div>
+
+  <button id="copyDiag">COPY DIAGNOSTICS</button>
+  <button id="clear">CLEAR COUNTERS / DIAGNOSTICS</button>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+StimTake Studio - Top Tippers / Fans restore overlay fix
+Date: 2026-08-11
+
+OBSERVED FROM PROVIDED SCREEN RECORDING
+- LOAD BACKUP restores the real saved Top Tippers / Fans rows in the Windows grid.
+- The OBS Top Tippers overlay does not follow that restored list and can remain on prior test/current-session supporter state.
+
+SOURCE FINDING
+- The overlay render path prefers session.topSupporters() whenever any current-session supporter exists.
+- A previous test tip can therefore dominate the overlay even after the saved lifetime list is restored.
+- LoadCrewBackup also published supporters-sync and profile-reload back-to-back through a server that exposes one latest event state.
+
+SMALLEST FIX
+- A backup restore now publishes one profile-reload event carrying the exact restored member list.
+- The overlay hydrates the restored profile file, then replaces its fan ranking with that exact restored list.
+- Current-session supporter ranking is cleared for the restore operation so an old test/current-session tipper cannot override the restored list.
+- Matching viewer profile extras are preserved where possible.
+- Normal real-tip supporters-sync behavior is unchanged.
+
+CHANGED
+- CreatorCamLauncher.cs
+- CreatorCamPayload.zip
+  - scripts/session-store.js
+  - scripts/overlay.js
+- This validation note
+
+PRESERVED
+- Chrome Bridge receiver/parser
+- Model-friendly Connectors candidate
+- manual Top Tippers / Fans editing
+- real-tip accumulation
+- normal supporters-sync path after real tips
+- backup files and load confirmation
+- Last Supporter/manual controls
+- all unrelated payload assets
+
+STATIC VALIDATION
+- C# brace balance checked
+- embedded payload ZIP opens successfully
+- JavaScript syntax checked with Node when available
+- restore path has one profile-reload publication with exact member payload
+- normal PublishCrewSync remains present for real-tip updates
+- replaceFans clears only sessionSupporters and replaces ranking fans from the restored list
+
+RUNTIME STATUS
+NOT YET PROVEN on Windows/OBS.
+Manual retest is required with the same saved backup shown in the supplied recording.

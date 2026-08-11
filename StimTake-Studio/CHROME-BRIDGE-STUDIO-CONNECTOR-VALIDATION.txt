@@ -1,0 +1,25 @@
+STIMTAKE STUDIO CHROME BRIDGE CONNECTOR - STATIC VALIDATION
+============================================================
+
+Original uploaded StimTake-Studio.zip SHA-256:
+  a12470755e6caabfc7cdc48d5297d00ed498be3a9b44ae55c930b05604d0092e
+
+Static checks:
+  PASS - new receiver group
+  PASS - waiting status
+  PASS - source filter
+  PASS - room display
+  PASS - last tip display
+  PASS - studio delivery count
+  PASS - legacy test button removed
+  PASS - localhost endpoint preserved in UI
+  PASS - localhost endpoint route preserved
+  PASS - loopback server preserved
+  PASS - balanced braces rough
+
+NOT TESTED:
+  Windows C# compilation
+  Windows runtime
+  real Chrome extension -> Studio HTTP delivery
+  real Chaturbate tip through the complete end-to-end path
+

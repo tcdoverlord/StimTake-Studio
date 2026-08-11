@@ -1,74 +1,56 @@
 # StimTake Studio V1
 
-> **Creator automation, live-event integration, OBS overlays,
-> interactive games, token goals, supporter tracking, show actions,
-> layouts, themes, and modular platform connectors --- built as one
-> creator-controlled system.**
+> **Creator-controlled live-show automation for Chaturbate and OBS — with real tip reception, overlays, games, supporter tracking, actions, layouts, themes, and a modular connector architecture designed to stay local to the creator's Windows PC.**
 
-------------------------------------------------------------------------
+---
 
 ## Current Build Status
 
-**Milestone:** Live Platform Integration\
-**Overall Status:** 🟡 In Progress\
-**Estimated V1 Progress:** 75%\
-**Current Goal:** Complete reliable Chaturbate tip detection using the
-new StimTake Browser Bridge while preserving the Events API connector as
-a second supported connection method.
+**Milestone:** Chrome Bridge → StimTake Studio integration  
+**Overall Status:** In Progress  
+**Estimated V1 Progress:** ~80%  
+**Current Goal:** Consolidate StimTake Studio into one creator-friendly application that owns the local backend, model connection, supporter state, overlays, and future embedded room monitor.
 
-``` text
+```text
 STIMTAKE STUDIO V1
 
-████████████░░░░  75%
+█████████████░░░  ~80%
 
 CURRENT MILESTONE:
-Chaturbate Live Tip Integration
+Chrome Bridge → Studio → OBS Reliability
 ```
 
-------------------------------------------------------------------------
+The percentage is an engineering estimate, not measured test coverage. It should only advance when the corresponding capability is demonstrated.
 
-# Main Build Map
+---
 
-``` mermaid
-flowchart TD
-    CB[Chaturbate]
-    API[Chaturbate Events API]
-    BROWSER[StimTake Chrome Bridge]
-    ADAPTER[StimTake Chaturbate Adapter]
-    BUS[StimTake Event Bus]
+# What StimTake Is Becoming
 
-    CB --> API
-    CB --> BROWSER
+StimTake Studio is moving toward a simple creator workflow:
 
-    API --> ADAPTER
-    BROWSER --> ADAPTER
-
-    ADAPTER --> BUS
-
-    BUS --> TIPPERS[Last Tipper + Top Tippers]
-    BUS --> GOALS[Token Goals]
-    BUS --> LOG[Tip Log]
-    BUS --> GAMES[Dice + Wheel]
-    BUS --> ACTIONS[Action Deck]
-    BUS --> OVERLAYS[Overlay Engine]
-    BUS --> OBS[OBS]
-    BUS --> STATS[Statistics]
-    BUS --> DASH[Dashboard]
-    BUS --> LOVENSE[Lovense Adapter]
-    BUS --> DB[Database]
-    BUS --> STIMAPI[StimTake API]
+```text
+Start StimTake Studio
+        ↓
+Saved Chaturbate model loads
+        ↓
+Local backend starts automatically
+        ↓
+Chrome Bridge / model monitor watches the configured room
+        ↓
+Real tip is received
+        ↓
+StimTake validates + deduplicates it
+        ↓
+Supporter totals / goals / games / actions update
+        ↓
+OBS overlays update
 ```
 
-The Events API work is **not being discarded**.
+The finished product should not require the creator to understand localhost APIs, JSON payloads, connector internals, or separate backend launchers.
 
-The new StimTake Chrome Bridge gives the Studio a second way to receive
-authorized broadcaster-side tip activity.
+---
 
-Both methods ultimately produce the same kind of StimTake event.
-
-------------------------------------------------------------------------
-
-# V1 Runtime Architecture
+# Core Product Boundary
 
 StimTake Studio V1 is designed to run on the creator's own Windows PC.
 
@@ -77,213 +59,369 @@ No Raspberry Pi, Tailscale network, remote server, Docker host, or second comput
 ```mermaid
 flowchart TD
     CB[Chaturbate]
-    CHROME[Chrome]
+    CHROME[Chrome / Model Room]
     BRIDGE[StimTake Chrome Bridge]
     STUDIO[StimTake Studio]
-    OBS[OBS Studio]
+    BACKEND[Local StimTake Backend]
     OVERLAY[StimTake Browser Overlay]
+    OBS[OBS Studio]
 
     CB --> CHROME
     CHROME --> BRIDGE
     BRIDGE --> STUDIO
-    STUDIO --> OVERLAY
+    STUDIO --> BACKEND
+    BACKEND --> OVERLAY
     OVERLAY --> OBS
 ```
 
-The intended creator setup is:
+The intended creator setup remains local-first:
 
 ```text
 Windows PC
 ├── StimTake Studio
-├── Chrome
+├── Chrome / future embedded WebView2 room
 ├── StimTake Chrome Bridge
 └── OBS Studio
 ```
 
-The product should remain useful on one computer without requiring extra hardware.
+---
+
+# Current Proven Chrome Bridge Milestone
+
+The StimTake Chrome Bridge has now been proven in a real Chaturbate room to:
+
+- observe live DOM mutations;
+- join the username row with the adjacent `tipped N token(s)` row;
+- accept positive integer token amounts;
+- support usernames containing letters, numbers, and underscores;
+- reject room-goal text containing `tokens`;
+- reject follow-up `Notice:` messages as duplicate tips;
+- keep separate repeated tips from the same user as separate events;
+- deliver one real visible tip exactly once;
+- report the correct username and token amount.
+
+The Bridge remains **receiver-only**.
+
+It does not:
+
+- send tips;
+- buy tokens;
+- perform payment actions;
+- capture passwords;
+- capture cookies;
+- capture API tokens;
+- depend on cloud services.
 
 ---
 
-# Project Folder Layout
+# Current Local Event Route
 
+The Chrome Bridge currently reports normalized events to StimTake Studio through the local endpoint:
 
-``` text
-D:\StimTake-Studio
-│
-├── README.md
-├── CHANGELOG.md
-├── LICENSE
-│
-├── core
-│   ├── event_bus
-│   ├── rules
-│   └── actions
-│
-├── adapters
-│   ├── chaturbate
-│   ├── obs
-│   └── lovense
-│
-├── dashboard
-├── overlay-engine
-├── game-engine
-├── scripts
-├── tests
-├── docs
-├── assets
-├── builds
-│
-└── Third-Party
-    └── chaturbate_poller
+```text
+http://127.0.0.1:8787/api/platform-event
 ```
 
-------------------------------------------------------------------------
+Example event shape:
 
-# Chaturbate Integration
-
-StimTake now follows a **dual-connector strategy**.
-
-The platform-specific connector reports what happened. StimTake decides
-what that event means for the show.
-
-## Route A --- Chaturbate Events API
-
-``` text
-Chaturbate
-     ↓
-Events API
-     ↓
-StimTake Events Connector
-     ↓
-StimTake Studio
-```
-
-**Status:** 🟡 In development
-
-The connector UI, LIVE/TESTBED selection, local event handling, and
-supporting bridge work exist.
-
-Reliable real-world incoming-tip delivery still requires end-to-end
-validation.
-
-## Route B --- StimTake Chrome Bridge
-
-``` text
-Chaturbate
-     ↓
-Broadcaster's Chrome Session
-     ↓
-StimTake Chrome Bridge
-     ↓
-localhost
-     ↓
-StimTake Studio
-```
-
-**Status:** 🟠 New development route
-
-The first goal is intentionally small:
-
-1.  Detect a received tip.
-2.  Read the username.
-3.  Read the token amount.
-4.  Read the tip message.
-5.  Send the event to StimTake locally.
-6.  Process the event exactly once.
-
-The Browser Bridge is intended to be a receiver.
-
-It will not intentionally purchase tokens, send tips, automate
-purchases, or access payment information.
-
-------------------------------------------------------------------------
-
-# Chaturbate Poller Reference
-
-A local reference copy has been stored at:
-
-``` text
-D:\StimTake-Studio\Third-Party\chaturbate_poller
-```
-
-Source repository:
-
-`https://github.com/MountainGod2/chaturbate_poller`
-
-The third-party poller is **not StimTake Studio itself** and should be
-treated as reference/experimental integration work rather than a
-permanent requirement of the StimTake architecture.
-
-The production goal is for StimTake-owned adapters to translate
-platform-specific events into StimTake's internal event format.
-
-Example:
-
-``` json
+```json
 {
-  "source": "chaturbate",
-  "event": "TIP_RECEIVED",
-  "username": "example_user",
-  "tokens": 50
+  "type": "tip",
+  "source": "chaturbate-browser",
+  "room": "obsidian_stallion",
+  "username": "viewer_name",
+  "amount": 25,
+  "message": "",
+  "event_id": "unique-event-id",
+  "timestamp": "..."
 }
 ```
 
-That event can then trigger several actions:
+The intended acceptance rules are:
 
-``` mermaid
-flowchart LR
-    TIP[50 Token Tip]
-    TIP --> SOUND[Play Sound]
-    TIP --> OBS[Trigger OBS Action]
-    TIP --> OVERLAY[Show Animation]
-    TIP --> GOAL[Update Goal]
-    TIP --> GAME[Run Game Action]
-    TIP --> TOY[Trigger Device Action]
-    TIP --> STATS[Save Statistics]
+```text
+source == chaturbate-browser
+type == tip
+room == locked model
+username is valid
+amount > 0
+event_id is present
+event_id has not already been consumed
 ```
 
-------------------------------------------------------------------------
+The Chrome Bridge suppresses duplicate DOM delivery, and StimTake Studio is intended to provide a second idempotency boundary using `event_id`.
+
+---
+
+# Model-Friendly Connector Direction
+
+The Connectors screen is being simplified around a creator-facing model connection instead of developer controls.
+
+Target model workflow:
+
+```text
+MY CHATURBATE MODEL
+
+Model address:
+https://chaturbate.com/obsidian_stallion/
+
+[SAVE MODEL]  [DELETE MODEL]
+
+Model: obsidian_stallion • SAVED
+Bridge: WAITING FOR TIP
+Room: Waiting
+Tips received: 0
+Last tip: None
+```
+
+Once saved, the model address should be treated as locked.
+
+To use a different model:
+
+```text
+Delete / Change Model
+        ↓
+explicit confirmation
+        ↓
+old model connection removed
+        ↓
+new model address entered
+        ↓
+save
+```
+
+The normal creator-facing screen should not expose:
+
+- raw JSON;
+- localhost endpoint details;
+- adapter internals;
+- API-token fields;
+- development-only diagnostics.
+
+Those belong under an optional Advanced / Diagnostics area.
+
+---
+
+# Planned WebView2 Room Architecture
+
+WebView2 is a **planned feature**, not yet a completed or validated capability.
+
+The intended design separates the locked model monitor from optional browsing:
+
+```text
+StimTake Studio
+│
+├── Locked Model Monitor
+│     └── dedicated WebView2
+│         always returns to / remains responsible for the saved model room
+│
+├── Optional Browser
+│     └── separate WebView2
+│         may browse elsewhere without changing StimTake's model lock
+│
+├── Local Backend
+├── Supporter / Session State
+├── Overlay Server
+└── Optional Backstage Dashboard
+```
+
+The saved model remains the final safety boundary.
+
+If the configured model is:
+
+```text
+obsidian_stallion
+```
+
+then:
+
+```text
+incoming room == obsidian_stallion
+        → ACCEPT
+
+incoming room != obsidian_stallion
+        → REJECT
+```
+
+Browsing another model must never change the configured StimTake model automatically.
+
+WebView2 must not be used by StimTake to capture:
+
+- passwords;
+- cookies;
+- authentication tokens;
+- session tokens;
+- payment information.
+
+---
+
+# Planned Single-Application Runtime
+
+The current Creator Cam / Backstage backend is useful, but the intended final experience is for StimTake Studio to own that backend automatically.
+
+Target runtime:
+
+```text
+StimTake Studio.exe
+        │
+        ├── Studio UI
+        ├── local backend
+        ├── port 8787 event receiver
+        ├── overlay server
+        ├── supporter/session state
+        ├── model lock
+        ├── future WebView2 monitor
+        └── optional Backstage window
+```
+
+Desired behavior:
+
+```text
+StimTake starts
+→ backend starts
+
+Open Backstage
+→ dashboard window opens
+
+Close Backstage
+→ backend keeps running
+
+Close StimTake
+→ state is saved
+→ backend shuts down cleanly
+```
+
+The creator should not need to launch a separate backend manually during normal operation.
+
+---
+
+# Backstage Dashboard
+
+The Backstage Dashboard remains useful as an optional management and recovery interface.
+
+It can contain:
+
+- Top Tippers / Fans management;
+- session history;
+- backups;
+- Action Deck controls;
+- overlay settings;
+- connector diagnostics;
+- event logs;
+- recovery tools.
+
+The dashboard should not need to remain visible for normal tip tracking or overlay operation.
+
+---
+
+# Supporter Tracking Model
+
+The intended supporter architecture is:
+
+```text
+real tip
+    ↓
+model-room validation
+    ↓
+event_id duplicate check
+    ↓
+username + amount accepted
+    ↓
+session total updated
+    ↓
+lifetime total updated
+    ↓
+Top Tippers / Fans recalculated
+    ↓
+state saved locally
+    ↓
+OBS refreshed
+```
+
+Two totals should remain distinct:
+
+- **Session support** — current show/session activity.
+- **Lifetime support** — persistent supporter history.
+
+Backups should be used for recovery, not as the normal way to populate the leaderboard every show.
+
+---
+
+# Current Known Issue: Top Tippers / TestViewer State
+
+The Top Tippers / Fans restore path is still under repair.
+
+Observed behavior:
+
+- the Windows Top Tippers / Fans list can restore the real saved supporter list;
+- the OBS Top Tippers overlay can still display stale synthetic `TestViewer` state instead of the restored list.
+
+This means the current overlay/supporter-state path is **not yet proven reliable**.
+
+Do not describe Top Tippers restore as fixed until the real saved list replaces synthetic test state correctly in OBS.
+
+Current direction:
+
+```text
+StimTake Studio = source of truth
+
+OBS overlay = display only
+
+Chrome Bridge = received-tip detector only
+
+Backstage Dashboard = optional editor / manager
+```
+
+The goal is one authoritative supporter state owned by StimTake Studio.
+
+---
 
 # Core Design Rule
 
 ## The connector reports what happened.
 
-``` text
+```text
 Viewer123 tipped 25 tokens.
 Message: !dice
 ```
 
 ## StimTake decides what that means.
 
-``` text
+```text
+Validate room
+Reject duplicate event_id
 Update Last Tipper
 Update Top Tippers
 Update Token Goal
 Record Tip
 Show Popup
 Detect !dice
-Run Dice if creator enabled automatic actions
+Run enabled action
 Update OBS Overlay
+Save supporter/session state
 ```
 
-This keeps StimTake modular and allows future platform adapters without
-rewriting the entire system.
+This keeps platform-specific detection separate from show logic.
 
-------------------------------------------------------------------------
+---
 
 # Planned Core Architecture
 
-``` mermaid
+```mermaid
 flowchart TD
     INPUTS[Platform Inputs]
-    INPUTS --> CBAPI[Chaturbate Events API Adapter]
-    INPUTS --> CBBROWSER[StimTake Chrome Bridge Adapter]
+
+    INPUTS --> CBBROWSER[StimTake Chrome Bridge]
+    INPUTS --> CBAPI[Legacy / Optional Chaturbate Events API]
+    INPUTS --> WEBVIEW[Future Locked WebView2 Monitor]
     INPUTS --> FUTURE[Future Platform Adapters]
 
-    CBAPI --> BUS[StimTake Event Bus]
-    CBBROWSER --> BUS
-    FUTURE --> BUS
+    CBBROWSER --> VALIDATE[Model Lock + Event Validation]
+    CBAPI --> VALIDATE
+    WEBVIEW --> VALIDATE
+    FUTURE --> VALIDATE
 
+    VALIDATE --> BUS[StimTake Event Bus]
     BUS --> RULES[Rules Engine]
     RULES --> ACTIONS[Action Engine]
 
@@ -293,206 +431,218 @@ flowchart TD
     ACTIONS --> GOALS[Goals]
     ACTIONS --> AUDIO[Audio]
     ACTIONS --> DEVICES[Device Integrations]
-    ACTIONS --> DATABASE[Database]
+    ACTIONS --> SUPPORTERS[Supporter Tracking]
     ACTIONS --> DASHBOARD[Dashboard]
 ```
 
-------------------------------------------------------------------------
+---
+
+# Chaturbate Connector Strategy
+
+StimTake currently preserves two connector directions.
+
+## Route A — StimTake Chrome Bridge
+
+```text
+Chaturbate
+     ↓
+Broadcaster Chrome Session
+     ↓
+StimTake Chrome Bridge
+     ↓
+localhost
+     ↓
+StimTake Studio
+```
+
+**Status:** Real-room tip detection proven.
+
+This is currently the strongest proven Chaturbate tip-input path.
+
+## Route B — Chaturbate Events API
+
+```text
+Chaturbate
+     ↓
+Events API
+     ↓
+StimTake Events Connector
+     ↓
+StimTake Studio
+```
+
+**Status:** Existing / legacy integration work preserved.
+
+The Events API work is not being silently deleted while the Browser Bridge path is stabilized.
+
+---
 
 # Browser Bridge Security Boundary
 
-The StimTake Chrome Bridge is intended to have a deliberately narrow
-job.
+The StimTake Chrome Bridge has a deliberately narrow job.
 
 ## Allowed responsibilities
 
--   Detect supported received-tip activity in an authorized broadcaster
-    session
--   Obtain the viewer username needed for the event
--   Obtain the received token amount
--   Obtain the tip message
--   Translate the event into StimTake's normalized format
--   Send the event to StimTake on the local computer
+- detect supported received-tip activity in an authorized broadcaster room;
+- obtain the viewer username;
+- obtain the received token amount;
+- obtain the tip message when available;
+- identify the current room;
+- create a normalized local event;
+- send the event to StimTake Studio on the same computer.
 
-## Outside the Bridge's intended responsibilities
+## Outside the Bridge's responsibilities
 
--   Purchasing tokens
--   Spending tokens
--   Automatically sending tips
--   Automating purchases
--   Accessing payment information
--   Copying third-party spending automation
+- purchasing tokens;
+- spending tokens;
+- sending tips;
+- automating purchases;
+- accessing payment information;
+- capturing passwords;
+- capturing cookies;
+- capturing private API credentials;
+- cloud-based event routing.
 
-The browser connector should remain separate from StimTake's show logic.
+The connector reports the event. StimTake owns show behavior.
 
-------------------------------------------------------------------------
-
-# Local Event Route
-
-The intended local event path is:
-
-``` text
-Chaturbate Connector
-        ↓
-Normalized StimTake Event
-        ↓
-127.0.0.1 / Local StimTake Service
-        ↓
-StimTake Studio
-        ↓
-Rules + Actions
-        ↓
-OBS / Overlay / Games / Goals / Supporter Tracking
-```
-
-The creator should not need to understand the internal API, JSON,
-polling, or browser scripting to operate the finished product.
-
-------------------------------------------------------------------------
+---
 
 # Current Build Progress
 
-  Component                             Status
-  ------------------------------------- ------------------------------
-  StimTake Studio Windows UI            ✅ Working
-  Backstage Dashboard                   ✅ Working
-  OBS browser overlay                   ✅ Working
-  Action Deck                           ✅ Working
-  20-action package system              🟡 In development
-  Layout customization                  🟡 In development
-  Theme / skin system                   🟡 In development
-  Seasonal upgrade-pack architecture    🟡 In development
-  Last Tipper display                   ✅ Local test working
-  Tip popup                             ✅ Local test working
-  Top Tippers / Fan Board               🟡 Integration testing
-  Token goals                           🟡 Integration testing
-  Dice system                           ✅ Present
-  Prize wheel                           ✅ Present
-  Local simulated tip                   ✅ Working
-  Local platform-event receiver         ✅ Present
-  Chaturbate connector UI               ✅ Present
-  Chaturbate LIVE / TESTBED selector    ✅ Present
-  Chaturbate Events API tip reception   🟡 Not yet proven end-to-end
-  StimTake Chrome Bridge                🟠 Starting
-  Real Chaturbate → StimTake tip        ⏳ Must prove
-  Real tip → OBS overlay                ⏳ Must prove end-to-end
-  Duplicate-tip protection              ⏳ Needed
-  Connector diagnostics                 ⏳ Needed
-  Installer / creator setup             ⏳ Finalization needed
-  Clean-machine QA                      ⏳ Needed
+| Component | Status |
+|---|---|
+| StimTake Studio Windows UI | ✅ Working |
+| Backstage Dashboard | ✅ Working |
+| OBS browser overlay | ✅ Working |
+| Action Deck | ✅ Working |
+| Games | ✅ Present |
+| Layout customization | 🟡 In progress |
+| Theme / skin system | 🟡 In progress |
+| Seasonal upgrade-pack architecture | 🟡 In progress |
+| Local platform-event receiver | ✅ Present |
+| Chrome Bridge live DOM observer | ✅ Proven |
+| Chrome Bridge real username + amount detection | ✅ Proven |
+| Chrome Bridge duplicate suppression | ✅ Proven in real-room milestone |
+| Real Chaturbate tip → local Studio endpoint | 🟡 Integration path present; end-to-end Studio behavior still being hardened |
+| Simplified model connector UI | 🟡 Candidate / integration work |
+| Saved model room lock | ⏳ Planned next enforcement step |
+| Top Tippers / Fan Board | 🔧 Active repair |
+| TestViewer stale overlay state | 🔧 Active repair |
+| Token goals | 🟡 Integration testing |
+| Real tip → OBS complete path | ⏳ Must prove end-to-end |
+| Automatic backend ownership by Studio | ⏳ Planned |
+| Embedded WebView2 model room | ⏳ Planned |
+| Separate browsing that cannot change model lock | ⏳ Planned |
+| Installer / creator setup | ⏳ Remaining |
+| Clean-machine QA | ⏳ Remaining |
 
-------------------------------------------------------------------------
+---
 
 # V1 Progress
 
-``` text
+```text
 CORE STUDIO              ███████████████░  Strong
-OBS / OVERLAYS           ███████████████░  Strong
+OBS / OVERLAYS           ██████████████░░  Strong / state repair active
 ACTIONS / GAMES          ██████████████░░  Strong
 CUSTOMIZATION            █████████████░░░  In Progress
-THEME / UPGRADE PACKS    ███████████░░░░░  In Progress
-TIP EVENT HANDLING       ████████████░░░░  Local Path Working
-CHATURBATE API           ████████░░░░░░░░  Integration Testing
-CHROME BRIDGE            ███░░░░░░░░░░░░░  New Route
+TIP DETECTION            ███████████████░  Real Bridge Tip Proven
+STUDIO TIP INTEGRATION   ████████████░░░░  In Progress
+MODEL CONNECTION UX      ██████████░░░░░░  Simplification In Progress
+SUPPORTER STATE          ██████████░░░░░░  Repair / Consolidation Needed
+WEBVIEW2 MONITOR         ░░░░░░░░░░░░░░░░  Planned
 INSTALLER / QA           ███████░░░░░░░░░  Remaining
 
-ESTIMATED V1 TOTAL       ████████████░░░░  ~75%
+ESTIMATED V1 TOTAL       █████████████░░░  ~80%
 ```
 
-The 75% figure is an engineering progress estimate, not a measured
-test-coverage percentage. It should advance only when the corresponding
-capability is demonstrated working.
+---
 
-------------------------------------------------------------------------
+# Road to V1 Complete
 
-# What Gets Us From 75% to 100%
+## Current — Stabilize Studio Integration
 
-## 75% → 80% --- Prove the Chrome Bridge
+Required:
 
-Build the first StimTake Chrome Bridge and demonstrate:
+- real Bridge event reaches StimTake Studio;
+- configured model room is validated;
+- duplicate event IDs are rejected;
+- real username and amount update Studio correctly;
+- stale synthetic test state cannot override real supporter state.
 
-``` text
-REAL TIP
-   ↓
-Chrome
-   ↓
-StimTake
-```
+## Next — Consolidate Runtime
 
-## 80% → 85% --- Complete the Tip Path
+Required:
 
-Demonstrate:
+- StimTake starts the local backend automatically;
+- only one backend owns the local port;
+- Backstage becomes an optional window;
+- supporter/session state has one authoritative owner;
+- OBS becomes display-only.
 
-``` text
-REAL TIP
-   ↓
-StimTake
-   ↓
-Last Tipper
-Top Tippers
-Goal
-Tip Log
-   ↓
-OBS
-```
+## Next — Model-Friendly Experience
 
-## 85% → 90% --- Reliability
+Required:
 
-Add and validate:
+- save one Chaturbate model address;
+- lock the model after save;
+- explicit Change/Delete Model action;
+- hide developer-facing connector details from normal use;
+- clear WATCHING / WAITING / RECEIVING states.
 
--   Duplicate-tip protection
--   Reconnect handling
--   Connection diagnostics
--   Browser-disconnected warning
--   Safe failure behavior
--   Session reset and recovery
+## Next — WebView2 Model Monitor
 
-## 90% → 95% --- Creator Experience
+Required:
 
-Finish:
+- add WebView2 without unnecessary Studio rewrite;
+- preserve current working connector path during transition;
+- maintain a dedicated locked model room;
+- optional separate browser must not alter the model lock;
+- no credential/cookie/token capture;
+- validate login/session behavior manually on Windows.
 
--   Easy connector setup
--   Model/account configuration
--   Upgrade-pack import
--   Layouts
--   Themes
--   Actions
--   Sensible defaults
--   Configuration persistence
+## Final — Release Validation
 
-## 95% → 100% --- Release Validation
+Required:
 
-Validate:
+- one clean Windows installation;
+- one clean Chrome / WebView2 environment;
+- OBS test;
+- restart persistence;
+- recovery test;
+- backup/restore test;
+- real tip exactly once;
+- real supporter list persistence;
+- installer/package;
+- final documentation;
+- verified local Git checkpoint;
+- release candidate archive and hashes.
 
--   Clean Windows installation
--   Clean Chrome installation
--   Multiple broadcaster-account testing
--   OBS testing
--   Restart testing
--   Recovery testing
--   Documentation
--   Installer/package
--   Final known-good Git checkpoint
-
-------------------------------------------------------------------------
+---
 
 # Definition of V1 Complete
 
-StimTake V1 reaches 100% when a creator can install it on a clean
-Windows machine and reliably perform this workflow:
+StimTake V1 reaches 100% when a creator can reliably perform this workflow:
 
-``` text
+```text
 Install StimTake
        ↓
-Connect Chaturbate
+Start StimTake Studio
        ↓
-Connect OBS overlay
+Saved model loads
+       ↓
+Backend starts automatically
+       ↓
+Model monitor / Bridge is watching
+       ↓
+OBS overlay is connected
        ↓
 Go live
        ↓
 Receive real tip
        ↓
 StimTake detects it exactly once
+       ↓
+Correct model is verified
        ↓
 Last Tipper updates
 Top Tippers updates
@@ -503,66 +653,73 @@ Requested game/action can trigger
        ↓
 OBS shows the result
        ↓
+Supporter/session state saves automatically
+       ↓
 Restart without losing required configuration
 ```
 
-Until that complete path has been demonstrated, V1 remains in
-development.
+Until this complete path is demonstrated, V1 remains in development.
 
-------------------------------------------------------------------------
+---
 
 # Safe Change Rules
 
-This project follows a production-style change process.
+StimTake follows a protect-first development process.
 
-``` mermaid
+```mermaid
 flowchart LR
-    VERIFY[Verify Working State]
-    BACKUP[Create Backup Point]
-    CHANGE[Make One Change]
-    TEST[Test Everything]
+    INSPECT[Inspect Current State]
+    PROTECT[Protect Working Baseline]
+    CHANGE[Make Small Change]
+    TEST[Test]
     PASS{Working?}
-    SAVE[Document + Commit]
-    ROLLBACK[Roll Back]
+    SAVE[Document + Local Git Checkpoint]
+    RECOVER[Recover / Revert Specific Change]
 
-    VERIFY --> BACKUP
-    BACKUP --> CHANGE
+    INSPECT --> PROTECT
+    PROTECT --> CHANGE
     CHANGE --> TEST
     TEST --> PASS
     PASS -->|Yes| SAVE
-    PASS -->|No| ROLLBACK
+    PASS -->|No| RECOVER
 ```
 
-## Rules
+Rules:
 
-1.  **If it works, do not change it without a reason.**
-2.  **Identify the current installation before updating it.**
-3.  **Create a recovery point before infrastructure changes.**
-4.  **Make one change at a time.**
-5.  **Test before moving forward.**
-6.  **Document the exact working command.**
-7.  **Never store passwords, API tokens, or private keys in Git.**
+1. **Protect what works.**
+2. **Inspect before changing.**
+3. **Preserve unrelated files and uncommitted work.**
+4. **Prefer the smallest responsible change.**
+5. **Test before claiming success.**
+6. **Use local Git checkpoints for stable milestones.**
+7. **Never push unless explicitly approved.**
+8. **Never store passwords, API tokens, private keys, cookies, or private signing material in Git.**
+9. **Do not delete working legacy paths until the replacement has been proven.**
+10. **Backups and recovery paths must remain available during architectural changes.**
 
-------------------------------------------------------------------------
+---
 
 # Security Rules
 
 Do not commit:
 
-``` text
+```text
 .env
 API tokens
 Passwords
-Tailscale auth keys
+Browser cookies
+Browser session tokens
+Authentication secrets
 SSH private keys
 Database passwords
 Lovense credentials
 Personal user data
+Private signing keys
 ```
 
 Recommended `.gitignore` entries:
 
-``` gitignore
+```gitignore
 .env
 .env.*
 !.env.example
@@ -586,94 +743,93 @@ dist/
 build/
 ```
 
-------------------------------------------------------------------------
+---
 
-# Next Safe Milestone
+# Git and Recovery
 
-## Milestone --- First Real Browser-Bridge Tip
-
-Before increasing the V1 percentage:
-
--   Preserve the current known-good StimTake build
--   Preserve the existing Events API connector
--   Create the StimTake Chrome Bridge as a separate module
--   Give the extension only the permissions it actually needs
--   Detect one real received tip
--   Extract username, amount, and message
--   Deliver the event to StimTake locally
--   Verify the event is processed exactly once
--   Verify Last Tipper updates
--   Verify Top Tippers updates
--   Verify the OBS overlay receives the result
--   Record the working configuration
--   Create a verified local Git checkpoint when the repository is
-    available
-
-------------------------------------------------------------------------
-
-# V1 Product Boundary
-
-StimTake V1 should not require infrastructure that belongs outside the creator's own computer.
-
-The core product boundary is:
+Before significant changes:
 
 ```text
-Chaturbate
-    ↓
-Chrome
-    ↓
-StimTake Chrome Bridge
-    ↓
-StimTake Studio
-    ↓
-OBS
+inspect repository root
+inspect current branch
+run git status
+inspect recent history
+confirm known-good tags
+preserve unrelated changes
 ```
 
-Future servers, Raspberry Pi systems, RTMP relays, monitoring services, databases, or remote-control systems can be separate optional projects if they are useful later.
+Do not use destructive reset/clean workflows against active work.
 
-They are not required dependencies of StimTake Studio V1.
+Current historical known-good tag referenced by the project workflow:
+
+```text
+StimTake-V1-75pct-Known-Good-2026-08-08
+```
+
+The tag should be verified in the actual local repository before relying on it as a recovery point.
+
+---
+
+# Project Direction
+
+The intended final user experience is deliberately simple:
+
+```text
+1. Start StimTake Studio.
+
+2. See:
+   My Model          obsidian_stallion 🔒
+   Model Monitor     WATCHING
+   Backend           RUNNING
+   OBS               CONNECTED
+
+3. Go live.
+```
+
+Everything else should be available when needed, not required for ordinary operation.
 
 ---
 
 # Vision
 
-StimTake Studio is intended to become a modular creator automation
-platform that connects:
+StimTake Studio is intended to become a modular creator automation platform connecting:
 
--   Platform events
--   OBS Studio
--   Browser overlays
--   Token goals
--   Interactive games
--   Action Decks
--   Layouts
--   Themes and upgrade packs
--   Audio
--   Analytics
--   Device integrations
--   Remote services
--   Creator dashboards
+- Chaturbate tip events;
+- OBS Studio;
+- browser overlays;
+- supporter tracking;
+- token goals;
+- interactive games;
+- Action Decks;
+- layouts;
+- themes and upgrade packs;
+- audio;
+- analytics;
+- device integrations;
+- local creator dashboards;
+- future platform connectors.
 
-The long-term goal is one control system that turns incoming events into
-coordinated creator experiences while allowing platform connectors to
-evolve independently.
+The long-term goal is one creator-controlled system that turns incoming events into coordinated show experiences while allowing connectors, overlays, games, and future integrations to evolve independently.
 
-------------------------------------------------------------------------
+---
 
 ## Project Status
 
-``` text
-ESTIMATED V1:       ~75%
+```text
+ESTIMATED V1:       ~80%
 CORE STUDIO:        STRONG
-OBS / OVERLAYS:     STRONG
+OBS / OVERLAYS:     STRONG / SUPPORTER STATE REPAIR ACTIVE
 ACTIONS / GAMES:    STRONG
-CUSTOMIZATION:      IN PROGRESS
-CHATURBATE API:     INTEGRATION TESTING
-CHROME BRIDGE:      NEW DEVELOPMENT ROUTE
+CHROME BRIDGE:      REAL TIP DETECTION PROVEN
+STUDIO INTEGRATION: IN PROGRESS
+MODEL LOCK:         PLANNED / NEXT
+WEBVIEW2:           PLANNED
 INSTALLER / QA:     REMAINING
-CURRENT PRIORITY:   PROVE ONE REAL TIP END-TO-END
+
+CURRENT PRIORITY:
+ONE AUTHORITATIVE STUDIO BACKEND + RELIABLE SUPPORTER STATE
 ```
 
-------------------------------------------------------------------------
+---
 
-**Protect what works. Preserve the truth. Build in modules.**
+**Protect what works. Preserve the truth. Build in modules. Carry the knowledge forward.**

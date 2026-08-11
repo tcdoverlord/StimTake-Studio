@@ -461,19 +461,28 @@ namespace CreatorCamOverlayKit
                     Directory.CreateDirectory(Path.GetDirectoryName(crewFile));
                     if (File.Exists(listSource)) File.Copy(listSource, crewFile, true); else if (File.Exists(crewFile)) File.Delete(crewFile);
                     if (File.Exists(profileSource)) File.Copy(profileSource, crewProfileFile, true);
-                    LoadCrew(); RenderCrew(); PublishCrewSync();
-                    server.Publish("profile-reload", "{}");
+                    LoadCrew(); RenderCrew(); PublishCrewRestore();
                     MessageBox.Show("The " + label + " Top Tippers / Fans data was restored.", "StimTake Studio");
                 }
                 catch (Exception error) { MessageBox.Show("The backup could not be restored.\n\n" + error.Message, "StimTake Studio"); }
             }
 
-            private void PublishCrewSync()
+            private string CrewMembersPayload()
             {
                 var members = new List<string>();
                 foreach (CrewMember member in crew)
                     members.Add("{\"name\":\"" + Json(member.Name) + "\",\"role\":\"" + Json(member.Role) + "\",\"level\":\"" + Json(member.Level.ToLowerInvariant()) + "\",\"lifetimeSupport\":" + Math.Max(0, member.LifetimeSupport) + "}");
-                server.Publish("supporters-sync", "{\"members\":[" + String.Join(",", members.ToArray()) + "]}");
+                return "{\"members\":[" + String.Join(",", members.ToArray()) + "]}";
+            }
+
+            private void PublishCrewSync()
+            {
+                server.Publish("supporters-sync", CrewMembersPayload());
+            }
+
+            private void PublishCrewRestore()
+            {
+                server.Publish("profile-reload", CrewMembersPayload());
             }
 
             private void LoadDeckRecentSupporter()

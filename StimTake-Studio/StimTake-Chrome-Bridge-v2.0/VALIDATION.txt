@@ -1,0 +1,21 @@
+PASS - Manifest V3
+PASS - Version 2.0.0
+PASS - Chaturbate matches preserved
+PASS - localhost permission preserved
+PASS - MutationObserver present
+PASS - Confirmed tipped-N-tokens parser
+PASS - Split-node parser
+PASS - Sibling username search
+PASS - Ancestor reconstruction
+PASS - Duplicate protection
+PASS - Observer health state
+PASS - DOM mutation counter
+PASS - Synthetic local test tip removed
+PASS - Copy diagnostics
+PASS - Action badge support
+PASS - No Chaturbate tip sending endpoint
+PASS - No Chaturbate API credential endpoint
+PASS - No payment automation
+
+Real Chaturbate tip browser detection: OWNER VERIFIED
+StimTake Studio localhost API integration: NOT YET VERIFIED

@@ -1,0 +1,54 @@
+StimTake Studio - Model-Friendly Connectors Candidate
+Date: 2026-08-11
+
+PURPOSE
+Simplify the normal CONNECTORS tab for a model/operator before WebView2 work.
+
+VISIBLE CONNECTORS UI
+- MY CHATURBATE MODEL
+- Model address field
+- SAVE MODEL
+- DELETE MODEL
+- Friendly saved-model status
+- Bridge waiting/receiving status
+- Room
+- Tips received
+- Last tip
+
+MODEL ADDRESS RULES
+- HTTPS only
+- Host must be chaturbate.com or www.chaturbate.com
+- Exactly one room/model path segment
+- Username characters accepted: letters, numbers, underscores
+- Saved address is normalized to https://chaturbate.com/<model>/
+- Once saved, the field becomes read-only
+- DELETE MODEL requires explicit confirmation before removing the saved address
+
+PRESERVED
+- Existing localhost platform-event receiver
+- Existing Chrome Bridge event handling
+- Existing real-tip diagnostics
+- Existing legacy Chaturbate connector implementation remains in source
+- Existing advanced connector implementation remains in source
+- Existing receiver-only Chrome Bridge architecture
+
+INTENTIONALLY NOT CHANGED IN THIS PASS
+- No WebView2
+- No embedded browser
+- No Chrome extension changes
+- No room-lock enforcement/filtering yet
+- No tip action behavior changes
+- No cloud/API/password/cookie/token capture additions
+- No deletion of legacy connector source
+
+STATIC VALIDATION
+- CreatorStudioV3.cs contains the simplified model-facing tab
+- Legacy status labels are null-guarded because their old UI is hidden
+- Model URL parsing is constrained to valid Chaturbate room URLs
+- Save/delete persistence uses the existing StudioPath data location
+- Source brace balance checked locally
+- Existing Build-CreatorCam.cmd preserved unchanged
+
+RUNTIME STATUS
+NOT TESTED in Windows in this environment.
+Build and launch on Anthony's Windows system before treating this candidate as working.
