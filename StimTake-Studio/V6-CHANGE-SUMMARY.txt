@@ -1,0 +1,47 @@
+StimTake V6 Working Build Change Summary
+Date: 2026-08-11
+
+MODIFIED
+- CreatorCamLauncher.cs
+  - assembly identity updated to StimTake Studio 6.0
+  - RustyContext now owns the V6 front-of-house form
+  - existing Control Deck preserved as Backstage/manual tools
+  - one existing StaticServer remains authoritative
+- README.md
+  - replaced with V6 architecture README
+  - prior README preserved under _V6_JUMPOFF_EVIDENCE
+
+ADDED
+- StimTakeStudioV6.cs
+- StimTakeDesigner.cs
+- BUILD-STIMTAKE-V6-AND-DESIGNER.cmd
+- START-STIMTAKE-STUDIO-V6.cmd
+- START-STIMTAKE-DESIGNER.cmd
+- SHOW-PACK-CONTRACT-V6.md
+- START-HERE-V6-CODEX.md
+- StimTakePlatformRuntime.cs
+- StimTakeShowPack.cs
+- StimTakeLocalTests.cs
+- TEST-STIMTAKE-V6.cmd
+- TEST-STIMTAKE-V6-UI.ps1
+- _V6_JUMPOFF_EVIDENCE/
+
+INTEGRATED
+- authoritative backend model lock and persistent exactly-once event IDs
+- persisted session/lifetime supporter state and tip/session history
+- bounded Show Pack validation, extraction, installation, and action activation
+- action-ID-based model pricing and automatic accepted-tip trigger path
+- Designer command export for deterministic local validation
+- isolated Windows UI launch/lifecycle validation
+
+PRESERVED
+- CreatorCamPayload.zip and OBS overlay behavior
+- StimTake Chrome Bridge receiver-only source and proven parser behavior
+- existing action folders/assets and Backstage/manual tools
+- supporter-state repair commit behavior
+
+NOT CLAIMED / STILL MANUAL
+- real post-V6 Chaturbate tip through Studio and OBS
+- actual OBS rendering in this run
+- WebView2
+- clean-machine installer/release readiness

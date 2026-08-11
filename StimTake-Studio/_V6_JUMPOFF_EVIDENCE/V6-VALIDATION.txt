@@ -1,0 +1,66 @@
+StimTake V6 + Designer Jump-Off Validation
+Date: 2026-08-11
+
+SOURCE BASELINE
+StimTake-Studiov5-end.zip
+SHA-256: 1d3339d7b2d2942b5dbf877b9394d49665c11e65ac00b83b9da13907c54c92da
+
+CHANGES
+- CreatorCamLauncher.cs: RustyContext now opens StimTake Studio 6.0 as front-of-house
+  while preserving the existing Control Deck as Backstage.
+- Added StimTakeStudioV6.cs.
+- Added StimTakeDesigner.cs.
+- Added BUILD-STIMTAKE-V6-AND-DESIGNER.cmd.
+- Added START-STIMTAKE-STUDIO-V6.cmd.
+- Added START-STIMTAKE-DESIGNER.cmd.
+- Added SHOW-PACK-CONTRACT-V6.md.
+- Added START-HERE-V6-CODEX.md.
+- Replaced package README.md with the supplied V6 architecture README while preserving
+  the prior README under _V6_JUMPOFF_EVIDENCE.
+
+PRESERVED
+- CreatorStudioV3.cs unchanged.
+- CreatorCamPayload.zip unchanged.
+- Existing Chrome Bridge source unchanged.
+- Existing action folders/assets unchanged.
+- Existing old build scripts/executables unchanged in the source archive copy.
+
+LOCAL STATIC VALIDATION
+- Exact RustyContext source block was found before replacement.
+- C# source brace/string/comment scanner run on new and modified sources.
+- Build script references existing source + embedded payload.
+- Show Pack Designer limited to slots 1-20.
+- Studio imports ZIP metadata only; it does not extract or execute pack content.
+- Studio uses same backend StaticServer instance, not a second server.
+
+NOT TESTED HERE
+- Windows C# compilation (Windows compiler unavailable in this environment).
+- Windows Forms runtime layout.
+- Actual Studio 6.0 launch.
+- Designer launch or ZIP creation under Windows.
+- OBS runtime interaction.
+- Real Chaturbate tip through new V6 UI.
+- Show Pack runtime execution.
+
+STATIC CHECK RESULTS
+PASS: V6 shell source exists
+PASS: Designer source exists
+PASS: V6 builder exists
+PASS: Studio build embeds existing payload
+PASS: Designer builds separate exe
+PASS: Existing Studio core unchanged
+PASS: Existing payload unchanged
+PASS: Chrome Bridge unchanged
+PASS: V6 shares StaticServer
+PASS: V6 no new StaticServer
+PASS: Designer max 20 slots
+PASS: Show Pack contract present
+
+PRESERVATION HASHES
+CreatorStudioV3.cs
+  baseline: 4f3657f1b84254c8c580942bbc7bed8e22f784be8eddf25b8cba771bc7b0e7db
+  candidate: 4f3657f1b84254c8c580942bbc7bed8e22f784be8eddf25b8cba771bc7b0e7db
+CreatorCamPayload.zip
+  baseline: e37ba7c8625095626d61b271827be3f41ba996dc702573d7c8c141545d01dc1e
+  candidate: e37ba7c8625095626d61b271827be3f41ba996dc702573d7c8c141545d01dc1e
+Chrome Bridge tree identical: True

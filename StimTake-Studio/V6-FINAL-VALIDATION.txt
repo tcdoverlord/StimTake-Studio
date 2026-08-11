@@ -1,0 +1,54 @@
+StimTake Studio 6.0 + Designer 1.0 Local Validation
+Date: 2026-08-11
+
+BUILDS
+PASS: BUILD-STIMTAKE-V6-AND-DESIGNER.cmd
+PASS: Build-CreatorCam.cmd preserved build path
+
+LOCAL RUNTIME / SECURITY HARNESS
+Command: TEST-STIMTAKE-V6.cmd
+PASS: 42 assertions
+- one action and 20 actions validate
+- action 21 rejects
+- malformed JSON rejects
+- duplicate action IDs reject
+- executable payload rejects
+- ZIP traversal rejects and is never extracted
+- absolute ZIP paths reject
+- validated ZIP installs and activates in the preserved action engine
+- installed action triggers once and stops once at its configured duration
+- pricing persists by pack/action ID
+- changed action IDs do not inherit unrelated prices
+- one port owner enforced
+- events reject until a model is saved and locked
+- wrong room rejected with no state changes
+- valid event processed once
+- duplicate event ID suppressed
+- repeated legitimate event ID accepted
+- session/lifetime state persists
+- processed IDs survive restart and session reset
+- manual supporter rows remain preserved
+
+ISOLATED WINDOWS UI
+Command: TEST-STIMTAKE-V6-UI.ps1
+PASS: Studio launched with one port-8787 backend
+PASS: Backstage opened and closed without stopping Studio
+PASS: Studio clean shutdown released port 8787
+PASS: Designer launched and created/saved a one-action workspace
+PASS: Designer executable validated and exported that workspace ZIP
+
+CHROME BRIDGE
+PASS: content.test.cjs supplied live-row reconstruction
+PASS: same-row/cross-parser duplicate suppression
+PASS: separate repeated identical tip delivery
+PASS: room goals, Notice rows, zero values, and non-adjacent rows rejected
+PASS: singular/plural/comma-formatted positive amounts
+PASS: content/background/popup JavaScript syntax
+PASS: manifest JSON
+PASS: localhost endpoint preserved and synthetic tip sender absent
+
+NOT PROVEN IN THIS RUN
+- a new real Chaturbate tip through the V6 backend, supporter state, action, and OBS
+- actual OBS browser-source rendering
+- WebView2 model monitor
+- clean-machine installer behavior
