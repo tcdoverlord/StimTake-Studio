@@ -482,7 +482,9 @@ namespace CreatorCamOverlayKit
 
             private void PublishCrewRestore()
             {
-                server.Publish("profile-reload", CrewMembersPayload());
+                // Legacy overlay pages already understand session-load as a reload signal.
+                // The current overlay also consumes the attached exact Studio member list.
+                server.Publish("session-load", CrewMembersPayload());
             }
 
             private void LoadDeckRecentSupporter()
