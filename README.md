@@ -6,7 +6,76 @@
        width="100%">
 </p>
 
-> **A creator-first live-show automation system for Chaturbate and OBS, built around two purposeful applications: a simple model-facing Studio for running shows, and a separate Designer for building actions, overlays, themes, and reusable Show Packs.**
+<p align="center">
+  <strong>Free Windows live-show toolkit for Chaturbate models using OBS.</strong>
+</p>
+
+StimTake Studio turns Chaturbate tips into interactive OBS experiences with animated overlays, games, reward reveals, supporter tracking, and customizable Show Packs.
+
+> **Current milestone:** Working V6 model build for Windows 10/11. Installer work and clean-machine release QA remain future milestones.
+
+---
+
+## Quick Start
+
+### First Time
+
+```
+1. Load StimTakeChaturbateBridge in Google Chrome
+2. Open your Chaturbate model page and keep it running
+3. Open OBS Studio
+4. Start StimTake-Studio-6.0.exe
+5. Set MY ROOM to your Chaturbate model URL and save
+6. Open Action Deck
+7. Import a Show Pack
+8. Keep the default tip amounts or customize them
+9. Confirm OBS is ready
+10. Go live
+```
+
+Full setup guide:
+
+`STIMTAKE-V6-FIRST-TIME-SETUP.md`
+
+### Daily Run
+
+```
+Open Chrome model page
+        ↓
+Bridge enabled
+        ↓
+Open OBS Studio
+        ↓
+Open StimTake Studio
+        ↓
+Confirm saved room
+        ↓
+Load / confirm Show Pack
+        ↓
+Go Live
+```
+
+Daily guide:
+
+`STIMTAKE-V6-DAILY-RUN-INSTRUCTIONS.md`
+
+---
+
+## Included Show Packs
+
+```
+Daily Pack
+    20 interactive actions
+    games
+    reward reveals
+
+Halloween Pack
+    20 themed actions
+    Halloween games
+    animated overlays
+```
+
+Import a pack through the Action Deck, then keep its default token amounts or customize the pricing for your show.
 
 ---
 
@@ -22,7 +91,7 @@
 
 ### Simple V6 Architecture
 
-```text
+```
 StimTake Studio 6.0
 ├── StimTake-Studio-6.0.exe
 ├── Connectors/
@@ -42,7 +111,7 @@ StimTake Designer 1.0
 
 Live event flow:
 
-```text
+```
 Chaturbate in Google Chrome
         ↓
 StimTakeChaturbateBridge
@@ -60,7 +129,7 @@ Visible on-stream action
 
 The current V6 milestone has a successful Windows build for both applications, with the Chaturbate bridge working as the browser connector:
 
-```text
+```
 StimTake-Studio-6.0.exe
 StimTake-Designer-1.0.exe
 Connectors\StimTakeChaturbateBridge\
@@ -68,7 +137,7 @@ Connectors\StimTakeChaturbateBridge\
 
 The working live stack is therefore:
 
-```text
+```
 Google Chrome + StimTakeChaturbateBridge
 StimTake Studio 6.0
 OBS Studio
@@ -82,7 +151,7 @@ Manual live acceptance performed after the packaged V6 validation also confirmed
 
 V6 is a **working model**, not yet a final public release. Clean-machine installer/QA and optional WebView2 work remain separate future milestones.
 
-```text
+```
 STIMTAKE 6.0
 
 MODEL APP
@@ -131,7 +200,7 @@ The model should not need to understand:
 
 The normal Studio experience should answer only a few questions:
 
-```text
+```
 Am I connected?
 Am I watching the correct model?
 Is OBS connected?
@@ -142,7 +211,7 @@ Which show actions are active?
 
 Target Studio workflow:
 
-```text
+```
 Start StimTake Studio
         ↓
 Saved model loads
@@ -188,7 +257,7 @@ Its responsibilities are:
 
 Target Designer workflow:
 
-```text
+```
 Create Show Pack
         ↓
 Add Action 01
@@ -222,7 +291,7 @@ A Show Pack is portable content.
 
 Example:
 
-```text
+```
 Halloween-Show-Pack.zip
 Christmas-Show-Pack.zip
 Neon-Night-Pack.zip
@@ -233,7 +302,7 @@ A Show Pack may contain up to 20 actions.
 
 Example structure:
 
-```text
+```
 show-pack/
 ├── pack.json
 ├── theme/
@@ -255,7 +324,7 @@ The Show Pack contract is implemented as **schema v1** and is validated by Studi
 
 The architectural rule is already decided:
 
-```text
+```
 Designer defines:
     Action identity
     Overlay
@@ -272,7 +341,7 @@ Studio defines:
 
 Example:
 
-```text
+```
 Designer creates:
 Ghost Animation
 
@@ -290,7 +359,7 @@ The Version 6 Studio UI should be intentionally minimal.
 
 Target dashboard:
 
-```text
+```
 ┌─────────────────────────────────────────────────────┐
 │ STIMTAKE STUDIO                         ● READY    │
 │ obsidian_stallion 🔒                               │
@@ -339,6 +408,39 @@ The model should not need a developer dashboard during a normal live show.
 ---
 
 
+# Normal Model Workflow
+
+The model-facing workflow is designed to stay simple: start Studio, confirm READY, start the session, and let StimTake handle tip tracking, supporter totals, show actions, overlays, and persistence automatically.
+
+```
+Open StimTake Studio 6.0
+        ↓
+Load saved model
+        ↓
+Start local backend
+        ↓
+Load Show Pack + pricing + supporter state
+        ↓
+Connect OBS + Chrome Bridge
+        ↓
+READY
+        ↓
+Receive Chaturbate tip
+        ↓
+Validate event + locked room + duplicate ID
+        ↓
+Update supporter totals
+        ↓
+Match enabled Show Action
+        ↓
+Trigger overlay / sound / animation
+        ↓
+Publish updated state to OBS
+        ↓
+Save session + lifetime state
+        ↓
+Continue until show ends
+```
 # Normal Model Workflow
 
 The model-facing workflow is designed to stay simple: start Studio, confirm READY, start the session, and let StimTake handle tip tracking, supporter totals, show actions, overlays, and persistence automatically.
@@ -449,7 +551,7 @@ flowchart TD
 
 Normal-use summary:
 
-```text
+```
 Open Studio
 → model loads
 → backend starts
@@ -475,7 +577,7 @@ Top Tippers / Fans and show activity should support two operating modes.
 
 Live Mode is the default for normal shows.
 
-```text
+```
 real tip
     ↓
 model-room validation
@@ -519,7 +621,7 @@ These controls belong in an optional advanced or Backstage workflow, not the nor
 
 StimTake 6.0 separates session and lifetime supporter state.
 
-```text
+```
 SESSION SUPPORT
 Current show only
 
@@ -531,7 +633,7 @@ A new session should reset only session values.
 
 Example:
 
-```text
+```
 START NEW SESSION
 
 Reset:
@@ -584,13 +686,13 @@ It does not:
 
 The Chrome Bridge currently reports normalized events to StimTake Studio through the local endpoint:
 
-```text
+```
 http://127.0.0.1:8787/api/platform-event
 ```
 
 Example event:
 
-```json
+```
 {
   "type": "tip",
   "source": "chaturbate-browser",
@@ -605,7 +707,7 @@ Example event:
 
 Intended Studio acceptance rules:
 
-```text
+```
 source == chaturbate-browser
 type == tip
 room == locked model
@@ -627,7 +729,7 @@ The model-facing connector should be simple.
 
 Example:
 
-```text
+```
 MY MODEL
 
 https://chaturbate.com/obsidian_stallion/
@@ -640,7 +742,7 @@ Status: SAVED + LOCKED
 
 Once saved, the model should remain locked until the creator deliberately changes it.
 
-```text
+```
 incoming room == obsidian_stallion
         → ACCEPT
 
@@ -660,7 +762,7 @@ It is not yet being claimed as complete.
 
 The intended architecture separates two browser responsibilities:
 
-```text
+```
 StimTake Studio
 │
 ├── Locked Model Monitor
@@ -689,7 +791,7 @@ WebView2 must not be used by StimTake to capture:
 
 During the transition:
 
-```text
+```
 Chrome Bridge = proven primary detector
 WebView2 = model-room display / monitor
 ```
@@ -704,7 +806,7 @@ StimTake Studio 6.0 now owns the local backend lifecycle in the working V6 build
 
 Verified design behavior:
 
-```text
+```
 Start StimTake
 → backend starts automatically
 
@@ -721,7 +823,7 @@ Close StimTake
 
 Current V6 runtime boundary:
 
-```text
+```
 StimTake Studio.exe
         │
         ├── Model UI
@@ -827,13 +929,13 @@ The packaged V6 validation originally left a new real Chaturbate tip as a manual
 
 ## The connector reports what happened.
 
-```text
+```
 Viewer123 tipped 25 tokens.
 ```
 
 ## StimTake Studio decides what that means.
 
-```text
+```
 Validate model room
 Reject duplicate event_id
 Update session total
@@ -849,7 +951,7 @@ Persist state
 
 ## StimTake Designer decides what creative content exists.
 
-```text
+```
 Action 01 = Black Cat
 Action 02 = Ghost
 Action 03 = Lightning
@@ -860,6 +962,29 @@ Action 20 = Finale
 This separation is the core Version 6 architecture.
 
 ---
+
+# Product Architecture
+
+```
+LIVE EVENT PATH
+
+Chaturbate
+    ↓
+StimTake Chrome Bridge
+    ↓
+StimTake Studio
+    ↓
+OBS Studio
+
+
+CONTENT PATH
+
+StimTake Designer
+    ↓
+StimTake Show Pack
+    ↓
+StimTake Studio
+```
 
 # Product Architecture
 
@@ -986,7 +1111,7 @@ flowchart TD
 
 StimTake Studio 6.0 is complete when a model can:
 
-```text
+```
 Install StimTake Studio
        ↓
 Import a Show Pack
@@ -1022,7 +1147,7 @@ Restart without losing required settings
 
 StimTake Designer reaches its first complete milestone when a developer can:
 
-```text
+```
 Create Show Pack
        ↓
 Build actions 01–20
@@ -1053,14 +1178,14 @@ The **StimTake Chaturbate Bridge is required** for live Chaturbate tip detection
 
 In the source repository, the bridge is located at:
 
-```text
+```
 Connectors/
 └── StimTakeChaturbateBridge/
 ```
 
 Current development path:
 
-```text
+```
 D:\StimTake-Studio\StimTake-Studio\Connectors\StimTakeChaturbateBridge
 ```
 
@@ -1068,7 +1193,7 @@ The bridge contains the Chrome-side integration used by StimTake Studio. It must
 
 Its responsibility is intentionally narrow:
 
-```text
+```
 Chaturbate in Google Chrome
         ↓
 StimTakeChaturbateBridge
@@ -1092,7 +1217,7 @@ StimTake Studio serves local HTML overlay content that OBS can display through a
 
 Typical overlay path:
 
-```text
+```
 StimTake Studio 6.0
         ↓
 Local overlay endpoint
@@ -1108,7 +1233,7 @@ A standard local Browser Source can use the StimTake Studio overlay page while S
 
 For the full intended Chaturbate + StimTake + OBS experience, all of the following are required:
 
-```text
+```
 StimTake Studio 6.0
 Google Chrome
 StimTakeChaturbateBridge loaded/enabled in Chrome
@@ -1117,7 +1242,7 @@ OBS Studio
 
 The normal end-to-end flow is:
 
-```text
+```
 Chaturbate tip
         ↓
 StimTakeChaturbateBridge
@@ -1137,7 +1262,7 @@ StimTake Designer 1.0 is used for content-authoring and development workflows an
 
 A complete working V6 distribution should preserve these separate responsibilities:
 
-```text
+```
 StimTake Studio 6.0
 ├── StimTake-Studio-6.0.exe
 ├── Connectors/
@@ -1158,7 +1283,7 @@ The Chaturbate bridge should remain a separate connector component so it can be 
 
 The current Windows build produces:
 
-```text
+```
 outputs/v6/
 ├── StimTake-Studio-6.0.exe
 └── StimTake-Designer-1.0.exe
@@ -1166,13 +1291,13 @@ outputs/v6/
 
 Build entry point:
 
-```text
+```
 BUILD-STIMTAKE-V6-AND-DESIGNER.cmd
 ```
 
 Primary local validation entry points:
 
-```text
+```
 TEST-STIMTAKE-V6.cmd
 TEST-STIMTAKE-V6-UI.ps1
 ```
@@ -1185,7 +1310,7 @@ The Chrome Bridge remains receiver-only, and imported Show Packs remain bounded 
 
 StimTake follows a protect-first development process.
 
-```text
+```
 Inspect
     ↓
 Protect
@@ -1218,7 +1343,7 @@ Rules:
 
 Important existing recovery points include:
 
-```text
+```
 StimTake-V1-75pct-Known-Good-2026-08-08
 StimTake-SafePoint-V2-2026-08-11
 ```
@@ -1227,7 +1352,7 @@ A later local checkpoint also records the repaired supporter/OBS restore path.
 
 Before significant changes:
 
-```text
+```
 inspect repository root
 inspect current branch
 run git status
@@ -1244,7 +1369,7 @@ Do not use destructive reset/clean workflows against active work.
 
 Do not commit or capture:
 
-```text
+```
 .env
 API tokens
 Passwords
@@ -1268,7 +1393,7 @@ Imported Show Packs must not receive unrestricted Windows privileges.
 
 # Final Product Family
 
-```text
+```
 StimTake Studio 6.0
 Model / User App
 Run the live show
@@ -1321,7 +1446,7 @@ The goal is to make each part do its job extremely well.
 
 ## Version 6 Status
 
-```text
+```
 STIMTAKE STUDIO 6.0
 
 WINDOWS BUILD:          SUCCESS
@@ -1347,5 +1472,34 @@ WORKING V6 MODEL — RELEASE HARDENING STILL REMAINS
 ```
 
 ---
+
+
+---
+
+# Acknowledgments & Open-Source Credits
+
+Special thanks to:
+
+- [MountainGod2](https://github.com/MountainGod2)
+- [actions-user](https://github.com/actions-user)
+- The contributors behind the `chaturbate_poller` project
+
+Their work provided an important reference and foundation while developing StimTake Studio's Chaturbate event-detection and polling workflow.
+
+StimTake Studio expanded that foundation into a broader Windows creator toolkit with Chrome integration, the local Studio runtime, OBS overlays, supporter tracking, customizable tip-triggered actions, and reusable Show Packs.
+
+StimTake Studio is an independent project and is not affiliated with or endorsed by the original developers or contributors.
+
+---
+
+## Star History
+
+<a href="https://www.star-history.com/?repos=tcdoverlord%2FStimTake-Studio&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=tcdoverlord/StimTake-Studio&type=date&theme=dark&legend=top-left&sealed_token=8YHOqW-VaRzzTPOQ-Oo7pmbRDILcivzDdlXbSVCSMzh2qAivpYYLNMz0ckwt0D39NSP9sids4NP2o5pk_FddagZkgJmbHiLSpzNWIhn9dLEwwwLZqS5vodDXm-3an7tjmVlff8eIrHTPT-1NThFVAaFYGXcaz272nUeJi3K3ZF7YcDzKc8Pbu57gsJTT" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=tcdoverlord/StimTake-Studio&type=date&legend=top-left&sealed_token=8YHOqW-VaRzzTPOQ-Oo7pmbRDILcivzDdlXbSVCSMzh2qAivpYYLNMz0ckwt0D39NSP9sids4NP2o5pk_FddagZkgJmbHiLSpzNWIhn9dLEwwwLZqS5vodDXm-3an7tjmVlff8eIrHTPT-1NThFVAaFYGXcaz272nUeJi3K3ZF7YcDzKc8Pbu57gsJTT" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=tcdoverlord/StimTake-Studio&type=date&legend=top-left&sealed_token=8YHOqW-VaRzzTPOQ-Oo7pmbRDILcivzDdlXbSVCSMzh2qAivpYYLNMz0ckwt0D39NSP9sids4NP2o5pk_FddagZkgJmbHiLSpzNWIhn9dLEwwwLZqS5vodDXm-3an7tjmVlff8eIrHTPT-1NThFVAaFYGXcaz272nUeJi3K3ZF7YcDzKc8Pbu57gsJTT" />
+ </picture>
+</a>
 
 **Protect what works. Preserve the truth. Build in modules. Give every application a purpose.**
