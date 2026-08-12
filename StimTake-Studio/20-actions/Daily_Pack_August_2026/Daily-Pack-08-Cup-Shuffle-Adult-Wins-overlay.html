@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StimTake Daily Cup Shuffle</title>
+<style>
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  overflow:hidden;
+  background:transparent;
+  font-family:"Segoe UI",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+.scene{
+  position:relative;
+  width:100%;
+  height:100%;
+  display:grid;
+  place-items:center;
+  pointer-events:none;
+}
+.glow{
+  position:absolute;
+  width:820px;
+  height:760px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(170,92,255,.22),rgba(255,105,180,.08) 48%,transparent 72%);
+  filter:blur(18px);
+}
+.sparkle{
+  position:absolute;
+  font-size:30px;
+  opacity:.6;
+  filter:drop-shadow(0 0 8px rgba(255,255,255,.2));
+}
+.s1{top:14%;left:14%}
+.s2{top:21%;right:16%}
+.s3{bottom:16%;left:18%}
+.s4{bottom:14%;right:19%}
+
+.panel{
+  position:relative;
+  width:min(920px,92vw);
+  padding:30px 34px 36px;
+  border-radius:28px;
+  border:2px solid rgba(175,96,255,.70);
+  background:linear-gradient(180deg,rgba(26,19,42,.94),rgba(11,9,20,.95));
+  box-shadow:0 0 32px rgba(175,96,255,.48),0 0 64px rgba(255,105,180,.14);
+}
+.title{
+  text-align:center;
+  color:#fff5fb;
+  font-size:36px;
+  font-weight:900;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  text-shadow:0 0 14px rgba(175,96,255,.8);
+}
+.subtitle{
+  text-align:center;
+  color:#d8cce2;
+  margin-top:6px;
+  font-size:15px;
+}
+.table{
+  position:relative;
+  width:760px;
+  height:390px;
+  margin:30px auto 0;
+}
+.table-line{
+  position:absolute;
+  left:50px;
+  right:50px;
+  bottom:62px;
+  height:16px;
+  border-radius:999px;
+  background:linear-gradient(90deg,#5e397d,#8e5cff,#5e397d);
+  box-shadow:0 0 16px rgba(142,92,255,.35);
+}
+.prize{
+  position:absolute;
+  left:50%;
+  bottom:95px;
+  width:64px;
+  height:64px;
+  margin-left:-32px;
+  display:grid;
+  place-items:center;
+  font-size:42px;
+  opacity:1;
+  transition:opacity .35s ease;
+}
+.prize.hidden{opacity:0}
+.cup{
+  position:absolute;
+  top:75px;
+  width:150px;
+  height:220px;
+  transition:left .7s cubic-bezier(.2,.75,.2,1), transform .45s ease, opacity .35s ease, filter .35s ease;
+}
+.cup-body{
+  position:absolute;
+  left:15px;
+  top:20px;
+  width:120px;
+  height:170px;
+  clip-path:polygon(12% 0,88% 0,76% 100%,24% 100%);
+  background:linear-gradient(145deg,#9b67ff,#5b36c8);
+  border:4px solid rgba(255,255,255,.16);
+  box-shadow:0 0 20px rgba(155,103,255,.3),inset 0 0 20px rgba(255,255,255,.04);
+}
+.cup-body:after{
+  content:"★";
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  color:#ff8fc9;
+  font-size:38px;
+  text-shadow:0 0 10px rgba(255,143,201,.45);
+}
+.cup-label{
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:0;
+  text-align:center;
+  color:#efe6f6;
+  font-size:13px;
+  font-weight:900;
+}
+.cup.winner .cup-body{
+  box-shadow:0 0 28px rgba(255,157,60,.68),0 0 50px rgba(175,96,255,.5),inset 0 0 20px rgba(255,255,255,.04);
+}
+.cup.winner{
+  transform:translateY(-35px) scale(1.08);
+}
+.cup.dim{
+  opacity:.22;
+  filter:saturate(.4);
+}
+.cup.shuffle .cup-body{
+  animation:wiggle .18s ease-in-out infinite alternate;
+}
+.crown{
+  position:absolute;
+  top:-24px;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:32px;
+  opacity:0;
+}
+.cup.winner .crown{opacity:1}
+
+.result{
+  min-height:74px;
+  margin-top:10px;
+  text-align:center;
+  color:#fff5fb;
+  font-size:28px;
+  font-weight:900;
+}
+.result .headline{
+  color:#ff9d3c;
+  text-shadow:0 0 12px rgba(255,157,60,.55);
+}
+.result .message{
+  display:block;
+  margin-top:8px;
+  color:#c98cff;
+  font-size:20px;
+}
+.result .reward-card{
+  display:inline-block;
+  margin-top:10px;
+  padding:12px 22px;
+  border-radius:18px;
+  color:#fff5fb;
+  font-size:24px;
+  font-weight:1000;
+  background:linear-gradient(135deg,rgba(255,105,180,.20),rgba(143,92,255,.24));
+  border:1px solid rgba(255,157,60,.62);
+  box-shadow:0 0 24px rgba(255,105,180,.24),0 0 18px rgba(143,92,255,.25);
+  animation:rewardPop .65s cubic-bezier(.2,.8,.2,1);
+}
+@keyframes rewardPop{
+  0%{opacity:0;transform:scale(.55) translateY(10px)}
+  65%{opacity:1;transform:scale(1.08) translateY(-2px)}
+  100%{opacity:1;transform:scale(1) translateY(0)}
+}
+.flash{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:0;
+}
+.flash.active{animation:flash .9s ease-out}
+.footer{
+  text-align:center;
+  margin-top:10px;
+  color:#9f93aa;
+  font-size:12px;
+}
+@keyframes wiggle{
+  from{transform:rotate(-3deg)}
+  to{transform:rotate(3deg)}
+}
+@keyframes flash{
+  0%{opacity:0}
+  25%{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.32),transparent 48%)}
+  100%{opacity:0}
+}
+@media(max-height:760px){.panel{transform:scale(.84)}}
+</style>
+</head>
+<body>
+<div class="scene">
+  <div class="glow"></div>
+  <div class="sparkle s1">✨</div>
+  <div class="sparkle s2">💖</div>
+  <div class="sparkle s3">⭐</div>
+  <div class="sparkle s4">✨</div>
+
+  <section class="panel">
+    <div class="flash" id="flash"></div>
+
+    <div class="title">Cup Shuffle</div>
+    <div class="subtitle">Three cups. One hidden reward. Watch closely.</div>
+
+    <div class="table" id="table">
+      <div class="table-line"></div>
+      <div class="prize" id="prize">🔥</div>
+
+      <div class="cup" data-index="0" style="left:110px">
+        <div class="crown">👑</div>
+        <div class="cup-body"></div>
+        <div class="cup-label">Cup 1</div>
+      </div>
+
+      <div class="cup" data-index="1" style="left:305px">
+        <div class="crown">👑</div>
+        <div class="cup-body"></div>
+        <div class="cup-label">Cup 2</div>
+      </div>
+
+      <div class="cup" data-index="2" style="left:500px">
+        <div class="crown">👑</div>
+        <div class="cup-body"></div>
+        <div class="cup-label">Cup 3</div>
+      </div>
+    </div>
+
+    <div class="result" id="result">The cups are getting ready...</div>
+    <div class="footer">StimTake Studio • Daily Pack • Cup Shuffle</div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const cups = [...document.querySelectorAll('.cup')];
+  const prize = document.getElementById('prize');
+  const result = document.getElementById('result');
+  const flash = document.getElementById('flash');
+
+  const slots = [110,305,500];
+  let running = false;
+
+  // Hidden reward pool: no menu is shown before the shuffle.
+  // Rewards stay suggestive/non-graphic and are revealed only after the winning cup lifts.
+  const defaultRewards = [
+    {icon:'🔥', title:'60-Second Tease', message:'A full minute of teasing.'},
+    {icon:'💋', title:'Flirty Close-Up', message:'A playful close-up just for the winner.'},
+    {icon:'🕺', title:'Slow Dance', message:'A slow, confident dance.'},
+    {icon:'👕', title:'Lose One Layer', message:'One clothing layer comes off.'},
+    {icon:'👑', title:'Model Choice', message:'The model chooses the next tease.'},
+    {icon:'⏱️', title:'120-Second Show', message:'Two minutes of spotlight time.'},
+    {icon:'🎭', title:'Viewer Chooses the Pose', message:'The winner chooses a playful pose.'},
+    {icon:'💎', title:'Jackpot Tease', message:'The premium surprise reward.'}
+  ];
+  let rewards = [...defaultRewards];
+
+  function setRewards(next){
+    if(!Array.isArray(next) || !next.length) return;
+    rewards = next.map((r,i)=>({
+      icon:String(r.icon || '🔥'),
+      title:String(r.title || `Reward ${i+1}`),
+      message:String(r.message || 'Surprise reward unlocked.')
+    }));
+  }
+
+  function reset(){
+    cups.forEach((cup,i)=>{
+      cup.classList.remove('shuffle','winner','dim');
+      cup.style.left = slots[i] + 'px';
+    });
+    prize.classList.remove('hidden');
+    prize.textContent = '🔥';
+  }
+
+  function shuffle(options = {}){
+    if(running) return false;
+    running = true;
+
+    reset();
+    result.textContent = 'Watch the prize...';
+
+    const forced = Number.isInteger(options.index) ? options.index : null;
+    const winner = forced !== null
+      ? Math.max(0,Math.min(2,forced))
+      : Math.floor(Math.random()*3);
+
+    const forcedReward = Number.isInteger(options.rewardIndex) ? options.rewardIndex : null;
+    const rewardIndex = forcedReward !== null
+      ? Math.max(0,Math.min(rewards.length-1,forcedReward))
+      : Math.floor(Math.random()*rewards.length);
+    const reward = rewards[rewardIndex];
+
+    setTimeout(()=>{
+      prize.classList.add('hidden');
+      result.textContent = 'The cups are shuffling...';
+
+      cups.forEach(c=>c.classList.add('shuffle'));
+
+      let order = [0,1,2];
+      let step = 0;
+
+      const timer = setInterval(()=>{
+        order = order.sort(()=>Math.random() - 0.5);
+
+        cups.forEach((cup,i)=>{
+          cup.style.left = slots[order[i]] + 'px';
+        });
+
+        step++;
+
+        if(step >= 6){
+          clearInterval(timer);
+
+          setTimeout(()=>{
+            cups.forEach(c=>c.classList.remove('shuffle'));
+
+            const winnerCup = cups[winner];
+            cups.forEach((cup,i)=>{
+              if(i === winner){
+                cup.classList.add('winner');
+              } else {
+                cup.classList.add('dim');
+              }
+            });
+
+            const winLeft = parseInt(winnerCup.style.left,10) + 43;
+            prize.style.left = (winLeft + 32) + 'px';
+            prize.style.marginLeft = '0';
+            prize.textContent = reward.icon;
+            prize.classList.remove('hidden');
+
+            result.innerHTML =
+              `🏆 <span class="headline">CUP ${winner + 1} WINS!</span>` +
+              `<span class="message">Hidden reward revealed:</span>` +
+              `<span class="reward-card">${reward.icon} ${reward.title}<br><small>${reward.message}</small></span>`;
+
+            flash.classList.remove('active');
+            void flash.offsetWidth;
+            flash.classList.add('active');
+
+            running = false;
+
+            window.parent?.postMessage?.({
+              type:'stimtake-daily-cup-shuffle-result',
+              index:winner,
+              cup:winner + 1,
+              rewardIndex,
+              reward
+            },'*');
+          },700);
+        }
+      },520);
+    },900);
+
+    return true;
+  }
+
+  window.StimTakeDailyCupShuffle = {
+    shuffle,
+    setRewards
+  };
+
+  window.addEventListener('message',(event)=>{
+    const data = event.data || {};
+    if(data.type === 'stimtake-daily-cup-shuffle'){
+      if(Array.isArray(data.rewards)) setRewards(data.rewards);
+      shuffle({
+        index:Number.isInteger(data.index) ? data.index : undefined,
+        rewardIndex:Number.isInteger(data.rewardIndex) ? data.rewardIndex : undefined
+      });
+    }
+  });
+
+  setTimeout(()=>shuffle(),800);
+})();
+</script>
+</body>
+</html>

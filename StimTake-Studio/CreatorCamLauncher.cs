@@ -144,7 +144,6 @@ namespace CreatorCamOverlayKit
 
                 var menu = new ContextMenuStrip();
                 menu.Items.Add("Open StimTake Studio 6.0", null, delegate { ShowStudioV6(); });
-                menu.Items.Add("Open Backstage / Manual Tools", null, delegate { ShowControlDeck(); });
                 menu.Items.Add("Open Overlay Preview", null, delegate { OpenUrl(BaseUrl + "index.html"); });
                 menu.Items.Add(new ToolStripSeparator());
                 menu.Items.Add("Copy OBS URL", null, delegate
@@ -175,7 +174,7 @@ namespace CreatorCamOverlayKit
                 if (!quiet)
                 {
                     tray.ShowBalloonTip(2200, "StimTake Studio 6.0",
-                        "Studio and the local backend are running. Backstage remains available from the tray.",
+                        "Studio and the local backend are running.",
                         ToolTipIcon.Info);
                     ShowStudioV6();
                 }

@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StimTake Daily Mystery Tiles</title>
+<style>
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:transparent;font-family:"Segoe UI",Arial,sans-serif}
+*{box-sizing:border-box}
+.scene{position:relative;width:100%;height:100%;display:grid;place-items:center;pointer-events:none}
+.glow{position:absolute;width:900px;height:800px;border-radius:50%;background:radial-gradient(circle,rgba(170,92,255,.22),rgba(255,105,180,.09) 48%,transparent 72%);filter:blur(18px)}
+.sparkle{position:absolute;font-size:30px;opacity:.6;filter:drop-shadow(0 0 8px rgba(255,255,255,.2))}
+.s1{top:14%;left:14%}.s2{top:21%;right:16%}.s3{bottom:16%;left:18%}.s4{bottom:14%;right:19%}
+.panel{position:relative;width:min(1000px,94vw);padding:30px 34px 36px;border-radius:28px;border:2px solid rgba(175,96,255,.70);background:linear-gradient(180deg,rgba(26,19,42,.94),rgba(11,9,20,.95));box-shadow:0 0 32px rgba(175,96,255,.48),0 0 64px rgba(255,105,180,.14)}
+.title{text-align:center;color:#fff5fb;font-size:36px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;text-shadow:0 0 14px rgba(175,96,255,.8)}
+.subtitle{text-align:center;color:#d8cce2;margin-top:6px;font-size:15px}
+.tiles{display:grid;grid-template-columns:repeat(3,170px);gap:24px;justify-content:center;margin:34px auto 0;perspective:1400px}
+.tile-wrap{position:relative;width:170px;height:170px;transition:transform .45s ease,opacity .35s ease,filter .35s ease}
+.tile{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .75s ease}
+.tile.flipped{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;border-radius:22px;backface-visibility:hidden;border:3px solid rgba(255,255,255,.14);overflow:hidden}
+.back{background:linear-gradient(145deg,#8058d7,#432769);box-shadow:0 0 20px rgba(128,88,215,.28)}
+.back:before{content:"?";position:absolute;inset:0;display:grid;place-items:center;color:#ff9bd0;font-size:70px;font-weight:1000;text-shadow:0 0 14px rgba(255,155,208,.4)}
+.back:after{content:"";position:absolute;inset:14px;border:2px solid rgba(255,255,255,.12);border-radius:16px}
+.front{transform:rotateY(180deg);background:linear-gradient(180deg,#fff8fc,#f1e8fb);display:grid;place-items:center;text-align:center;padding:14px;color:#34243f}
+.icon{font-size:42px}
+.prize-title{margin-top:6px;color:#8c4ed3;font-size:19px;font-weight:900;line-height:1.12}
+.prize-message{display:none}
+.tile-wrap.shuffle{animation:shuffle .24s ease-in-out infinite alternate}
+.tile-wrap.dim{opacity:.18;filter:saturate(.4)}
+.tile-wrap.winner{transform:translateY(-18px) scale(1.1);z-index:5}
+.tile-wrap.winner .face{box-shadow:0 0 30px rgba(255,157,60,.65),0 0 50px rgba(175,96,255,.45)}
+.crown{position:absolute;top:-34px;left:50%;transform:translateX(-50%);font-size:32px;opacity:0;z-index:7}
+.tile-wrap.winner .crown{opacity:1}
+.result{min-height:78px;margin-top:18px;text-align:center;color:#fff5fb;font-size:28px;font-weight:900}
+.result .headline{color:#ff9d3c;text-shadow:0 0 12px rgba(255,157,60,.55)}
+.result .message{display:block;margin-top:8px;color:#c98cff;font-size:20px}
+.flash{position:absolute;inset:0;pointer-events:none;opacity:0}.flash.active{animation:flash .9s ease-out}
+.footer{text-align:center;margin-top:10px;color:#9f93aa;font-size:12px}
+@keyframes shuffle{from{transform:translate(-6px,-4px) rotate(-2deg)}to{transform:translate(6px,4px) rotate(2deg)}}
+@keyframes flash{0%{opacity:0}25%{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.32),transparent 48%)}100%{opacity:0}}
+@media(max-height:760px){.panel{transform:scale(.84)}}
+</style>
+</head>
+<body>
+<div class="scene">
+<div class="glow"></div>
+<div class="sparkle s1">✨</div><div class="sparkle s2">💖</div><div class="sparkle s3">⭐</div><div class="sparkle s4">✨</div>
+
+<section class="panel">
+<div class="flash" id="flash"></div>
+<div class="title">🧩 Mystery Tiles</div>
+<div class="subtitle">Six tiles shuffle. One flips over with the surprise.</div>
+
+<div class="tiles">
+  <div class="tile-wrap" data-index="0"><div class="crown">👑</div><div class="tile"><div class="face back"></div><div class="face front"><div><div class="icon">💖</div><div class="prize-title">Sexy Pose</div><div class="prize-message">A playful pose is chosen.</div></div></div></div></div>
+  <div class="tile-wrap" data-index="1"><div class="crown">👑</div><div class="tile"><div class="face back"></div><div class="face front"><div><div class="icon">💃</div><div class="prize-title">Slow Dance</div><div class="prize-message">Time for a smooth little dance.</div></div></div></div></div>
+  <div class="tile-wrap" data-index="2"><div class="crown">👑</div><div class="tile"><div class="face back"></div><div class="face front"><div><div class="icon">✨</div><div class="prize-title">Mystery Choice</div><div class="prize-message">A surprise result is revealed.</div></div></div></div></div>
+  <div class="tile-wrap" data-index="3"><div class="crown">👑</div><div class="tile"><div class="face back"></div><div class="face front"><div><div class="icon">👑</div><div class="prize-title">Model Choice</div><div class="prize-message">The model decides what comes next.</div></div></div></div></div>
+  <div class="tile-wrap" data-index="4"><div class="crown">👑</div><div class="tile"><div class="face back"></div><div class="face front"><div><div class="icon">🎁</div><div class="prize-title">Lucky Bonus</div><div class="prize-message">A little extra fun appears.</div></div></div></div></div>
+  <div class="tile-wrap" data-index="5"><div class="crown">👑</div><div class="tile"><div class="face back"></div><div class="face front"><div><div class="icon">⭐</div><div class="prize-title">Double Surprise</div><div class="prize-message">Two little surprises are in play.</div></div></div></div></div>
+</div>
+
+<div class="result" id="result">The mystery tiles are waiting...</div>
+<div class="footer">StimTake Studio • Daily Pack • Mystery Tiles</div>
+</section>
+</div>
+
+<script>
+(()=>{
+const wraps=[...document.querySelectorAll('.tile-wrap')];
+const result=document.getElementById('result');
+const flash=document.getElementById('flash');
+
+let prizes=[
+ {icon:'💖',title:'Sexy Pose',message:'A playful pose is chosen.'},
+ {icon:'💃',title:'Slow Dance',message:'Time for a smooth little dance.'},
+ {icon:'✨',title:'Mystery Choice',message:'A surprise result is revealed.'},
+ {icon:'👑',title:'Model Choice',message:'The model decides what comes next.'},
+ {icon:'🎁',title:'Lucky Bonus',message:'A little extra fun appears.'},
+ {icon:'⭐',title:'Double Surprise',message:'Two little surprises are in play.'}
+];
+
+let running=false;
+
+function setPrizes(next){
+ if(!Array.isArray(next)||!next.length)return;
+ prizes=next.slice(0,6).map((p,i)=>({
+   icon:String(p.icon||'⭐'),
+   title:String(p.title||('Prize '+(i+1))),
+   message:String(p.message||'A surprise is revealed.')
+ }));
+ while(prizes.length<6){
+   prizes.push({icon:'⭐',title:'Prize '+(prizes.length+1),message:'A surprise is revealed.'});
+ }
+ wraps.forEach((w,i)=>{
+   w.querySelector('.icon').textContent=prizes[i].icon;
+   w.querySelector('.prize-title').textContent=prizes[i].title;
+   w.querySelector('.prize-message').textContent=prizes[i].message;
+ });
+}
+
+function reset(){
+ wraps.forEach(w=>{
+   w.classList.remove('shuffle','winner','dim');
+   w.querySelector('.tile').classList.remove('flipped');
+ });
+}
+
+function pick(options={}){
+ if(running)return false;
+ running=true;
+ if(Array.isArray(options.prizes))setPrizes(options.prizes);
+
+ reset();
+ result.textContent='The tiles are shuffling...';
+ wraps.forEach(w=>w.classList.add('shuffle'));
+
+ const forced=Number.isInteger(options.index)?Math.max(0,Math.min(5,options.index)):null;
+ const selected=forced!==null?forced:Math.floor(Math.random()*6);
+
+ setTimeout(()=>{
+   wraps.forEach((w,i)=>{
+     w.classList.remove('shuffle');
+     if(i===selected){
+       w.classList.add('winner');
+       w.querySelector('.tile').classList.add('flipped');
+     }else{
+       w.classList.add('dim');
+     }
+   });
+
+   const prize=prizes[selected];
+   result.innerHTML=`${prize.icon} <span class="headline">${prize.title}</span><span class="message">${prize.message}</span>`;
+
+   flash.classList.remove('active');
+   void flash.offsetWidth;
+   flash.classList.add('active');
+
+   running=false;
+   window.parent?.postMessage?.({
+     type:'stimtake-daily-mystery-tiles-result',
+     index:selected,
+     prize
+   },'*');
+ },2300);
+
+ return true;
+}
+
+setPrizes(prizes);
+window.StimTakeDailyMysteryTiles={pick,setPrizes};
+
+window.addEventListener('message',event=>{
+ const d=event.data||{};
+ if(d.type==='stimtake-daily-mystery-tiles'){
+   pick({
+     index:Number.isInteger(d.index)?d.index:undefined,
+     prizes:Array.isArray(d.prizes)?d.prizes:undefined
+   });
+ }
+});
+
+setTimeout(()=>pick(),800);
+})();
+</script>
+</body>
+</html>

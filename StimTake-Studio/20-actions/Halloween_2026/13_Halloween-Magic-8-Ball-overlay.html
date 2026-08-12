@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StimTake Gothic Magic 8-Ball</title>
+<style>
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  overflow:hidden;
+  background:transparent;
+  font-family:"Segoe UI",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+.scene{
+  position:relative;
+  width:100%;
+  height:100%;
+  display:grid;
+  place-items:center;
+  pointer-events:none;
+}
+.glow{
+  position:absolute;
+  width:820px;
+  height:820px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(180,76,255,.24),rgba(255,79,184,.08) 46%,transparent 72%);
+  filter:blur(18px);
+}
+.moon{
+  position:absolute;
+  top:5%;
+  right:8%;
+  width:115px;
+  height:115px;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#fff7df,#ffd98b 58%,#c98e3e);
+  box-shadow:0 0 30px rgba(255,217,139,.45);
+}
+.moon:after{
+  content:"";
+  position:absolute;
+  width:100px;
+  height:100px;
+  left:30px;
+  top:-10px;
+  border-radius:50%;
+  background:rgba(8,5,14,.97);
+}
+.web{position:absolute;font-size:110px;opacity:.18}
+.w1{top:-10px;left:-6px}
+.w2{bottom:-10px;right:-6px;transform:rotate(180deg)}
+.bat{position:absolute;font-size:40px;filter:drop-shadow(0 0 5px rgba(180,76,255,.45))}
+.b1{top:12%;left:10%;transform:rotate(-12deg)}
+.b2{top:20%;right:20%;transform:scale(.8) rotate(10deg)}
+
+.panel{
+  position:relative;
+  width:min(900px,92vw);
+  padding:28px 32px 36px;
+  border-radius:28px;
+  border:2px solid rgba(180,76,255,.72);
+  background:linear-gradient(180deg,rgba(27,13,43,.94),rgba(11,7,22,.95));
+  box-shadow:0 0 32px rgba(180,76,255,.55),0 0 64px rgba(255,79,184,.18);
+}
+.title{
+  text-align:center;
+  color:#fff2dd;
+  font-size:36px;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  text-shadow:0 0 14px rgba(180,76,255,.9);
+}
+.subtitle{
+  text-align:center;
+  color:#d6c3e1;
+  margin-top:6px;
+  font-size:15px;
+}
+.ball-wrap{
+  position:relative;
+  width:560px;
+  height:520px;
+  margin:22px auto 0;
+  display:grid;
+  place-items:center;
+}
+.ball{
+  position:relative;
+  width:390px;
+  height:390px;
+  border-radius:50%;
+  background:
+    radial-gradient(circle at 35% 28%,rgba(255,255,255,.28),transparent 18%),
+    radial-gradient(circle,#1b1026 0%,#0c0712 62%,#040307 100%);
+  border:6px solid #4c2c61;
+  box-shadow:
+    0 0 36px rgba(180,76,255,.6),
+    0 0 70px rgba(255,79,184,.18),
+    inset 0 0 55px rgba(255,255,255,.04);
+}
+.ball.shake{
+  animation:shake .13s linear infinite;
+}
+.window{
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:190px;
+  height:190px;
+  margin-left:-95px;
+  margin-top:-95px;
+  border-radius:50%;
+  background:radial-gradient(circle,#25113a,#14091f 68%,#09050f 100%);
+  border:4px solid rgba(199,140,255,.65);
+  box-shadow:inset 0 0 24px rgba(0,0,0,.55),0 0 18px rgba(199,140,255,.35);
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+}
+.triangle{
+  width:0;
+  height:0;
+  border-left:68px solid transparent;
+  border-right:68px solid transparent;
+  border-bottom:118px solid #6a2f9f;
+  filter:drop-shadow(0 0 10px rgba(180,76,255,.55));
+  position:relative;
+  transform:translateY(-8px);
+}
+.answer{
+  position:absolute;
+  width:128px;
+  left:-64px;
+  top:54px;
+  text-align:center;
+  color:#fff2dd;
+  font-size:14px;
+  font-weight:900;
+  line-height:1.15;
+  text-shadow:0 0 8px rgba(255,255,255,.25);
+}
+.base{
+  position:absolute;
+  bottom:18px;
+  width:300px;
+  height:90px;
+  border-radius:50% 50% 22px 22px;
+  background:linear-gradient(180deg,#321c3f,#140b1d);
+  border:3px solid rgba(180,76,255,.55);
+  box-shadow:0 0 18px rgba(180,76,255,.35);
+  z-index:-1;
+}
+.result{
+  min-height:74px;
+  margin-top:12px;
+  text-align:center;
+  color:#fff2dd;
+  font-size:28px;
+  font-weight:900;
+}
+.result .pick{
+  color:#c78cff;
+  text-shadow:0 0 12px rgba(199,140,255,.65);
+}
+.result .message{
+  display:block;
+  margin-top:8px;
+  color:#ff9a3c;
+  font-size:20px;
+}
+.flash{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:0;
+}
+.flash.active{animation:flash .9s ease-out}
+.footer{
+  text-align:center;
+  margin-top:10px;
+  color:#a99ab7;
+  font-size:12px;
+}
+@keyframes shake{
+  0%{transform:rotate(-5deg) translate(-4px,1px)}
+  25%{transform:rotate(5deg) translate(4px,-2px)}
+  50%{transform:rotate(-4deg) translate(2px,3px)}
+  75%{transform:rotate(4deg) translate(-2px,-3px)}
+  100%{transform:rotate(0deg) translate(0)}
+}
+@keyframes flash{
+  0%{opacity:0}
+  25%{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.34),transparent 48%)}
+  100%{opacity:0}
+}
+@media(max-height:760px){.panel{transform:scale(.84)}}
+</style>
+</head>
+<body>
+<div class="scene">
+  <div class="glow"></div>
+  <div class="moon"></div>
+  <div class="web w1">🕸️</div>
+  <div class="web w2">🕸️</div>
+  <div class="bat b1">🦇</div>
+  <div class="bat b2">🦇</div>
+
+  <section class="panel">
+    <div class="flash" id="flash"></div>
+
+    <div class="title">Magic 8-Ball</div>
+    <div class="subtitle">Ask the gothic oracle and let fate answer.</div>
+
+    <div class="ball-wrap">
+      <div class="base"></div>
+
+      <div class="ball" id="ball">
+        <div class="window">
+          <div class="triangle">
+            <div class="answer" id="answer">ASK ME</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="result" id="result">The oracle is waiting...</div>
+    <div class="footer">StimTake Studio • Halloween Magic 8-Ball Placeholder</div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const ball = document.getElementById('ball');
+  const answer = document.getElementById('answer');
+  const result = document.getElementById('result');
+  const flash = document.getElementById('flash');
+
+  let answers = [
+    'YES, WITCH',
+    'ABSOLUTELY',
+    'TRY AGAIN',
+    'MYSTERY AWAITS',
+    'LUCK IS NEAR',
+    'DO IT',
+    'NOT TONIGHT',
+    'SPOOKY YES',
+    'BOLD MOVE',
+    'THE MOON AGREES'
+  ];
+
+  let challenges = [
+    'A playful Halloween challenge appears',
+    'The room gets a witchy little twist',
+    'Fate says to turn up the energy',
+    'A lucky surprise is on the way',
+    'The oracle picked a mysterious moment'
+  ];
+
+  let running = false;
+
+  function setAnswers(next){
+    if(!Array.isArray(next) || !next.length) return;
+    answers = next.slice(0,14).map(x=>String(x));
+  }
+
+  function ask(options = {}){
+    if(running) return false;
+    running = true;
+
+    if(Array.isArray(options.answers)) setAnswers(options.answers);
+
+    answer.textContent = '...';
+    result.textContent = 'The oracle is deciding...';
+    ball.classList.add('shake');
+
+    const forced = Number.isInteger(options.index) ? options.index : null;
+    const selected = forced !== null
+      ? Math.max(0,Math.min(answers.length-1,forced))
+      : Math.floor(Math.random()*answers.length);
+
+    setTimeout(()=>{
+      ball.classList.remove('shake');
+
+      const picked = answers[selected];
+      const message = challenges[Math.floor(Math.random()*challenges.length)];
+
+      answer.textContent = picked;
+      result.innerHTML =
+        `🖤 <span class="pick">${picked}</span>` +
+        `<span class="message">${message}</span>`;
+
+      flash.classList.remove('active');
+      void flash.offsetWidth;
+      flash.classList.add('active');
+
+      running = false;
+
+      window.parent?.postMessage?.({
+        type:'stimtake-magic-8-ball-result',
+        index:selected,
+        answer:picked,
+        message
+      },'*');
+    },2200);
+
+    return true;
+  }
+
+  window.StimTakeMagic8Ball = {
+    ask,
+    setAnswers
+  };
+
+  window.addEventListener('message',(event)=>{
+    const data = event.data || {};
+    if(data.type === 'stimtake-magic-8-ball-ask'){
+      ask({
+        index:Number.isInteger(data.index) ? data.index : undefined,
+        answers:Array.isArray(data.answers) ? data.answers : undefined
+      });
+    }
+  });
+
+  setTimeout(()=>ask(),800);
+})();
+</script>
+</body>
+</html>

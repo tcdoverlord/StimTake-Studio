@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StimTake Halloween Candle Challenge</title>
+<style>
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  overflow:hidden;
+  background:transparent;
+  font-family:"Segoe UI",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+.scene{
+  position:relative;
+  width:100%;
+  height:100%;
+  display:grid;
+  place-items:center;
+  pointer-events:none;
+}
+.glow{
+  position:absolute;
+  width:840px;
+  height:820px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(180,76,255,.22),rgba(255,79,184,.07) 46%,transparent 72%);
+  filter:blur(18px);
+}
+.moon{
+  position:absolute;
+  top:5%;
+  right:8%;
+  width:115px;
+  height:115px;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#fff7df,#ffd98b 58%,#c98e3e);
+  box-shadow:0 0 30px rgba(255,217,139,.45);
+}
+.moon:after{
+  content:"";
+  position:absolute;
+  width:100px;
+  height:100px;
+  left:30px;
+  top:-10px;
+  border-radius:50%;
+  background:rgba(8,5,14,.97);
+}
+.web{position:absolute;font-size:110px;opacity:.18}
+.w1{top:-10px;left:-6px}
+.w2{bottom:-10px;right:-6px;transform:rotate(180deg)}
+.bat{position:absolute;font-size:40px;filter:drop-shadow(0 0 5px rgba(180,76,255,.45))}
+.b1{top:12%;left:10%;transform:rotate(-12deg)}
+.b2{top:20%;right:20%;transform:scale(.8) rotate(10deg)}
+
+.panel{
+  position:relative;
+  width:min(960px,94vw);
+  padding:28px 32px 36px;
+  border-radius:28px;
+  border:2px solid rgba(180,76,255,.72);
+  background:linear-gradient(180deg,rgba(27,13,43,.94),rgba(11,7,22,.95));
+  box-shadow:0 0 32px rgba(180,76,255,.55),0 0 64px rgba(255,79,184,.16);
+}
+.title{
+  text-align:center;
+  color:#fff2dd;
+  font-size:36px;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  text-shadow:0 0 14px rgba(180,76,255,.9);
+}
+.subtitle{
+  text-align:center;
+  color:#d6c3e1;
+  margin-top:6px;
+  font-size:15px;
+}
+.candle-row{
+  display:flex;
+  justify-content:center;
+  align-items:flex-end;
+  gap:34px;
+  margin:36px auto 0;
+  min-height:390px;
+}
+.candle-wrap{
+  position:relative;
+  width:110px;
+  text-align:center;
+  transition:opacity .4s ease,transform .4s ease,filter .4s ease;
+}
+.candle{
+  position:relative;
+  width:76px;
+  height:220px;
+  margin:0 auto;
+  border-radius:14px 14px 10px 10px;
+  background:linear-gradient(90deg,#c796ff 0%,#f2dcff 48%,#a665e6 100%);
+  border:3px solid rgba(255,255,255,.28);
+  box-shadow:inset 0 0 22px rgba(96,39,135,.25),0 0 14px rgba(180,76,255,.28);
+}
+.candle:before{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:-16px;
+  width:5px;
+  height:18px;
+  margin-left:-2.5px;
+  background:#251723;
+  border-radius:3px;
+}
+.wax{
+  position:absolute;
+  top:28px;
+  left:8px;
+  width:12px;
+  height:54px;
+  border-radius:8px;
+  background:rgba(255,255,255,.45);
+}
+.flame{
+  position:absolute;
+  left:50%;
+  top:-74px;
+  width:44px;
+  height:66px;
+  margin-left:-22px;
+  border-radius:50% 50% 45% 45% / 60% 60% 40% 40%;
+  background:radial-gradient(circle at 50% 62%,#fff7c4 0 18%,#ffb13b 40%,#ff7d2b 70%,transparent 72%);
+  filter:drop-shadow(0 0 12px rgba(255,158,54,.85));
+  transform-origin:50% 100%;
+  opacity:1;
+}
+.flame.flicker{
+  animation:flicker .17s ease-in-out infinite alternate;
+}
+.flame.out{
+  animation:fadeOut .5s ease forwards;
+}
+.candle-wrap.winner{
+  transform:scale(1.08) translateY(-8px);
+  filter:drop-shadow(0 0 18px rgba(255,154,60,.7));
+}
+.candle-wrap.winner .candle{
+  border-color:#ffb167;
+  box-shadow:0 0 24px rgba(255,154,60,.55),inset 0 0 22px rgba(96,39,135,.25);
+}
+.candle-wrap.dim{
+  opacity:.26;
+  filter:saturate(.4);
+}
+.candle-name{
+  margin-top:14px;
+  color:#efe6f6;
+  font-size:13px;
+  font-weight:900;
+  letter-spacing:.05em;
+}
+.candle-wrap.winner .candle-name{
+  color:#ffad61;
+  text-shadow:0 0 10px rgba(255,154,60,.5);
+}
+.crown{
+  position:absolute;
+  left:50%;
+  top:-118px;
+  transform:translateX(-50%);
+  font-size:30px;
+  opacity:0;
+}
+.candle-wrap.winner .crown{opacity:1}
+
+.result{
+  min-height:74px;
+  margin-top:18px;
+  text-align:center;
+  color:#fff2dd;
+  font-size:28px;
+  font-weight:900;
+}
+.result .pick{
+  color:#ff9a3c;
+  text-shadow:0 0 12px rgba(255,154,60,.6);
+}
+.result .message{
+  display:block;
+  margin-top:8px;
+  color:#c78cff;
+  font-size:20px;
+}
+.flash{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:0;
+}
+.flash.active{animation:flash .9s ease-out}
+.footer{
+  text-align:center;
+  margin-top:10px;
+  color:#a99ab7;
+  font-size:12px;
+}
+@keyframes flicker{
+  from{transform:rotate(-4deg) scale(.96)}
+  to{transform:rotate(4deg) scale(1.04)}
+}
+@keyframes fadeOut{
+  0%{opacity:1;transform:scale(1)}
+  50%{opacity:.3;transform:scale(.75)}
+  100%{opacity:0;transform:scale(.45)}
+}
+@keyframes flash{
+  0%{opacity:0}
+  25%{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.34),transparent 48%)}
+  100%{opacity:0}
+}
+@media(max-height:760px){.panel{transform:scale(.84)}}
+</style>
+</head>
+<body>
+<div class="scene">
+  <div class="glow"></div>
+  <div class="moon"></div>
+  <div class="web w1">🕸️</div>
+  <div class="web w2">🕸️</div>
+  <div class="bat b1">🦇</div>
+  <div class="bat b2">🦇</div>
+
+  <section class="panel">
+    <div class="flash" id="flash"></div>
+
+    <div class="title">Candle Challenge</div>
+    <div class="subtitle">Five enchanted flames. Only one survives the witching hour.</div>
+
+    <div class="candle-row">
+      <div class="candle-wrap" data-index="0">
+        <div class="crown">👑</div>
+        <div class="flame flicker"></div>
+        <div class="candle"><div class="wax"></div></div>
+        <div class="candle-name">Luna</div>
+      </div>
+
+      <div class="candle-wrap" data-index="1">
+        <div class="crown">👑</div>
+        <div class="flame flicker"></div>
+        <div class="candle"><div class="wax"></div></div>
+        <div class="candle-name">Velvet</div>
+      </div>
+
+      <div class="candle-wrap" data-index="2">
+        <div class="crown">👑</div>
+        <div class="flame flicker"></div>
+        <div class="candle"><div class="wax"></div></div>
+        <div class="candle-name">Hexie</div>
+      </div>
+
+      <div class="candle-wrap" data-index="3">
+        <div class="crown">👑</div>
+        <div class="flame flicker"></div>
+        <div class="candle"><div class="wax"></div></div>
+        <div class="candle-name">Raven</div>
+      </div>
+
+      <div class="candle-wrap" data-index="4">
+        <div class="crown">👑</div>
+        <div class="flame flicker"></div>
+        <div class="candle"><div class="wax"></div></div>
+        <div class="candle-name">Midnight</div>
+      </div>
+    </div>
+
+    <div class="result" id="result">The candles are flickering...</div>
+    <div class="footer">StimTake Studio • Halloween Candle Challenge Placeholder</div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const wraps = [...document.querySelectorAll('.candle-wrap')];
+  const flames = wraps.map(w => w.querySelector('.flame'));
+  const result = document.getElementById('result');
+  const flash = document.getElementById('flash');
+
+  let names = ['Luna','Velvet','Hexie','Raven','Midnight'];
+  let outcomes = [
+    'keeps the magic alive',
+    'wins the witching hour',
+    'holds the lucky flame',
+    'glows brightest tonight',
+    'survives the spooky challenge'
+  ];
+
+  let running = false;
+
+  function setNames(next){
+    if(!Array.isArray(next) || !next.length) return;
+    names = next.slice(0,5);
+    while(names.length < 5) names.push('Candle ' + (names.length + 1));
+    wraps.forEach((w,i)=>w.querySelector('.candle-name').textContent = names[i]);
+  }
+
+  function reset(){
+    wraps.forEach(w=>w.classList.remove('winner','dim'));
+    flames.forEach(f=>{
+      f.classList.remove('out');
+      f.classList.add('flicker');
+      f.style.opacity='1';
+    });
+  }
+
+  function challenge(options = {}){
+    if(running) return false;
+    running = true;
+
+    if(Array.isArray(options.names)) setNames(options.names);
+
+    reset();
+    result.textContent = 'The candles are flickering...';
+
+    const forced = Number.isInteger(options.index) ? options.index : null;
+    const winner = forced !== null
+      ? Math.max(0,Math.min(4,forced))
+      : Math.floor(Math.random()*5);
+
+    const losers = [0,1,2,3,4].filter(i=>i!==winner);
+
+    losers.forEach((idx,order)=>{
+      setTimeout(()=>{
+        flames[idx].classList.remove('flicker');
+        void flames[idx].offsetWidth;
+        flames[idx].classList.add('out');
+        wraps[idx].classList.add('dim');
+      },900 + order*420);
+    });
+
+    setTimeout(()=>{
+      wraps[winner].classList.add('winner');
+
+      const message = outcomes[Math.floor(Math.random()*outcomes.length)];
+
+      result.innerHTML =
+        `🕯️ <span class="pick">${names[winner]}</span>` +
+        `<span class="message">${message}</span>`;
+
+      flash.classList.remove('active');
+      void flash.offsetWidth;
+      flash.classList.add('active');
+
+      running = false;
+
+      window.parent?.postMessage?.({
+        type:'stimtake-candle-challenge-result',
+        index:winner,
+        name:names[winner],
+        message
+      },'*');
+    },2900);
+
+    return true;
+  }
+
+  setNames(names);
+
+  window.StimTakeCandleChallenge = {
+    run: challenge,
+    setNames
+  };
+
+  window.addEventListener('message',(event)=>{
+    const data = event.data || {};
+    if(data.type === 'stimtake-candle-challenge'){
+      challenge({
+        index:Number.isInteger(data.index) ? data.index : undefined,
+        names:Array.isArray(data.names) ? data.names : undefined
+      });
+    }
+  });
+
+  setTimeout(()=>challenge(),800);
+})();
+</script>
+</body>
+</html>

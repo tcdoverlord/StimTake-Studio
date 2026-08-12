@@ -18,17 +18,17 @@ namespace CreatorCamOverlayKit
         ///
         /// This form intentionally shares the existing StaticServer instance.
         /// It does not create a second backend and does not replace the proven
-        /// Creator Cam / Backstage implementation.  The old Control Deck remains
-        /// available through the Backstage button.
+        /// Creator Cam / Backstage implementation.  The legacy Control Deck remains internal to preserve the proven action engine,
+        /// but the normal model-facing UI intentionally does not expose Backstage.
         /// </summary>
         private sealed class StimTakeStudioV6Form : Form
         {
-            private static readonly Color Bg = Color.FromArgb(14, 10, 26);
-            private static readonly Color Sidebar = Color.FromArgb(20, 14, 36);
-            private static readonly Color Card = Color.FromArgb(29, 21, 50);
-            private static readonly Color Card2 = Color.FromArgb(35, 25, 59);
-            private static readonly Color Purple = Color.FromArgb(142, 72, 255);
-            private static readonly Color PurpleSoft = Color.FromArgb(181, 145, 255);
+            private static readonly Color Bg = Color.FromArgb(11, 16, 24);
+            private static readonly Color Sidebar = Color.FromArgb(10, 15, 23);
+            private static readonly Color Card = Color.FromArgb(18, 25, 35);
+            private static readonly Color Card2 = Color.FromArgb(22, 30, 41);
+            private static readonly Color Purple = Color.FromArgb(126, 58, 235);
+            private static readonly Color PurpleSoft = Color.FromArgb(171, 103, 255);
             private static readonly Color Green = Color.FromArgb(64, 220, 151);
             private static readonly Color Red = Color.FromArgb(255, 104, 120);
             private static readonly Color TextMain = Color.FromArgb(245, 242, 252);
@@ -60,6 +60,7 @@ namespace CreatorCamOverlayKit
             private Label sessionTipsLabel;
             private Label sessionTokensLabel;
             private Label lastTipLabel;
+            private Label vipLabel;
             private Label activePackLabel;
             private ListView topTippers;
             private ListView actionsList;
@@ -99,8 +100,8 @@ namespace CreatorCamOverlayKit
                 BackColor = Bg;
                 ForeColor = TextMain;
                 Font = new Font("Segoe UI", 9.5f);
-                MinimumSize = new Size(1050, 720);
-                ClientSize = new Size(1240, 790);
+                MinimumSize = new Size(1180, 760);
+                ClientSize = new Size(1500, 900);
                 StartPosition = FormStartPosition.CenterScreen;
 
                 BuildShell();
@@ -144,81 +145,117 @@ namespace CreatorCamOverlayKit
 
             private void BuildShell()
             {
-                var side = new Panel { Dock = DockStyle.Left, Width = 205, BackColor = Sidebar, Padding = new Padding(14) };
-                Controls.Add(side);
-
-                var brand = new Label
+                var header = new Panel
                 {
-                    Text = "STIMTAKE",
-                    ForeColor = PurpleSoft,
-                    Font = new Font("Segoe UI", 19, FontStyle.Bold),
-                    AutoSize = false,
-                    Height = 42,
                     Dock = DockStyle.Top,
-                    TextAlign = ContentAlignment.MiddleLeft
+                    Height = 72,
+                    BackColor = Sidebar,
+                    Padding = new Padding(18, 8, 18, 8)
                 };
-                side.Controls.Add(brand);
+                Controls.Add(header);
 
-                var sub = new Label
+                header.Controls.Add(new Label
                 {
-                    Text = "STUDIO 6.0\nMODEL APP",
-                    ForeColor = TextMuted,
-                    Font = new Font("Segoe UI", 8.5f, FontStyle.Bold),
-                    AutoSize = false,
-                    Height = 52,
-                    Dock = DockStyle.Top
-                };
-                side.Controls.Add(sub);
-
-                AddNavButton(side, "Dashboard", 118, delegate { ShowDashboard(); });
-                AddNavButton(side, "Show Actions", 164, delegate { ShowActions(); });
-                AddNavButton(side, "Top Tippers", 210, delegate { ShowTopTippersPage(); });
-                AddNavButton(side, "My Model", 256, delegate { ShowModelPage(); });
-                AddNavButton(side, "History", 302, delegate { ShowHistory(); });
-
-                var backstage = NavButton("Backstage", delegate { openBackstage(); });
-                backstage.Location = new Point(14, 585);
-                backstage.Size = new Size(176, 38);
-                side.Controls.Add(backstage);
-
-                var note = new Label
+                    Text = "ST",
+                    Location = new Point(18, 12),
+                    Size = new Size(56, 46),
+                    ForeColor = PurpleSoft,
+                    Font = new Font("Segoe UI", 25, FontStyle.Bold),
+                    TextAlign = ContentAlignment.MiddleCenter
+                });
+                header.Controls.Add(new Label
                 {
-                    Text = "Advanced/manual tools",
-                    ForeColor = TextMuted,
-                    Location = new Point(18, 628),
-                    Size = new Size(170, 32),
-                    Font = new Font("Segoe UI", 8)
-                };
-                side.Controls.Add(note);
-
-                var top = new Panel { Dock = DockStyle.Top, Height = 70, BackColor = Bg, Padding = new Padding(26, 12, 25, 0) };
-                Controls.Add(top);
-
-                pageTitle = new Label
-                {
-                    Text = "Dashboard",
-                    Dock = DockStyle.Left,
-                    Width = 430,
+                    Text = "StimTake Studio v6.0",
+                    Location = new Point(82, 10),
+                    Size = new Size(350, 28),
                     ForeColor = TextMain,
-                    Font = new Font("Segoe UI", 20, FontStyle.Bold),
-                    TextAlign = ContentAlignment.MiddleLeft
-                };
-                top.Controls.Add(pageTitle);
+                    Font = new Font("Segoe UI", 14, FontStyle.Bold)
+                });
+                header.Controls.Add(new Label
+                {
+                    Text = "Final Automation Edition",
+                    Location = new Point(84, 39),
+                    Size = new Size(300, 20),
+                    ForeColor = PurpleSoft
+                });
 
                 modelHeader = new Label
                 {
                     Text = "No model saved",
                     Dock = DockStyle.Right,
-                    Width = 390,
-                    ForeColor = PurpleSoft,
-                    Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                    Width = 430,
+                    ForeColor = TextMain,
+                    Font = new Font("Segoe UI", 10.5f, FontStyle.Bold),
                     TextAlign = ContentAlignment.MiddleRight
                 };
-                top.Controls.Add(modelHeader);
+                header.Controls.Add(modelHeader);
 
-                content = new Panel { Dock = DockStyle.Fill, AutoScroll = true, BackColor = Bg, Padding = new Padding(22, 12, 22, 22) };
+                var side = new Panel
+                {
+                    Dock = DockStyle.Left,
+                    Width = 220,
+                    BackColor = Sidebar,
+                    Padding = new Padding(12, 20, 12, 18)
+                };
+                Controls.Add(side);
+
+                AddNavButton(side, "DASHBOARD", 24, delegate { ShowDashboard(); });
+                AddNavButton(side, "MY ROOM", 78, delegate { ShowModelPage(); });
+                AddNavButton(side, "TOP TIPPERS", 132, delegate { ShowTopTippersPage(); });
+                AddNavButton(side, "ACTION DECK", 186, delegate { ShowActions(); });
+                AddNavButton(side, "HISTORY", 240, delegate { ShowHistory(); });
+
+                var healthBox = new Panel
+                {
+                    Location = new Point(14, 610),
+                    Size = new Size(192, 118),
+                    BackColor = Card,
+                    Padding = new Padding(12)
+                };
+                side.Controls.Add(healthBox);
+                healthBox.Controls.Add(new Label
+                {
+                    Text = "SYSTEM HEALTH",
+                    Location = new Point(12, 12),
+                    Size = new Size(165, 22),
+                    ForeColor = TextMuted,
+                    Font = new Font("Segoe UI", 8.5f, FontStyle.Bold)
+                });
+                healthBox.Controls.Add(new Label
+                {
+                    Text = "● READY",
+                    Location = new Point(12, 44),
+                    Size = new Size(165, 26),
+                    ForeColor = Green,
+                    Font = new Font("Segoe UI", 11, FontStyle.Bold)
+                });
+                healthBox.Controls.Add(new Label
+                {
+                    Text = "Studio v6.0",
+                    Location = new Point(12, 78),
+                    Size = new Size(165, 20),
+                    ForeColor = TextMuted
+                });
+
+                content = new Panel
+                {
+                    Dock = DockStyle.Fill,
+                    AutoScroll = true,
+                    BackColor = Bg,
+                    Padding = new Padding(20, 12, 20, 24)
+                };
                 Controls.Add(content);
                 content.BringToFront();
+
+                pageTitle = new Label
+                {
+                    Text = "Dashboard",
+                    Location = new Point(2, 0),
+                    Size = new Size(1080, 34),
+                    ForeColor = TextMain,
+                    Font = new Font("Segoe UI", 14, FontStyle.Bold)
+                };
+                content.Controls.Add(pageTitle);
             }
 
             private void AddNavButton(Control parent, string text, int y, Action action)
@@ -235,12 +272,16 @@ namespace CreatorCamOverlayKit
                 {
                     Text = text,
                     FlatStyle = FlatStyle.Flat,
-                    BackColor = Card,
-                    ForeColor = TextMain,
+                    BackColor = Sidebar,
+                    ForeColor = TextMuted,
                     FlatAppearance = { BorderSize = 0 },
                     Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
+                    TextAlign = ContentAlignment.MiddleLeft,
+                    Padding = new Padding(18, 0, 0, 0),
                     Cursor = Cursors.Hand
                 };
+                b.MouseEnter += delegate { b.BackColor = Card; b.ForeColor = PurpleSoft; };
+                b.MouseLeave += delegate { b.BackColor = Sidebar; b.ForeColor = TextMuted; };
                 b.Click += delegate { action(); };
                 return b;
             }
@@ -319,137 +360,320 @@ namespace CreatorCamOverlayKit
 
             private void ClearContent(string title)
             {
-                pageTitle.Text = title;
                 content.SuspendLayout();
                 content.Controls.Clear();
+                pageTitle = new Label
+                {
+                    Text = title.ToUpperInvariant(),
+                    Location = new Point(2, 0),
+                    Size = new Size(1080, 34),
+                    ForeColor = TextMain,
+                    Font = new Font("Segoe UI", 14, FontStyle.Bold)
+                };
+                content.Controls.Add(pageTitle);
                 content.ResumeLayout();
+            }
+
+
+            private void RefreshHealth()
+            {
+                try
+                {
+                    bool obsOpen = Process.GetProcessesByName("obs64").Length > 0 || Process.GetProcessesByName("obs32").Length > 0;
+                    if (backendStatus != null) backendStatus.Text = "● Backend  RUNNING";
+                    if (overlayStatus != null) overlayStatus.Text = "● Overlay Server  RUNNING";
+                    if (obsStatus != null)
+                    {
+                        obsStatus.Text = obsOpen ? "● OBS  OPEN" : "● OBS  NOT OPEN";
+                        obsStatus.ForeColor = obsOpen ? Green : TextMuted;
+                    }
+                    if (bridgeStatus != null && bridgeStatus.Text.IndexOf("RECEIVING", StringComparison.OrdinalIgnoreCase) < 0)
+                    {
+                        bool modelReady = CurrentModelName().Length > 0;
+                        bridgeStatus.Text = modelReady ? "● Chrome Bridge  WAITING FOR TIP" : "● Chrome Bridge  WAITING FOR MODEL";
+                        bridgeStatus.ForeColor = modelReady ? Green : TextMuted;
+                    }
+                    LoadRuntimeState();
+                    RefreshTopTippers();
+                }
+                catch { }
+            }
+
+
+            private void ServerEventPublished(string type, string payload)
+            {
+                if (String.Equals(type, "platform-event-diagnostic", StringComparison.OrdinalIgnoreCase))
+                {
+                    string status = JsonString(payload, "status").ToUpperInvariant();
+                    string reason = JsonString(payload, "reason");
+                    AddHistory(status.Length > 0 ? status : "DIAGNOSTIC", reason);
+                    return;
+                }
+                if (String.Equals(type, "show-action-triggered", StringComparison.OrdinalIgnoreCase))
+                {
+                    AddHistory("ACTION", JsonString(payload, "name") + " • slot " + JsonLong(payload, "slot").ToString("00"));
+                    return;
+                }
+                if (!String.Equals(type, "platform-event", StringComparison.OrdinalIgnoreCase)) return;
+
+                string username = JsonString(payload, "username");
+                string room = JsonString(payload, "room");
+                long amount = JsonLong(payload, "amount");
+                if (!Regex.IsMatch(username, "^[A-Za-z0-9_]+$") || amount <= 0) return;
+
+                MethodInvoker apply = delegate
+                {
+                    LoadRuntimeState();
+                    if (bridgeStatus != null)
+                    {
+                        bridgeStatus.Text = "● Chrome Bridge  RECEIVING";
+                        bridgeStatus.ForeColor = Green;
+                    }
+
+                    AddHistory("TIP", username + " • " + amount + " tokens" + (room.Length > 0 ? " • " + room : ""));
+                    RefreshTopTippers();
+
+                    if (activePack != null && activePack.IsValid)
+                    {
+                        Dictionary<string, ShowPackPrice> prices = ReadActionPricing();
+                        foreach (ShowPackAction action in ShowPackPricing.Matches(activePack, prices, amount))
+                        {
+                            bool scheduled = triggerShowPackAction != null && triggerShowPackAction(action);
+                            if (!scheduled) AddHistory("ACTION ERROR", action.Name + " could not be started.");
+                        }
+                    }
+                };
+
+                try
+                {
+                    if (IsDisposed || Disposing) return;
+                    if (InvokeRequired)
+                    {
+                        if (IsHandleCreated) BeginInvoke(apply);
+                    }
+                    else apply();
+                }
+                catch (ObjectDisposedException) { }
+                catch (InvalidOperationException) { }
+            }
+
+
+            private void AddHistory(string type, string detail)
+            {
+                if (historyList == null || historyList.IsDisposed) return;
+                MethodInvoker add = delegate
+                {
+                    var item = new ListViewItem(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+                    item.SubItems.Add(type);
+                    item.SubItems.Add(detail);
+                    historyList.Items.Insert(0, item);
+                    while (historyList.Items.Count > 200) historyList.Items.RemoveAt(historyList.Items.Count - 1);
+                };
+                try
+                {
+                    if (InvokeRequired) BeginInvoke(add); else add();
+                }
+                catch { }
+            }
+
+
+            private void LoadPersistedHistory()
+            {
+                if (historyList == null || historyList.IsDisposed) return;
+                try
+                {
+                    string path = Path.Combine(server.RuntimeV6Folder, "tip-history-v6.tsv");
+                    if (!File.Exists(path)) return;
+                    string[] lines = File.ReadAllLines(path, Encoding.UTF8);
+                    int first = Math.Max(0, lines.Length - 200);
+                    for (int index = lines.Length - 1; index >= first; index--)
+                    {
+                        string[] parts = lines[index].Split('\t');
+                        if (parts.Length < 5) continue;
+                        DateTime at;
+                        string displayTime = DateTime.TryParse(parts[0], out at) ? at.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss") : parts[0];
+                        var item = new ListViewItem(displayTime);
+                        item.SubItems.Add("TIP");
+                        item.SubItems.Add(parts[3] + " • " + parts[4] + " tokens • " + parts[2]);
+                        historyList.Items.Add(item);
+                    }
+                }
+                catch { }
+            }
+
+
+            private void LoadRuntimeState()
+            {
+                StudioRuntimeSnapshot snapshot = server.GetStudioRuntimeSnapshot();
+                sessionTips = snapshot.SessionTips;
+                sessionTokens = snapshot.SessionTokens;
+                sessionSupport.Clear();
+                foreach (KeyValuePair<string, long> pair in snapshot.SessionSupport) sessionSupport[pair.Key] = pair.Value;
+                if (sessionTipsLabel != null) sessionTipsLabel.Text = sessionTips.ToString();
+                if (sessionTokensLabel != null) sessionTokensLabel.Text = sessionTokens.ToString();
+                if (lastTipLabel != null)
+                {
+                    lastTipLabel.Text = snapshot.LastUsername.Length > 0
+                        ? "Last Tipper: " + snapshot.LastUsername + " • " + snapshot.LastAmount + (snapshot.LastAmount == 1 ? " token" : " tokens")
+                        : "Last Tipper: Waiting...";
+                }
             }
 
             private void ShowDashboard()
             {
                 ClearContent("Dashboard");
+                int y = 46;
 
-                var health = CardPanel("System Status", 0, 0, 500, 196);
-                backendStatus = StatusValue("● Backend  RUNNING", 18, 52, 450);
-                bridgeStatus = StatusValue("● Chrome Bridge  WAITING FOR TIP", 18, 82, 450);
-                overlayStatus = StatusValue("● Overlay Server  RUNNING", 18, 112, 450);
-                obsStatus = StatusValue("● OBS  NOT CHECKED", 18, 142, 450);
-                health.Controls.Add(backendStatus);
-                health.Controls.Add(bridgeStatus);
-                health.Controls.Add(overlayStatus);
-                health.Controls.Add(obsStatus);
-                content.Controls.Add(health);
-
-                var model = CardPanel("My Model", 520, 0, 470, 196);
-                var modelName = new Label
+                var model = CardPanel("My Model", 0, y, 300, 182);
+                model.Controls.Add(new Label
                 {
-                    Name = "dashboardModelName",
-                    Text = CurrentModelName().Length > 0 ? CurrentModelName() : "Not configured",
-                    Location = new Point(18, 52),
-                    Size = new Size(420, 36),
-                    ForeColor = TextMain,
-                    Font = new Font("Segoe UI", 18, FontStyle.Bold)
-                };
-                model.Controls.Add(modelName);
-                var modelUrl = new Label
-                {
-                    Text = CurrentModelAddress().Length > 0 ? CurrentModelAddress() : "Save a Chaturbate model address to lock the show.",
-                    Location = new Point(18, 94),
-                    Size = new Size(420, 42),
-                    ForeColor = TextMuted
-                };
-                model.Controls.Add(modelUrl);
-                model.Controls.Add(SecondaryButton("MODEL SETTINGS", 18, 140, 150, delegate { ShowModelPage(); }));
-                content.Controls.Add(model);
-
-                var live = CardPanel("Live Session", 0, 216, 500, 222);
-                sessionTipsLabel = BigValue(sessionTips.ToString(), 18, 52, 120);
-                sessionTokensLabel = BigValue(sessionTokens.ToString(), 160, 52, 160);
-                live.Controls.Add(sessionTipsLabel);
-                live.Controls.Add(sessionTokensLabel);
-                live.Controls.Add(new Label { Text = "TIPS", Location = new Point(20, 93), Size = new Size(100, 22), ForeColor = TextMuted });
-                live.Controls.Add(new Label { Text = "TOKENS", Location = new Point(162, 93), Size = new Size(100, 22), ForeColor = TextMuted });
-                lastTipLabel = new Label
-                {
-                    Text = "Last tip: Waiting for first tip...",
-                    Location = new Point(18, 123),
-                    Size = new Size(450, 30),
+                    Text = CurrentModelName().Length > 0 ? CurrentModelName() + "  🔒" : "No model configured",
+                    Location = new Point(18, 48),
+                    Size = new Size(260, 34),
                     ForeColor = PurpleSoft,
-                    Font = new Font("Segoe UI", 10, FontStyle.Bold)
-                };
-                live.Controls.Add(lastTipLabel);
-                live.Controls.Add(PrimaryButton("START NEW SESSION", 18, 164, 180, delegate { StartNewSession(); }));
-                live.Controls.Add(SecondaryButton("END SESSION", 210, 164, 135, delegate { EndSession(); }));
-                content.Controls.Add(live);
-
-                var pack = CardPanel("Active Show Pack", 520, 216, 470, 222);
-                activePackLabel = new Label
+                    Font = new Font("Segoe UI", 17, FontStyle.Bold)
+                });
+                model.Controls.Add(new Label
                 {
-                    Text = ActivePackDisplay(),
-                    Location = new Point(18, 54),
-                    Size = new Size(420, 35),
-                    ForeColor = TextMain,
-                    Font = new Font("Segoe UI", 15, FontStyle.Bold)
-                };
-                pack.Controls.Add(activePackLabel);
-                pack.Controls.Add(new Label
-                {
-                    Text = "Show Packs define creative actions. You choose the token amount for each action.",
-                    Location = new Point(18, 96),
-                    Size = new Size(420, 46),
+                    Text = CurrentModelAddress().Length > 0 ? CurrentModelAddress() : "Save one Chaturbate room.",
+                    Location = new Point(18, 86),
+                    Size = new Size(260, 44),
                     ForeColor = TextMuted
                 });
-                pack.Controls.Add(PrimaryButton("IMPORT SHOW PACK", 18, 158, 180, delegate { ImportShowPack(); }));
-                pack.Controls.Add(SecondaryButton("ACTION PRICES", 212, 158, 150, delegate { ShowActions(); }));
-                content.Controls.Add(pack);
+                model.Controls.Add(SecondaryButton("CHANGE MODEL", 18, 134, 145, delegate { ShowModelPage(); }));
+                content.Controls.Add(model);
 
-                var top = CardPanel("Top Tippers / Fans", 0, 458, 990, 245);
-                topTippers = BuildSupporterList(18, 48, 954, 180);
+                var status = CardPanel("System Status", 318, y, 690, 182);
+                backendStatus = StatusValue("● Backend\nRUNNING", 18, 54, 150);
+                bridgeStatus = StatusValue("● Chrome Bridge\nWAITING", 180, 54, 165);
+                obsStatus = StatusValue("● OBS\nNOT OPEN", 360, 54, 135);
+                overlayStatus = StatusValue("● Overlay\nRUNNING", 510, 54, 150);
+                backendStatus.Height = bridgeStatus.Height = obsStatus.Height = overlayStatus.Height = 70;
+                status.Controls.Add(backendStatus);
+                status.Controls.Add(bridgeStatus);
+                status.Controls.Add(obsStatus);
+                status.Controls.Add(overlayStatus);
+                content.Controls.Add(status);
+
+                var session = CardPanel("Live Session", 0, y + 202, 570, 248);
+                sessionTipsLabel = BigValue(sessionTips.ToString(), 18, 54, 120);
+                sessionTokensLabel = BigValue(sessionTokens.ToString(), 154, 54, 160);
+                session.Controls.Add(sessionTipsLabel);
+                session.Controls.Add(sessionTokensLabel);
+                session.Controls.Add(new Label { Text = "TIPS", Location = new Point(20, 93), Size = new Size(90, 20), ForeColor = TextMuted });
+                session.Controls.Add(new Label { Text = "TOKENS", Location = new Point(156, 93), Size = new Size(90, 20), ForeColor = TextMuted });
+
+                lastTipLabel = new Label
+                {
+                    Text = "Last Tipper: Waiting...",
+                    Location = new Point(18, 122),
+                    Size = new Size(520, 28),
+                    ForeColor = TextMain,
+                    Font = new Font("Segoe UI", 11, FontStyle.Bold)
+                };
+                session.Controls.Add(lastTipLabel);
+
+                vipLabel = new Label
+                {
+                    Text = "VIP: Waiting for first supporter...",
+                    Location = new Point(18, 153),
+                    Size = new Size(520, 28),
+                    ForeColor = PurpleSoft,
+                    Font = new Font("Segoe UI", 10.5f, FontStyle.Bold)
+                };
+                session.Controls.Add(vipLabel);
+
+                session.Controls.Add(PrimaryButton("START NEW SESSION", 18, 194, 190, delegate { StartNewSession(); }));
+                session.Controls.Add(SecondaryButton("END SESSION", 222, 194, 150, delegate { EndSession(); }));
+                content.Controls.Add(session);
+
+                var top = CardPanel("Top Tippers — Session", 590, y + 202, 418, 248);
+                topTippers = BuildSupporterList(18, 48, 382, 178);
                 top.Controls.Add(topTippers);
                 content.Controls.Add(top);
 
+                var actionSummary = CardPanel("Show Actions", 0, y + 470, 1008, 352);
+                actionSummary.Controls.Add(new Label
+                {
+                    Text = "Designer supplies the HTML overlay. You choose the token range and whether each action is ON or OFF.",
+                    Location = new Point(18, 45),
+                    Size = new Size(950, 26),
+                    ForeColor = TextMuted
+                });
+
+                actionsList = new ListView
+                {
+                    Location = new Point(18, 76),
+                    Size = new Size(972, 220),
+                    View = View.Details,
+                    FullRowSelect = true,
+                    BackColor = Card2,
+                    ForeColor = TextMain
+                };
+                actionsList.Columns.Add("SLOT", 65);
+                actionsList.Columns.Add("ACTION / HTML OVERLAY", 515);
+                actionsList.Columns.Add("TIP RANGE", 210);
+                actionsList.Columns.Add("STATE", 150);
+                actionsList.DoubleClick += delegate { EditSelectedActionPrice(); };
+                actionSummary.Controls.Add(actionsList);
+
+                actionSummary.Controls.Add(PrimaryButton("EDIT RANGE / ON-OFF", 18, 306, 190, delegate { EditSelectedActionPrice(); }));
+                actionSummary.Controls.Add(SecondaryButton("IMPORT SHOW PACK", 222, 306, 180, delegate { ImportShowPack(); }));
+
+                activePackLabel = new Label
+                {
+                    Text = "Pack: " + ActivePackDisplay(),
+                    Location = new Point(420, 314),
+                    Size = new Size(555, 24),
+                    ForeColor = PurpleSoft,
+                    Font = new Font("Segoe UI", 9.5f, FontStyle.Bold)
+                };
+                actionSummary.Controls.Add(activePackLabel);
+                content.Controls.Add(actionSummary);
+
                 RefreshTopTippers();
+                RenderActionPricing();
                 RefreshHealth();
             }
 
             private void ShowActions()
             {
-                ClearContent("Show Actions");
+                ClearContent("Action Deck");
 
-                var intro = CardPanel("20 Action Slots", 0, 0, 990, 100);
+                var intro = CardPanel("20 HTML Overlay Actions", 0, 46, 1008, 100);
                 intro.Controls.Add(new Label
                 {
-                    Text = "The Show Pack defines the creative action. The model controls the token price. Pricing is local to this Studio profile.",
+                    Text = "Each accepted tip updates the session. At most one enabled range can trigger one HTML overlay. Gaps are allowed; overlaps are blocked.",
                     Location = new Point(18, 48),
-                    Size = new Size(940, 38),
+                    Size = new Size(960, 38),
                     ForeColor = TextMuted
                 });
                 content.Controls.Add(intro);
 
-                var panel = CardPanel("Action Pricing", 0, 120, 990, 525);
+                var panel = CardPanel("Model Trigger Ranges", 0, 166, 1008, 560);
                 actionsList = new ListView
                 {
                     Location = new Point(18, 48),
-                    Size = new Size(954, 390),
+                    Size = new Size(972, 420),
                     View = View.Details,
                     FullRowSelect = true,
-                    GridLines = false,
                     BackColor = Card2,
                     ForeColor = TextMain
                 };
                 actionsList.Columns.Add("SLOT", 70);
-                actionsList.Columns.Add("ACTION", 520);
-                actionsList.Columns.Add("TOKENS", 150);
-                actionsList.Columns.Add("STATE", 150);
+                actionsList.Columns.Add("ACTION / HTML OVERLAY", 520);
+                actionsList.Columns.Add("TIP RANGE", 190);
+                actionsList.Columns.Add("STATE", 160);
+                actionsList.DoubleClick += delegate { EditSelectedActionPrice(); };
                 panel.Controls.Add(actionsList);
 
-                panel.Controls.Add(PrimaryButton("EDIT SELECTED PRICE", 18, 452, 190, delegate { EditSelectedActionPrice(); }));
-                panel.Controls.Add(SecondaryButton("IMPORT SHOW PACK", 220, 452, 180, delegate { ImportShowPack(); }));
+                panel.Controls.Add(PrimaryButton("EDIT RANGE / ON-OFF", 18, 486, 190, delegate { EditSelectedActionPrice(); }));
+                panel.Controls.Add(SecondaryButton("IMPORT SHOW PACK", 222, 486, 180, delegate { ImportShowPack(); }));
                 actionHint = new Label
                 {
-                    Text = "Pricing is stored by Show Pack ID + action ID. A matching accepted tip triggers the installed action once; duration comes from the pack.",
-                    Location = new Point(420, 452),
-                    Size = new Size(530, 52),
+                    Text = "The Designer owns overlay content. The model owns trigger ranges and ON/OFF state.",
+                    Location = new Point(420, 490),
+                    Size = new Size(555, 44),
                     ForeColor = TextMuted
                 };
                 panel.Controls.Add(actionHint);
@@ -461,14 +685,13 @@ namespace CreatorCamOverlayKit
             {
                 ClearContent("Top Tippers");
 
-                var mode = CardPanel("Automatic Live Tracking", 0, 0, 990, 100);
-                mode.Controls.Add(StatusValue("● LIVE MODE  •  Studio supporter history is the source of truth", 18, 50, 930));
+                var mode = CardPanel("Automatic Session Tracking", 0, 46, 1008, 100);
+                mode.Controls.Add(StatusValue("● LIVE MODE  •  Top Tippers and VIP update automatically from accepted real tips", 18, 50, 960));
                 content.Controls.Add(mode);
 
-                var panel = CardPanel("Lifetime Supporters", 0, 120, 990, 505);
-                topTippers = BuildSupporterList(18, 48, 954, 400);
+                var panel = CardPanel("Current Session Ranking", 0, 166, 1008, 505);
+                topTippers = BuildSupporterList(18, 48, 972, 420);
                 panel.Controls.Add(topTippers);
-                panel.Controls.Add(SecondaryButton("OPEN BACKSTAGE / MANUAL TOOLS", 18, 458, 260, delegate { openBackstage(); }));
                 content.Controls.Add(panel);
                 RefreshTopTippers();
             }
@@ -563,151 +786,10 @@ namespace CreatorCamOverlayKit
                     BackColor = Card2,
                     ForeColor = TextMain
                 };
-                list.Columns.Add("#", 50);
-                list.Columns.Add("USERNAME", 430);
-                list.Columns.Add("LABEL", 250);
-                list.Columns.Add("LIFETIME", 180);
+                list.Columns.Add("#", 45);
+                list.Columns.Add("USERNAME", Math.Max(180, w - 185));
+                list.Columns.Add("SESSION TOKENS", 120);
                 return list;
-            }
-
-            private void RefreshHealth()
-            {
-                try
-                {
-                    bool obsOpen = Process.GetProcessesByName("obs64").Length > 0 || Process.GetProcessesByName("obs32").Length > 0;
-                    if (backendStatus != null) backendStatus.Text = "● Backend  RUNNING";
-                    if (overlayStatus != null) overlayStatus.Text = "● Overlay Server  RUNNING";
-                    if (obsStatus != null)
-                    {
-                        obsStatus.Text = obsOpen ? "● OBS  OPEN" : "● OBS  NOT OPEN";
-                        obsStatus.ForeColor = obsOpen ? Green : TextMuted;
-                    }
-                    if (bridgeStatus != null && bridgeStatus.Text.IndexOf("RECEIVING", StringComparison.OrdinalIgnoreCase) < 0)
-                    {
-                        bool modelReady = CurrentModelName().Length > 0;
-                        bridgeStatus.Text = modelReady ? "● Chrome Bridge  WAITING FOR TIP" : "● Chrome Bridge  WAITING FOR MODEL";
-                        bridgeStatus.ForeColor = modelReady ? Green : TextMuted;
-                    }
-                    LoadRuntimeState();
-                    RefreshTopTippers();
-                }
-                catch { }
-            }
-
-            private void ServerEventPublished(string type, string payload)
-            {
-                if (String.Equals(type, "platform-event-diagnostic", StringComparison.OrdinalIgnoreCase))
-                {
-                    string status = JsonString(payload, "status").ToUpperInvariant();
-                    string reason = JsonString(payload, "reason");
-                    AddHistory(status.Length > 0 ? status : "DIAGNOSTIC", reason);
-                    return;
-                }
-                if (String.Equals(type, "show-action-triggered", StringComparison.OrdinalIgnoreCase))
-                {
-                    AddHistory("ACTION", JsonString(payload, "name") + " • slot " + JsonLong(payload, "slot").ToString("00"));
-                    return;
-                }
-                if (!String.Equals(type, "platform-event", StringComparison.OrdinalIgnoreCase)) return;
-
-                string username = JsonString(payload, "username");
-                string room = JsonString(payload, "room");
-                long amount = JsonLong(payload, "amount");
-                if (!Regex.IsMatch(username, "^[A-Za-z0-9_]+$") || amount <= 0) return;
-
-                MethodInvoker apply = delegate
-                {
-                    LoadRuntimeState();
-                    if (bridgeStatus != null)
-                    {
-                        bridgeStatus.Text = "● Chrome Bridge  RECEIVING";
-                        bridgeStatus.ForeColor = Green;
-                    }
-
-                    AddHistory("TIP", username + " • " + amount + " tokens" + (room.Length > 0 ? " • " + room : ""));
-                    RefreshTopTippers();
-
-                    if (activePack != null && activePack.IsValid)
-                    {
-                        Dictionary<string, ShowPackPrice> prices = ReadActionPricing();
-                        foreach (ShowPackAction action in ShowPackPricing.Matches(activePack, prices, amount))
-                        {
-                            bool scheduled = triggerShowPackAction != null && triggerShowPackAction(action);
-                            if (!scheduled) AddHistory("ACTION ERROR", action.Name + " could not be started.");
-                        }
-                    }
-                };
-
-                try
-                {
-                    if (IsDisposed || Disposing) return;
-                    if (InvokeRequired)
-                    {
-                        if (IsHandleCreated) BeginInvoke(apply);
-                    }
-                    else apply();
-                }
-                catch (ObjectDisposedException) { }
-                catch (InvalidOperationException) { }
-            }
-
-            private void AddHistory(string type, string detail)
-            {
-                if (historyList == null || historyList.IsDisposed) return;
-                MethodInvoker add = delegate
-                {
-                    var item = new ListViewItem(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
-                    item.SubItems.Add(type);
-                    item.SubItems.Add(detail);
-                    historyList.Items.Insert(0, item);
-                    while (historyList.Items.Count > 200) historyList.Items.RemoveAt(historyList.Items.Count - 1);
-                };
-                try
-                {
-                    if (InvokeRequired) BeginInvoke(add); else add();
-                }
-                catch { }
-            }
-
-            private void LoadPersistedHistory()
-            {
-                if (historyList == null || historyList.IsDisposed) return;
-                try
-                {
-                    string path = Path.Combine(server.RuntimeV6Folder, "tip-history-v6.tsv");
-                    if (!File.Exists(path)) return;
-                    string[] lines = File.ReadAllLines(path, Encoding.UTF8);
-                    int first = Math.Max(0, lines.Length - 200);
-                    for (int index = lines.Length - 1; index >= first; index--)
-                    {
-                        string[] parts = lines[index].Split('\t');
-                        if (parts.Length < 5) continue;
-                        DateTime at;
-                        string displayTime = DateTime.TryParse(parts[0], out at) ? at.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss") : parts[0];
-                        var item = new ListViewItem(displayTime);
-                        item.SubItems.Add("TIP");
-                        item.SubItems.Add(parts[3] + " • " + parts[4] + " tokens • " + parts[2]);
-                        historyList.Items.Add(item);
-                    }
-                }
-                catch { }
-            }
-
-            private void LoadRuntimeState()
-            {
-                StudioRuntimeSnapshot snapshot = server.GetStudioRuntimeSnapshot();
-                sessionTips = snapshot.SessionTips;
-                sessionTokens = snapshot.SessionTokens;
-                sessionSupport.Clear();
-                foreach (KeyValuePair<string, long> pair in snapshot.SessionSupport) sessionSupport[pair.Key] = pair.Value;
-                if (sessionTipsLabel != null) sessionTipsLabel.Text = sessionTips.ToString();
-                if (sessionTokensLabel != null) sessionTokensLabel.Text = sessionTokens.ToString();
-                if (lastTipLabel != null)
-                {
-                    lastTipLabel.Text = snapshot.LastUsername.Length > 0
-                        ? "Last tip: " + snapshot.LastUsername + " • " + snapshot.LastAmount + (snapshot.LastAmount == 1 ? " token" : " tokens")
-                        : "Last tip: Waiting for first tip...";
-                }
             }
 
             private void StartNewSession()
@@ -840,52 +922,41 @@ namespace CreatorCamOverlayKit
             {
                 if (topTippers == null || topTippers.IsDisposed) return;
 
-                try
+                var rows = new List<KeyValuePair<string, long>>(sessionSupport);
+                rows.Sort(delegate(KeyValuePair<string, long> a, KeyValuePair<string, long> b)
                 {
-                    string file = Path.Combine(dataFolder, "tippers.tsv");
-                    var rows = new List<SupporterRow>();
-                    if (File.Exists(file))
-                    {
-                        foreach (string line in File.ReadAllLines(file))
-                        {
-                            string[] parts = line.Split('\t');
-                            if (parts.Length < 4) continue;
-                            long lifetime;
-                            if (!Int64.TryParse(parts[3], out lifetime)) lifetime = 0;
-                            rows.Add(new SupporterRow(parts[0], parts[1], lifetime));
-                        }
-                    }
+                    int amount = b.Value.CompareTo(a.Value);
+                    return amount != 0 ? amount : StringComparer.OrdinalIgnoreCase.Compare(a.Key, b.Key);
+                });
 
-                    rows.Sort(delegate(SupporterRow a, SupporterRow b)
-                    {
-                        int amount = b.Lifetime.CompareTo(a.Lifetime);
-                        return amount != 0 ? amount : StringComparer.OrdinalIgnoreCase.Compare(a.Name, b.Name);
-                    });
-
-                    topTippers.BeginUpdate();
-                    topTippers.Items.Clear();
-                    int rank = 1;
-                    foreach (SupporterRow row in rows)
-                    {
-                        var item = new ListViewItem(rank.ToString());
-                        item.SubItems.Add(row.Name);
-                        item.SubItems.Add(row.Label);
-                        item.SubItems.Add(row.Lifetime.ToString());
-                        topTippers.Items.Add(item);
-                        rank++;
-                        if (rank > 20) break;
-                    }
-                    if (topTippers.Items.Count == 0)
-                    {
-                        var empty = new ListViewItem("-");
-                        empty.SubItems.Add("Waiting for real supporters...");
-                        empty.SubItems.Add("");
-                        empty.SubItems.Add("");
-                        topTippers.Items.Add(empty);
-                    }
-                    topTippers.EndUpdate();
+                topTippers.BeginUpdate();
+                topTippers.Items.Clear();
+                int rank = 1;
+                foreach (KeyValuePair<string, long> row in rows)
+                {
+                    var item = new ListViewItem(rank.ToString());
+                    item.SubItems.Add(row.Key);
+                    item.SubItems.Add(row.Value.ToString());
+                    topTippers.Items.Add(item);
+                    rank++;
+                    if (rank > 20) break;
                 }
-                catch { }
+
+                if (topTippers.Items.Count == 0)
+                {
+                    var empty = new ListViewItem("-");
+                    empty.SubItems.Add("Waiting for first real tip...");
+                    empty.SubItems.Add("");
+                    topTippers.Items.Add(empty);
+                }
+                topTippers.EndUpdate();
+
+                if (vipLabel != null)
+                {
+                    vipLabel.Text = rows.Count == 0
+                        ? "VIP: Waiting for first supporter..."
+                        : "VIP: " + rows[0].Key + " • " + rows[0].Value + " tokens this session";
+                }
             }
 
             private sealed class SupporterRow
@@ -1024,8 +1095,8 @@ namespace CreatorCamOverlayKit
                     {
                         ShowPackPrice price = prices[action.Id];
                         item.SubItems.Add(action.Name);
-                        item.SubItems.Add(price.Tokens.ToString());
-                        item.SubItems.Add(price.Enabled ? "Enabled" : "Disabled");
+                        item.SubItems.Add(price.RangeText);
+                        item.SubItems.Add(price.Enabled ? "ON" : "OFF");
                         item.Tag = action;
                     }
                     actionsList.Items.Add(item);
@@ -1043,57 +1114,117 @@ namespace CreatorCamOverlayKit
                 ShowPackAction action = actionsList.SelectedItems[0].Tag as ShowPackAction;
                 if (action == null)
                 {
-                    MessageBox.Show("That action slot is empty in the active Show Pack.", "StimTake Studio 6.0");
+                    MessageBox.Show("That slot is empty in the active Show Pack.", "StimTake Studio 6.0");
                     return;
                 }
+
                 var prices = ReadActionPricing();
                 ShowPackPrice current = prices[action.Id];
 
                 using (var dialog = new Form())
                 {
-                    dialog.Text = "Action " + action.Slot.ToString("00") + " Pricing";
+                    dialog.Text = "Action " + action.Slot.ToString("00") + " — " + action.Name;
                     dialog.BackColor = Bg;
                     dialog.ForeColor = TextMain;
                     dialog.Font = Font;
-                    dialog.ClientSize = new Size(390, 220);
+                    dialog.ClientSize = new Size(470, 320);
                     dialog.StartPosition = FormStartPosition.CenterParent;
                     dialog.FormBorderStyle = FormBorderStyle.FixedDialog;
                     dialog.MaximizeBox = false;
                     dialog.MinimizeBox = false;
 
-                    dialog.Controls.Add(new Label { Text = "Tokens required", Location = new Point(24, 28), Size = new Size(150, 22), ForeColor = TextMuted });
-                    var tokens = new NumericUpDown
+                    dialog.Controls.Add(new Label { Text = "Minimum tokens", Location = new Point(24, 28), Size = new Size(160, 22), ForeColor = TextMuted });
+                    var minimum = new NumericUpDown
                     {
                         Location = new Point(24, 54),
-                        Size = new Size(170, 28),
+                        Size = new Size(180, 28),
                         Minimum = 1,
                         Maximum = 1000000,
-                        Value = Math.Max(1, current.Tokens),
+                        Value = Math.Max(1, current.MinTokens),
                         BackColor = Card2,
                         ForeColor = TextMain
                     };
-                    dialog.Controls.Add(tokens);
+                    dialog.Controls.Add(minimum);
+
+                    dialog.Controls.Add(new Label { Text = "Maximum tokens", Location = new Point(240, 28), Size = new Size(160, 22), ForeColor = TextMuted });
+                    var maximum = new NumericUpDown
+                    {
+                        Location = new Point(240, 54),
+                        Size = new Size(180, 28),
+                        Minimum = 0,
+                        Maximum = 1000000,
+                        Value = Math.Max(0, current.MaxTokens),
+                        BackColor = Card2,
+                        ForeColor = TextMain
+                    };
+                    dialog.Controls.Add(maximum);
+
+                    dialog.Controls.Add(new Label
+                    {
+                        Text = "Maximum 0 means no upper limit (example: 500+ tokens).",
+                        Location = new Point(24, 92),
+                        Size = new Size(395, 36),
+                        ForeColor = TextMuted
+                    });
 
                     var enabled = new CheckBox
                     {
-                        Text = "Action enabled for this model",
+                        Text = "Action overlay ON",
                         Checked = current.Enabled,
-                        Location = new Point(24, 100),
+                        Location = new Point(24, 142),
                         Size = new Size(280, 28),
                         ForeColor = TextMain
                     };
                     dialog.Controls.Add(enabled);
 
-                    var save = PrimaryButton("SAVE", 24, 155, 140, delegate
+                    dialog.Controls.Add(new Label
                     {
-                        prices[action.Id] = new ShowPackPrice { PackId = activePack.PackId, ActionId = action.Id, Tokens = (int)tokens.Value, Enabled = enabled.Checked };
+                        Text = "When OFF, tips still count toward Last Tipper, Top Tippers and VIP, but this overlay will not play.",
+                        Location = new Point(24, 180),
+                        Size = new Size(405, 48),
+                        ForeColor = TextMuted
+                    });
+
+                    var save = PrimaryButton("SAVE", 24, 250, 140, delegate
+                    {
+                        int min = (int)minimum.Value;
+                        int max = (int)maximum.Value;
+                        if (max > 0 && max < min)
+                        {
+                            MessageBox.Show("Maximum must be 0 or greater than/equal to minimum.", "StimTake Studio 6.0");
+                            return;
+                        }
+
+                        ShowPackPrice previous = prices[action.Id];
+                        prices[action.Id] = new ShowPackPrice
+                        {
+                            PackId = activePack.PackId,
+                            ActionId = action.Id,
+                            MinTokens = min,
+                            MaxTokens = max,
+                            Enabled = enabled.Checked
+                        };
+
+                        string overlapError;
+                        if (!ShowPackPricing.ValidateNoOverlap(activePack, prices, out overlapError))
+                        {
+                            prices[action.Id] = previous;
+                            MessageBox.Show(overlapError + "\r\n\r\nEnabled ranges may not overlap. Gaps are allowed.",
+                                "StimTake Studio 6.0", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            return;
+                        }
+
                         WriteActionPricing(prices);
                         dialog.DialogResult = DialogResult.OK;
                         dialog.Close();
                     });
                     dialog.Controls.Add(save);
 
-                    if (dialog.ShowDialog(this) == DialogResult.OK) RenderActionPricing();
+                    if (dialog.ShowDialog(this) == DialogResult.OK)
+                    {
+                        RenderActionPricing();
+                        if (actionsList != null && actionsList.Parent != null) actionsList.Refresh();
+                    }
                 }
             }
 

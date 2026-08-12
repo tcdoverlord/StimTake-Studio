@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StimTake Daily Lucky Shot</title>
+<style>
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:transparent;font-family:"Segoe UI",Arial,sans-serif}
+*{box-sizing:border-box}
+.scene{position:relative;width:100%;height:100%;display:grid;place-items:center;pointer-events:none}
+.glow{position:absolute;width:920px;height:820px;border-radius:50%;background:radial-gradient(circle,rgba(170,92,255,.24),rgba(255,105,180,.10) 48%,transparent 72%);filter:blur(18px)}
+.sparkle{position:absolute;font-size:30px;opacity:.6;filter:drop-shadow(0 0 8px rgba(255,255,255,.2))}
+.s1{top:13%;left:13%}.s2{top:18%;right:15%}.s3{bottom:15%;left:18%}.s4{bottom:14%;right:19%}
+.panel{position:relative;width:min(1040px,95vw);padding:28px 34px 34px;border-radius:28px;border:2px solid rgba(175,96,255,.72);background:linear-gradient(180deg,rgba(26,19,42,.95),rgba(11,9,20,.96));box-shadow:0 0 34px rgba(175,96,255,.5),0 0 70px rgba(255,105,180,.14)}
+.title{text-align:center;color:#fff5fb;font-size:38px;font-weight:1000;letter-spacing:.06em;text-transform:uppercase;text-shadow:0 0 15px rgba(175,96,255,.85)}
+.subtitle{text-align:center;color:#d8cce2;margin-top:5px;font-size:15px}
+.court{position:relative;width:900px;height:500px;margin:18px auto 0;border-radius:24px;overflow:hidden;background:linear-gradient(180deg,rgba(70,52,92,.28),rgba(31,22,45,.55));border:1px solid rgba(255,255,255,.06)}
+.floor{position:absolute;left:0;right:0;bottom:0;height:170px;background:linear-gradient(180deg,#d49a59,#a96836);clip-path:polygon(0 30%,100% 0,100% 100%,0 100%)}
+.backboard{position:absolute;right:110px;top:70px;width:180px;height:120px;border:8px solid #ece8ff;background:rgba(255,255,255,.08);box-shadow:0 0 20px rgba(255,255,255,.15)}
+.square{position:absolute;left:50%;top:28px;width:70px;height:52px;margin-left:-35px;border:5px solid #ff7eb6}
+.rim{position:absolute;right:155px;top:170px;width:100px;height:18px;border-radius:999px;border:8px solid #ff654f;box-shadow:0 0 12px rgba(255,101,79,.45);z-index:12}
+.net{position:absolute;right:168px;top:188px;width:75px;height:78px;clip-path:polygon(0 0,100% 0,80% 100%,20% 100%);background:repeating-linear-gradient(90deg,rgba(255,255,255,.7) 0 2px,transparent 2px 12px),repeating-linear-gradient(25deg,rgba(255,255,255,.55) 0 2px,transparent 2px 13px);opacity:.82;z-index:11}
+.ball{position:absolute;left:105px;bottom:68px;width:92px;height:92px;border-radius:50%;background:radial-gradient(circle at 32% 28%,#ffc071,#ef7f31 50%,#b84c12 100%);box-shadow:0 10px 12px rgba(0,0,0,.35),0 0 18px rgba(255,132,58,.35);z-index:10}
+.ball:before,.ball:after{content:"";position:absolute;background:#6b2d12}
+.ball:before{left:45px;top:0;width:4px;height:92px}
+.ball:after{left:0;top:44px;width:92px;height:4px}
+.ball.launch{animation:arcMade 2s cubic-bezier(.18,.65,.2,1) forwards}
+.ball.score{animation:arcMade 2s cubic-bezier(.18,.65,.2,1) forwards}
+.ball.miss{animation:arcMiss 2s cubic-bezier(.18,.65,.2,1) forwards}
+.ball.swish{animation:arcMade 2s cubic-bezier(.18,.65,.2,1) forwards}
+.ball.jackpot{animation:arcMade 2s cubic-bezier(.18,.65,.2,1) forwards}
+.ball.drop-through{animation:dropThrough .72s ease-in forwards}
+.net.react{animation:netReact .75s ease-out}.hoop-glow{position:absolute;right:120px;top:125px;width:170px;height:170px;border-radius:50%;border:5px solid rgba(255,255,255,.8);opacity:0}
+.hoop-glow.show{animation:ring .85s ease-out forwards}
+.score-card{position:absolute;left:30px;top:50px;width:250px;padding:18px 20px;border-radius:20px;background:rgba(19,14,29,.86);border:1px solid rgba(175,96,255,.35);text-align:center}
+.score-big{font-size:58px;font-weight:1000;color:#ff9d3c;text-shadow:0 0 18px rgba(255,157,60,.55)}
+.score-label{margin-top:2px;color:#fff5fb;font-size:21px;font-weight:900}
+.prize{margin-top:10px;color:#ff91c7;font-size:16px;font-weight:900}
+.celebrate{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);font-size:80px;opacity:0;z-index:12}
+.celebrate.show{animation:pop .85s ease-out forwards}
+.confetti{position:absolute;left:50%;top:220px;z-index:11}
+.confetti i{position:absolute;width:10px;height:18px;opacity:0}
+.confetti.active i{animation:confetti 1.15s ease-out forwards}
+.confetti i:nth-child(1){background:#ff7eb6;--x:-210px;--y:-170px}
+.confetti i:nth-child(2){background:#8f6cff;--x:-130px;--y:-220px;animation-delay:.05s}
+.confetti i:nth-child(3){background:#55c9ff;--x:-50px;--y:-200px;animation-delay:.1s}
+.confetti i:nth-child(4){background:#ffd65c;--x:40px;--y:-235px;animation-delay:.15s}
+.confetti i:nth-child(5){background:#66ddb2;--x:130px;--y:-190px;animation-delay:.2s}
+.confetti i:nth-child(6){background:#ff9d3c;--x:210px;--y:-145px;animation-delay:.25s}
+.confetti i:nth-child(7){background:#fff;--x:-180px;--y:-70px;animation-delay:.3s}
+.confetti i:nth-child(8){background:#ff7eb6;--x:175px;--y:-65px;animation-delay:.35s}
+.result{min-height:82px;text-align:center;color:#fff5fb;font-size:28px;font-weight:900}
+.result .headline{color:#ff9d3c;text-shadow:0 0 12px rgba(255,157,60,.55)}
+.result .message{display:block;margin-top:8px;color:#c98cff;font-size:20px}
+.flash{position:absolute;inset:0;pointer-events:none;opacity:0}.flash.active{animation:flash .9s ease-out}
+.footer{text-align:center;margin-top:8px;color:#9f93aa;font-size:12px}
+@keyframes arcMade{
+  0%{transform:translate(0,0) rotate(0deg) scale(1)}
+  30%{transform:translate(300px,-235px) rotate(360deg) scale(1)}
+  62%{transform:translate(520px,-285px) rotate(720deg) scale(1)}
+  80%{transform:translate(620px,-230px) rotate(900deg) scale(.98)}
+  90%{transform:translate(648px,-182px) rotate(990deg) scale(.95)}
+  100%{transform:translate(650px,-132px) rotate(1080deg) scale(.92)}
+}
+@keyframes arcMiss{
+  0%{transform:translate(0,0) rotate(0)}
+  35%{transform:translate(300px,-215px) rotate(360deg)}
+  70%{transform:translate(548px,-235px) rotate(720deg)}
+  88%{transform:translate(650px,-185px) rotate(900deg)}
+  100%{transform:translate(715px,-95px) rotate(1040deg)}
+}
+
+  35%{transform:translate(300px,-230px) rotate(360deg)}
+  68%{transform:translate(535px,-285px) rotate(720deg)}
+  84%{transform:translate(625px,-220px) rotate(900deg)}
+  93%{transform:translate(646px,-170px) rotate(990deg)}
+  100%{transform:translate(650px,-88px) rotate(1120deg)}
+}
+
+  34%{transform:translate(300px,-240px) rotate(360deg)}
+  66%{transform:translate(530px,-300px) rotate(720deg)}
+  82%{transform:translate(620px,-232px) rotate(900deg)}
+  92%{transform:translate(644px,-178px) rotate(1010deg)}
+  100%{transform:translate(650px,-82px) rotate(1180deg)}
+}
+@keyframes dropThrough{
+  0%{
+    transform:translate(650px,-132px) rotate(1080deg) scale(.92);
+  }
+  20%{
+    transform:translate(650px,-112px) rotate(1110deg) scale(.90);
+  }
+  45%{
+    transform:translate(650px,-78px) rotate(1150deg) scale(.88);
+  }
+  70%{
+    transform:translate(650px,-34px) rotate(1200deg) scale(.84);
+  }
+  100%{
+    transform:translate(650px,34px) rotate(1260deg) scale(.80);
+  }
+}
+  18%{
+    transform:translate(650px,-98px) rotate(1160deg) scale(.98);
+    z-index:10;
+  }
+  38%{
+    transform:translate(650px,-72px) rotate(1195deg) scale(.96);
+    z-index:9;
+  }
+  62%{
+    transform:translate(650px,-34px) rotate(1230deg) scale(.92);
+    z-index:9;
+  }
+  100%{
+    transform:translate(650px,20px) rotate(1280deg) scale(.86);
+    z-index:9;
+  }
+}
+  to{transform:translate(650px,10px) rotate(1240deg) scale(.92)}
+}
+@keyframes netReact{0%{transform:scaleY(1)}35%{transform:scaleY(1.28) translateY(10px)}70%{transform:scaleY(.94) translateY(4px)}100%{transform:scaleY(1) translateY(0)}}
+@keyframes ring{0%{opacity:.9;transform:scale(.35)}100%{opacity:0;transform:scale(1.5)}}
+@keyframes pop{0%{opacity:0;transform:translate(-50%,-50%) scale(.4)}55%{opacity:1;transform:translate(-50%,-50%) scale(1.2)}100%{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+@keyframes confetti{0%{opacity:0;transform:translate(0,0) rotate(0)}20%{opacity:1}100%{opacity:0;transform:translate(var(--x),var(--y)) rotate(620deg)}}
+@keyframes flash{0%{opacity:0}25%{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.34),transparent 48%)}100%{opacity:0}}
+@media(max-height:760px){.panel{transform:scale(.83)}}
+</style>
+</head>
+<body>
+<div class="scene">
+<div class="glow"></div>
+<div class="sparkle s1">✨</div><div class="sparkle s2">💖</div><div class="sparkle s3">⭐</div><div class="sparkle s4">✨</div>
+
+<section class="panel">
+<div class="flash" id="flash"></div>
+<div class="title">🏀 Lucky Shot</div>
+<div class="subtitle">One shot. Miss, score, swish, or hit the jackpot.</div>
+
+<div class="court">
+  <div class="floor"></div>
+  <div class="backboard"><div class="square"></div></div>
+  <div class="rim"></div>
+  <div class="net"></div>
+
+  <div class="score-card">
+    <div class="score-big" id="scoreBig">3</div>
+    <div class="score-label" id="scoreLabel">SWISH!</div>
+    <div class="prize" id="prize">Viewer Chooses a Tease</div>
+  </div>
+
+  <div class="ball" id="ball"></div>
+  <div class="hoop-glow" id="hoopGlow"></div>
+  <div class="celebrate" id="celebrate">🔥</div>
+
+  <div class="confetti" id="confetti">
+    <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+  </div>
+</div>
+
+<div class="result" id="result">The shot is lining up...</div>
+<div class="footer">StimTake Studio • Daily Pack • Lucky Shot</div>
+</section>
+</div>
+
+<script>
+(()=>{
+const ball=document.getElementById('ball');
+const hoopGlow=document.getElementById('hoopGlow');
+const net=document.querySelector('.net');
+const celebrate=document.getElementById('celebrate');
+const confetti=document.getElementById('confetti');
+const scoreBig=document.getElementById('scoreBig');
+const scoreLabel=document.getElementById('scoreLabel');
+const prizeEl=document.getElementById('prize');
+const result=document.getElementById('result');
+const flash=document.getElementById('flash');
+
+let running=false;
+
+let outcomes=[
+ {kind:'miss',score:0,label:'MISS!',prize:'Blow a Kiss',message:'Even the miss gets a cute consolation prize.'},
+ {kind:'score',score:2,label:'SCORE!',prize:'30-Second Slow Dance',message:'Nice shot — a smooth reward is unlocked.'},
+ {kind:'swish',score:3,label:'SWISH!',prize:'Viewer Chooses a Tease',message:'Clean basket — the viewer gets the tease choice.'},
+ {kind:'jackpot',score:5,label:'JACKPOT!',prize:"Model's Hot Choice",message:'Huge shot — the model chooses the big reward!'}
+];
+
+function reset(){
+ ball.className='ball';
+ ball.style.transform='';
+ hoopGlow.classList.remove('show');
+ net.classList.remove('react');
+ celebrate.classList.remove('show');
+ confetti.classList.remove('active');
+}
+
+function play(options={}){
+ if(running)return false;
+ running=true;
+ reset();
+
+ const forced=Number.isInteger(options.index)?Math.max(0,Math.min(outcomes.length-1,options.index)):null;
+ const selected=forced!==null?forced:Math.floor(Math.random()*outcomes.length);
+ const outcome=outcomes[selected];
+
+ result.textContent='The ball is in the air...';
+ scoreBig.textContent='...';
+ scoreLabel.textContent='SHOOTING';
+ prizeEl.textContent='';
+
+ void ball.offsetWidth;
+ ball.classList.add(outcome.kind);
+
+ setTimeout(()=>{
+   if(outcome.kind!=='miss'){
+     ball.classList.remove('score','swish','jackpot');
+     ball.style.transform='translate(650px,-132px) rotate(1080deg) scale(.92)';
+     void ball.offsetWidth;
+     ball.classList.add('drop-through');
+     setTimeout(()=>{
+       net.classList.remove('react');
+       void net.offsetWidth;
+       net.classList.add('react');
+     },160);
+   }
+
+   if(outcome.kind!=='miss'){
+     hoopGlow.classList.remove('show');void hoopGlow.offsetWidth;hoopGlow.classList.add('show');
+   }
+
+   if(outcome.kind==='swish'){
+     celebrate.textContent='🔥';
+     celebrate.classList.add('show');
+   }
+
+   if(outcome.kind==='jackpot'){
+     celebrate.textContent='👑';
+     celebrate.classList.add('show');
+     confetti.classList.add('active');
+   }
+
+   if(outcome.kind==='score'){
+     celebrate.textContent='✨';
+     celebrate.classList.add('show');
+   }
+
+   if(outcome.kind==='miss'){
+     celebrate.textContent='💋';
+     celebrate.classList.add('show');
+   }
+
+   scoreBig.textContent=outcome.score;
+   scoreLabel.textContent=outcome.label;
+   prizeEl.textContent=outcome.prize;
+
+   result.innerHTML=`🏀 <span class="headline">${outcome.label} — ${outcome.prize}</span><span class="message">${outcome.message}</span>`;
+
+   flash.classList.remove('active');void flash.offsetWidth;flash.classList.add('active');
+
+   running=false;
+   window.parent?.postMessage?.({
+     type:'stimtake-daily-lucky-shot-result',
+     index:selected,
+     outcome
+   },'*');
+ },2750);
+
+ return true;
+}
+
+window.StimTakeDailyLuckyShot={play};
+
+window.addEventListener('message',e=>{
+ const d=e.data||{};
+ if(d.type==='stimtake-daily-lucky-shot'){
+   play({index:Number.isInteger(d.index)?d.index:undefined});
+ }
+});
+
+setTimeout(()=>play(),800);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StimTake Halloween Poison Apple</title>
+<style>
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  overflow:hidden;
+  background:transparent;
+  font-family:"Segoe UI",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+.scene{
+  position:relative;
+  width:100%;
+  height:100%;
+  display:grid;
+  place-items:center;
+  pointer-events:none;
+}
+.glow{
+  position:absolute;
+  width:840px;
+  height:820px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(180,76,255,.23),rgba(93,233,137,.08) 46%,transparent 72%);
+  filter:blur(18px);
+}
+.moon{
+  position:absolute;
+  top:5%;
+  right:8%;
+  width:118px;
+  height:118px;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#fff7df,#ffd98b 58%,#c98e3e);
+  box-shadow:0 0 30px rgba(255,217,139,.45);
+}
+.moon:after{
+  content:"";
+  position:absolute;
+  width:102px;
+  height:102px;
+  left:31px;
+  top:-10px;
+  border-radius:50%;
+  background:rgba(8,5,14,.97);
+}
+.web{position:absolute;font-size:110px;opacity:.18}
+.w1{top:-10px;left:-6px}
+.w2{bottom:-10px;right:-6px;transform:rotate(180deg)}
+.bat{position:absolute;font-size:40px;filter:drop-shadow(0 0 5px rgba(180,76,255,.45))}
+.b1{top:12%;left:10%;transform:rotate(-12deg)}
+.b2{top:20%;right:20%;transform:scale(.8) rotate(10deg)}
+
+.panel{
+  position:relative;
+  width:min(980px,94vw);
+  padding:28px 32px 36px;
+  border-radius:28px;
+  border:2px solid rgba(180,76,255,.72);
+  background:linear-gradient(180deg,rgba(27,13,43,.94),rgba(11,7,22,.95));
+  box-shadow:0 0 32px rgba(180,76,255,.55),0 0 64px rgba(255,79,184,.16);
+}
+.title{
+  text-align:center;
+  color:#fff2dd;
+  font-size:36px;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  text-shadow:0 0 14px rgba(180,76,255,.9);
+}
+.subtitle{
+  text-align:center;
+  color:#d6c3e1;
+  margin-top:6px;
+  font-size:15px;
+}
+.apple-row{
+  display:flex;
+  justify-content:center;
+  gap:28px;
+  margin:44px auto 0;
+  min-height:320px;
+  align-items:center;
+}
+.apple-wrap{
+  position:relative;
+  width:140px;
+  text-align:center;
+  transition:transform .45s ease,opacity .35s ease,filter .35s ease;
+}
+.apple{
+  position:relative;
+  width:118px;
+  height:118px;
+  margin:0 auto;
+  border-radius:48% 48% 52% 52% / 42% 42% 58% 58%;
+  background:
+    radial-gradient(circle at 34% 28%,rgba(255,255,255,.26),transparent 14%),
+    linear-gradient(145deg,#9f1e48,#5d0b2b 72%);
+  border:4px solid #d94a76;
+  box-shadow:0 0 20px rgba(217,74,118,.35), inset 0 0 22px rgba(70,0,25,.2);
+}
+.apple:before{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:-24px;
+  width:12px;
+  height:34px;
+  margin-left:-6px;
+  border-radius:8px;
+  background:#3b6a31;
+  transform:rotate(8deg);
+}
+.apple:after{
+  content:"";
+  position:absolute;
+  left:58%;
+  top:-17px;
+  width:34px;
+  height:18px;
+  border-radius:50%;
+  background:#5f9e4e;
+  transform:rotate(-18deg);
+}
+.skull{
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  font-size:42px;
+  opacity:.72;
+  filter:drop-shadow(0 3px 4px rgba(0,0,0,.35));
+}
+.apple-name{
+  margin-top:14px;
+  color:#efe6f6;
+  font-size:13px;
+  font-weight:900;
+  letter-spacing:.04em;
+}
+.apple-choice{
+  margin-top:6px;
+  min-height:30px;
+  color:#bfa5d0;
+  font-size:12px;
+}
+.apple-wrap.shuffle .apple{
+  animation:shuffle .24s ease-in-out infinite alternate;
+}
+.apple-wrap.dim{
+  opacity:.18;
+  filter:saturate(.35);
+}
+.apple-wrap.winner{
+  transform:translateY(-22px) scale(1.12);
+}
+.apple-wrap.winner .apple{
+  border-color:#91ff9f;
+  box-shadow:
+    0 0 28px rgba(102,255,139,.8),
+    0 0 58px rgba(180,76,255,.55),
+    inset 0 0 22px rgba(70,0,25,.2);
+  animation:winnerPulse .65s ease-in-out infinite alternate;
+}
+.apple-wrap.winner .apple-name{
+  color:#99ffac;
+  text-shadow:0 0 10px rgba(102,255,139,.55);
+}
+.crown{
+  position:absolute;
+  top:-40px;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:34px;
+  opacity:0;
+}
+.apple-wrap.winner .crown{opacity:1}
+
+.result{
+  min-height:74px;
+  margin-top:20px;
+  text-align:center;
+  color:#fff2dd;
+  font-size:28px;
+  font-weight:900;
+}
+.result .pick{
+  color:#99ffac;
+  text-shadow:0 0 12px rgba(102,255,139,.6);
+}
+.result .message{
+  display:block;
+  margin-top:8px;
+  color:#ff8fc9;
+  font-size:20px;
+}
+.flash{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:0;
+}
+.flash.active{animation:flash .9s ease-out}
+.footer{
+  text-align:center;
+  margin-top:10px;
+  color:#a99ab7;
+  font-size:12px;
+}
+@keyframes shuffle{
+  from{transform:translate(-5px,-3px) rotate(-3deg)}
+  to{transform:translate(5px,3px) rotate(3deg)}
+}
+@keyframes winnerPulse{
+  from{transform:scale(1)}
+  to{transform:scale(1.06)}
+}
+@keyframes flash{
+  0%{opacity:0}
+  25%{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.34),transparent 48%)}
+  100%{opacity:0}
+}
+@media(max-height:760px){.panel{transform:scale(.84)}}
+</style>
+</head>
+<body>
+<div class="scene">
+  <div class="glow"></div>
+  <div class="moon"></div>
+  <div class="web w1">🕸️</div>
+  <div class="web w2">🕸️</div>
+  <div class="bat b1">🦇</div>
+  <div class="bat b2">🦇</div>
+
+  <section class="panel">
+    <div class="flash" id="flash"></div>
+
+    <div class="title">Poison Apple</div>
+    <div class="subtitle">Five enchanted apples. One glows with the chosen fate.</div>
+
+    <div class="apple-row">
+      <div class="apple-wrap" data-index="0">
+        <div class="crown">👑</div>
+        <div class="apple"><div class="skull">💀</div></div>
+        <div class="apple-name">Ruby Hex</div>
+        <div class="apple-choice">Sweet Spell</div>
+      </div>
+
+      <div class="apple-wrap" data-index="1">
+        <div class="crown">👑</div>
+        <div class="apple"><div class="skull">🖤</div></div>
+        <div class="apple-name">Velvet Bite</div>
+        <div class="apple-choice">Bold Surprise</div>
+      </div>
+
+      <div class="apple-wrap" data-index="2">
+        <div class="crown">👑</div>
+        <div class="apple"><div class="skull">✨</div></div>
+        <div class="apple-name">Moon Apple</div>
+        <div class="apple-choice">Lucky Charm</div>
+      </div>
+
+      <div class="apple-wrap" data-index="3">
+        <div class="crown">👑</div>
+        <div class="apple"><div class="skull">🔮</div></div>
+        <div class="apple-name">Mystic Bite</div>
+        <div class="apple-choice">Mystery Moment</div>
+      </div>
+
+      <div class="apple-wrap" data-index="4">
+        <div class="crown">👑</div>
+        <div class="apple"><div class="skull">🎃</div></div>
+        <div class="apple-name">Pumpkin Kiss</div>
+        <div class="apple-choice">Spooky Bonus</div>
+      </div>
+    </div>
+
+    <div class="result" id="result">The apples are hiding their magic...</div>
+    <div class="footer">StimTake Studio • Halloween Poison Apple Placeholder</div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const apples = [...document.querySelectorAll('.apple-wrap')];
+  const result = document.getElementById('result');
+  const flash = document.getElementById('flash');
+
+  let entries = [
+    {name:'Ruby Hex',choice:'Sweet Spell'},
+    {name:'Velvet Bite',choice:'Bold Surprise'},
+    {name:'Moon Apple',choice:'Lucky Charm'},
+    {name:'Mystic Bite',choice:'Mystery Moment'},
+    {name:'Pumpkin Kiss',choice:'Spooky Bonus'}
+  ];
+
+  let messages = [
+    'glows with a wicked little surprise',
+    'reveals a playful Halloween choice',
+    'brings a lucky witchy twist',
+    'unlocks a mysterious moment',
+    'has chosen the next spooky surprise'
+  ];
+
+  let running = false;
+
+  function setEntries(next){
+    if(!Array.isArray(next) || !next.length) return;
+    entries = next.slice(0,5).map((e,i)=>({
+      name:String(e.name || ('Apple ' + (i+1))),
+      choice:String(e.choice || ('Choice ' + (i+1)))
+    }));
+    while(entries.length < 5){
+      entries.push({
+        name:'Apple ' + (entries.length+1),
+        choice:'Choice ' + (entries.length+1)
+      });
+    }
+    apples.forEach((a,i)=>{
+      a.querySelector('.apple-name').textContent = entries[i].name;
+      a.querySelector('.apple-choice').textContent = entries[i].choice;
+    });
+  }
+
+  function reset(){
+    apples.forEach(a=>a.classList.remove('shuffle','winner','dim'));
+  }
+
+  function pick(options = {}){
+    if(running) return false;
+    running = true;
+
+    if(Array.isArray(options.entries)) setEntries(options.entries);
+
+    reset();
+    result.textContent = 'The enchanted apples are shifting...';
+    apples.forEach(a=>a.classList.add('shuffle'));
+
+    const forced = Number.isInteger(options.index) ? options.index : null;
+    const selected = forced !== null
+      ? Math.max(0,Math.min(4,forced))
+      : Math.floor(Math.random()*5);
+
+    setTimeout(()=>{
+      apples.forEach((a,i)=>{
+        a.classList.remove('shuffle');
+        if(i === selected){
+          a.classList.add('winner');
+        }else{
+          a.classList.add('dim');
+        }
+      });
+
+      const entry = entries[selected];
+      const message = messages[Math.floor(Math.random()*messages.length)];
+
+      result.innerHTML =
+        `🍎 <span class="pick">${entry.name}: ${entry.choice}</span>` +
+        `<span class="message">${message}</span>`;
+
+      flash.classList.remove('active');
+      void flash.offsetWidth;
+      flash.classList.add('active');
+
+      running = false;
+
+      window.parent?.postMessage?.({
+        type:'stimtake-poison-apple-result',
+        index:selected,
+        entry,
+        message
+      },'*');
+    },2200);
+
+    return true;
+  }
+
+  setEntries(entries);
+
+  window.StimTakePoisonApple = {
+    pick,
+    setEntries
+  };
+
+  window.addEventListener('message',(event)=>{
+    const data = event.data || {};
+    if(data.type === 'stimtake-poison-apple-pick'){
+      pick({
+        index:Number.isInteger(data.index) ? data.index : undefined,
+        entries:Array.isArray(data.entries) ? data.entries : undefined
+      });
+    }
+  });
+
+  setTimeout(()=>pick(),800);
+})();
+</script>
+</body>
+</html>

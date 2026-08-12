@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StimTake Halloween Bat Race</title>
+<style>
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  overflow:hidden;
+  background:transparent;
+  font-family:"Segoe UI",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+.scene{
+  position:relative;
+  width:100%;
+  height:100%;
+  display:grid;
+  place-items:center;
+  pointer-events:none;
+}
+.glow{
+  position:absolute;
+  width:860px;
+  height:760px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(180,76,255,.22),rgba(255,79,184,.08) 46%,transparent 72%);
+  filter:blur(18px);
+}
+.moon{
+  position:absolute;
+  top:6%;
+  right:8%;
+  width:125px;
+  height:125px;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#fff7df,#ffd98b 58%,#c98e3e);
+  box-shadow:0 0 34px rgba(255,217,139,.48);
+}
+.moon:after{
+  content:"";
+  position:absolute;
+  width:108px;
+  height:108px;
+  left:34px;
+  top:-10px;
+  border-radius:50%;
+  background:rgba(8,5,14,.97);
+}
+.cloud{
+  position:absolute;
+  width:170px;
+  height:48px;
+  border-radius:50px;
+  background:rgba(255,255,255,.05);
+  filter:blur(1px);
+}
+.c1{top:18%;left:8%}
+.c2{top:28%;right:12%;width:220px}
+.c3{bottom:18%;left:16%;width:200px}
+.web{position:absolute;font-size:105px;opacity:.16}
+.w1{top:-10px;left:-4px}
+.w2{bottom:-10px;right:-4px;transform:rotate(180deg)}
+
+.panel{
+  position:relative;
+  width:min(1040px,94vw);
+  padding:28px 32px 34px;
+  border-radius:28px;
+  border:2px solid rgba(180,76,255,.72);
+  background:linear-gradient(180deg,rgba(27,13,43,.94),rgba(11,7,22,.95));
+  box-shadow:0 0 32px rgba(180,76,255,.55),0 0 64px rgba(255,79,184,.18);
+}
+.title{
+  text-align:center;
+  color:#fff2dd;
+  font-size:36px;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  text-shadow:0 0 14px rgba(180,76,255,.9);
+}
+.subtitle{
+  text-align:center;
+  color:#d6c3e1;
+  margin-top:6px;
+  font-size:15px;
+}
+.race{
+  position:relative;
+  width:900px;
+  height:470px;
+  margin:26px auto 0;
+  border-radius:20px;
+  overflow:hidden;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.025),rgba(255,255,255,.01)),
+    repeating-linear-gradient(
+      180deg,
+      transparent 0 92px,
+      rgba(255,255,255,.035) 92px 94px
+    );
+  border:1px solid rgba(255,255,255,.07);
+}
+.start-line{
+  position:absolute;
+  top:0;
+  bottom:0;
+  left:80px;
+  width:6px;
+  background:repeating-linear-gradient(
+    180deg,
+    #7d3cff 0 16px,
+    #20122d 16px 32px
+  );
+  box-shadow:0 0 12px rgba(125,60,255,.4);
+}
+.finish-line{
+  position:absolute;
+  top:0;
+  bottom:0;
+  right:70px;
+  width:10px;
+  background:repeating-linear-gradient(
+    180deg,
+    #ff9a3c 0 18px,
+    #20122d 18px 36px
+  );
+  box-shadow:0 0 15px rgba(255,154,60,.55);
+}
+.finish-label{
+  position:absolute;
+  right:18px;
+  top:10px;
+  color:#ffb06a;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.12em;
+  writing-mode:vertical-rl;
+}
+.lane{
+  position:absolute;
+  left:0;
+  right:0;
+  height:94px;
+}
+.lane:nth-of-type(1){top:0}
+.lane:nth-of-type(2){top:94px}
+.lane:nth-of-type(3){top:188px}
+.lane:nth-of-type(4){top:282px}
+.lane:nth-of-type(5){top:376px}
+.bat-wrap{
+  position:absolute;
+  left:95px;
+  top:12px;
+  width:130px;
+  text-align:center;
+  transition:transform 4s cubic-bezier(.18,.74,.18,1);
+}
+.bat{
+  font-size:58px;
+  transform-origin:center;
+  filter:drop-shadow(0 5px 4px rgba(0,0,0,.4));
+}
+.bat-wrap.racing .bat{
+  animation:flap .22s ease-in-out infinite alternate;
+}
+.bat-wrap.winner .bat{
+  animation:winnerBounce .42s ease-in-out infinite alternate;
+  filter:drop-shadow(0 0 16px rgba(255,154,60,.8));
+}
+.name{
+  margin-top:-2px;
+  color:#fff2dd;
+  font-size:13px;
+  font-weight:800;
+  text-shadow:0 2px 4px rgba(0,0,0,.8);
+}
+.bat-wrap.winner .name{
+  color:#ffad61;
+  text-shadow:0 0 10px rgba(255,154,60,.5);
+}
+.crown{
+  position:absolute;
+  top:-18px;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:28px;
+  opacity:0;
+}
+.bat-wrap.winner .crown{opacity:1}
+
+.result{
+  min-height:66px;
+  margin-top:18px;
+  text-align:center;
+  color:#fff2dd;
+  font-size:28px;
+  font-weight:900;
+}
+.result .winner-name{
+  color:#ff9a3c;
+  text-shadow:0 0 12px rgba(255,154,60,.6);
+}
+.result .message{
+  display:block;
+  margin-top:8px;
+  color:#c78cff;
+  font-size:20px;
+}
+.flash{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:0;
+}
+.flash.active{animation:flash .9s ease-out}
+.footer{
+  text-align:center;
+  margin-top:10px;
+  color:#a99ab7;
+  font-size:12px;
+}
+@keyframes flap{
+  from{transform:rotate(-7deg) translateY(-3px) scaleY(.95)}
+  to{transform:rotate(7deg) translateY(3px) scaleY(1.05)}
+}
+@keyframes winnerBounce{
+  from{transform:translateY(0) scale(1)}
+  to{transform:translateY(-8px) scale(1.08)}
+}
+@keyframes flash{
+  0%{opacity:0}
+  25%{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.35),transparent 48%)}
+  100%{opacity:0}
+}
+@media(max-height:760px){.panel{transform:scale(.82)}}
+</style>
+</head>
+<body>
+<div class="scene">
+  <div class="glow"></div>
+  <div class="moon"></div>
+  <div class="cloud c1"></div>
+  <div class="cloud c2"></div>
+  <div class="cloud c3"></div>
+  <div class="web w1">🕸️</div>
+  <div class="web w2">🕸️</div>
+
+  <section class="panel">
+    <div class="flash" id="flash"></div>
+
+    <div class="title">Bat Race</div>
+    <div class="subtitle">Five spooky flyers. One takes the moonlit crown.</div>
+
+    <div class="race" id="race">
+      <div class="start-line"></div>
+      <div class="finish-line"></div>
+      <div class="finish-label">FINISH</div>
+
+      <div class="lane">
+        <div class="bat-wrap" data-index="0">
+          <div class="crown">👑</div>
+          <div class="bat">🦇</div>
+          <div class="name">Luna</div>
+        </div>
+      </div>
+
+      <div class="lane">
+        <div class="bat-wrap" data-index="1">
+          <div class="crown">👑</div>
+          <div class="bat">🦇</div>
+          <div class="name">Velvet</div>
+        </div>
+      </div>
+
+      <div class="lane">
+        <div class="bat-wrap" data-index="2">
+          <div class="crown">👑</div>
+          <div class="bat">🦇</div>
+          <div class="name">Midnight</div>
+        </div>
+      </div>
+
+      <div class="lane">
+        <div class="bat-wrap" data-index="3">
+          <div class="crown">👑</div>
+          <div class="bat">🦇</div>
+          <div class="name">Hexie</div>
+        </div>
+      </div>
+
+      <div class="lane">
+        <div class="bat-wrap" data-index="4">
+          <div class="crown">👑</div>
+          <div class="bat">🦇</div>
+          <div class="name">Pumpkin</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="result" id="result">The bats are stretching their wings...</div>
+    <div class="footer">StimTake Studio • Halloween Bat Race Placeholder</div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const bats = [...document.querySelectorAll('.bat-wrap')];
+  const result = document.getElementById('result');
+  const flash = document.getElementById('flash');
+
+  let names = ['Luna','Velvet','Midnight','Hexie','Pumpkin'];
+  let messages = [
+    'wins the moonlight sprint',
+    'takes the spooky sky crown',
+    'flies fastest through the night',
+    'claims the haunted finish',
+    'rules the Halloween skies'
+  ];
+
+  let running = false;
+
+  function setNames(next){
+    if(!Array.isArray(next) || !next.length) return;
+    names = next.slice(0,5);
+    while(names.length < 5) names.push('Bat ' + (names.length + 1));
+    bats.forEach((el,i)=>{
+      const nameEl = el.querySelector('.name');
+      nameEl.textContent = names[i];
+    });
+  }
+
+  function reset(){
+    bats.forEach(el=>{
+      el.classList.remove('racing','winner');
+      el.style.transition='none';
+      el.style.transform='translateX(0px)';
+      void el.offsetWidth;
+      el.style.transition='transform 4s cubic-bezier(.18,.74,.18,1)';
+    });
+  }
+
+  function race(options = {}){
+    if(running) return false;
+    running = true;
+
+    if(Array.isArray(options.names)) setNames(options.names);
+
+    reset();
+    result.textContent = 'The bats are flying...';
+
+    const forced = Number.isInteger(options.index) ? options.index : null;
+    const winner = forced !== null
+      ? Math.max(0,Math.min(4,forced))
+      : Math.floor(Math.random()*5);
+
+    const distances = bats.map((_,i)=>{
+      if(i === winner) return 690;
+      return 515 + Math.floor(Math.random()*130);
+    });
+
+    bats.forEach((el,i)=>{
+      el.classList.add('racing');
+      const delay = 120 + i*70;
+      setTimeout(()=>{
+        el.style.transform = `translateX(${distances[i]}px)`;
+      },delay);
+    });
+
+    setTimeout(()=>{
+      bats.forEach(el=>el.classList.remove('racing'));
+      bats[winner].classList.add('winner');
+
+      const message = messages[Math.floor(Math.random()*messages.length)];
+
+      result.innerHTML =
+        `🦇 <span class="winner-name">${names[winner]}</span>` +
+        `<span class="message">${message}</span>`;
+
+      flash.classList.remove('active');
+      void flash.offsetWidth;
+      flash.classList.add('active');
+
+      running = false;
+
+      window.parent?.postMessage?.({
+        type:'stimtake-bat-race-result',
+        index:winner,
+        name:names[winner],
+        message
+      },'*');
+    },4300);
+
+    return true;
+  }
+
+  setNames(names);
+
+  window.StimTakeBatRace = {
+    race,
+    setNames
+  };
+
+  window.addEventListener('message',(event)=>{
+    const data = event.data || {};
+    if(data.type === 'stimtake-bat-race'){
+      race({
+        index:Number.isInteger(data.index) ? data.index : undefined,
+        names:Array.isArray(data.names) ? data.names : undefined
+      });
+    }
+  });
+
+  setTimeout(()=>race(),800);
+})();
+</script>
+</body>
+</html>

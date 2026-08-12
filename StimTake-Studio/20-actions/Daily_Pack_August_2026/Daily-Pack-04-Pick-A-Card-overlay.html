@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StimTake Daily Pick a Card</title>
+<style>
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  overflow:hidden;
+  background:transparent;
+  font-family:"Segoe UI",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+.scene{
+  position:relative;
+  width:100%;
+  height:100%;
+  display:grid;
+  place-items:center;
+  pointer-events:none;
+}
+.glow{
+  position:absolute;
+  width:860px;
+  height:780px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(170,92,255,.22),rgba(255,105,180,.08) 48%,transparent 72%);
+  filter:blur(18px);
+}
+.sparkle{
+  position:absolute;
+  font-size:30px;
+  opacity:.6;
+  filter:drop-shadow(0 0 8px rgba(255,255,255,.2));
+}
+.s1{top:14%;left:14%}
+.s2{top:21%;right:16%}
+.s3{bottom:16%;left:18%}
+.s4{bottom:14%;right:19%}
+
+.panel{
+  position:relative;
+  width:min(980px,94vw);
+  padding:30px 34px 36px;
+  border-radius:28px;
+  border:2px solid rgba(175,96,255,.70);
+  background:linear-gradient(180deg,rgba(26,19,42,.94),rgba(11,9,20,.95));
+  box-shadow:0 0 32px rgba(175,96,255,.48),0 0 64px rgba(255,105,180,.14);
+}
+.title{
+  text-align:center;
+  color:#fff5fb;
+  font-size:36px;
+  font-weight:900;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  text-shadow:0 0 14px rgba(175,96,255,.8);
+}
+.subtitle{
+  text-align:center;
+  color:#d8cce2;
+  margin-top:6px;
+  font-size:15px;
+}
+
+.deck{
+  position:relative;
+  width:760px;
+  height:390px;
+  margin:32px auto 0;
+  perspective:1400px;
+}
+.card-wrap{
+  position:absolute;
+  width:170px;
+  height:280px;
+  top:54px;
+  left:295px;
+  transform-style:preserve-3d;
+  transition:transform .7s ease,opacity .5s ease,filter .5s ease;
+}
+.card-wrap:nth-child(1){transform:rotate(-28deg) translateX(-190px)}
+.card-wrap:nth-child(2){transform:rotate(-14deg) translateX(-98px)}
+.card-wrap:nth-child(3){transform:rotate(0deg)}
+.card-wrap:nth-child(4){transform:rotate(14deg) translateX(98px)}
+.card-wrap:nth-child(5){transform:rotate(28deg) translateX(190px)}
+
+.card{
+  position:absolute;
+  inset:0;
+  transform-style:preserve-3d;
+  transition:transform .75s ease;
+}
+.card.flipped{transform:rotateY(180deg)}
+.face{
+  position:absolute;
+  inset:0;
+  border-radius:18px;
+  backface-visibility:hidden;
+  border:3px solid rgba(255,255,255,.16);
+  overflow:hidden;
+}
+.back{
+  background:
+    radial-gradient(circle at center,rgba(255,255,255,.06),transparent 48%),
+    linear-gradient(145deg,#7c4bff,#39215f);
+  box-shadow:0 0 22px rgba(124,75,255,.35);
+}
+.back:before{
+  content:"★";
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  color:#ff9bd0;
+  font-size:62px;
+  text-shadow:0 0 14px rgba(255,155,208,.45);
+}
+.back:after{
+  content:"";
+  position:absolute;
+  inset:16px;
+  border:2px solid rgba(255,255,255,.16);
+  border-radius:14px;
+}
+.front{
+  transform:rotateY(180deg);
+  background:linear-gradient(180deg,#fff8fc,#f3eaff);
+  display:grid;
+  place-items:center;
+  text-align:center;
+  padding:20px;
+  color:#34243f;
+}
+.card-icon{
+  font-size:58px;
+  margin-bottom:10px;
+}
+.card-title{
+  font-size:24px;
+  font-weight:900;
+  color:#8c4ed3;
+}
+.card-message{
+  margin-top:8px;
+  font-size:15px;
+  font-weight:700;
+  color:#66536d;
+  line-height:1.3;
+}
+.card-wrap.shuffle .card{
+  animation:shuffle .24s ease-in-out infinite alternate;
+}
+.card-wrap.dim{
+  opacity:.18;
+  filter:saturate(.4);
+}
+.card-wrap.winner{
+  z-index:10;
+  transform:translateY(-18px) scale(1.12) !important;
+}
+.card-wrap.winner .face{
+  box-shadow:
+    0 0 28px rgba(255,157,60,.65),
+    0 0 52px rgba(175,96,255,.45);
+}
+
+.result{
+  min-height:74px;
+  margin-top:16px;
+  text-align:center;
+  color:#fff5fb;
+  font-size:28px;
+  font-weight:900;
+}
+.result .pick{
+  color:#ff9d3c;
+  text-shadow:0 0 12px rgba(255,157,60,.55);
+}
+.result .message{
+  display:block;
+  margin-top:8px;
+  color:#c98cff;
+  font-size:20px;
+}
+.flash{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:0;
+}
+.flash.active{animation:flash .9s ease-out}
+.footer{
+  text-align:center;
+  margin-top:10px;
+  color:#9f93aa;
+  font-size:12px;
+}
+@keyframes shuffle{
+  from{transform:translate(-6px,-3px) rotate(-2deg)}
+  to{transform:translate(6px,3px) rotate(2deg)}
+}
+@keyframes flash{
+  0%{opacity:0}
+  25%{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.32),transparent 48%)}
+  100%{opacity:0}
+}
+@media(max-height:760px){.panel{transform:scale(.84)}}
+</style>
+</head>
+<body>
+<div class="scene">
+  <div class="glow"></div>
+  <div class="sparkle s1">✨</div>
+  <div class="sparkle s2">💖</div>
+  <div class="sparkle s3">⭐</div>
+  <div class="sparkle s4">✨</div>
+
+  <section class="panel">
+    <div class="flash" id="flash"></div>
+
+    <div class="title">Pick a Card</div>
+    <div class="subtitle">Five cards shuffle. One flips to reveal the result.</div>
+
+    <div class="deck" id="deck">
+      <div class="card-wrap" data-index="0">
+        <div class="card">
+          <div class="face back"></div>
+          <div class="face front">
+            <div>
+              <div class="card-icon">⭐</div>
+              <div class="card-title">BONUS</div>
+              <div class="card-message">A little extra luck appears.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-wrap" data-index="1">
+        <div class="card">
+          <div class="face back"></div>
+          <div class="face front">
+            <div>
+              <div class="card-icon">💖</div>
+              <div class="card-title">SWEET PICK</div>
+              <div class="card-message">A cute surprise is chosen.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-wrap" data-index="2">
+        <div class="card">
+          <div class="face back"></div>
+          <div class="face front">
+            <div>
+              <div class="card-icon">🎉</div>
+              <div class="card-title">LUCKY</div>
+              <div class="card-message">Good energy wins this round.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-wrap" data-index="3">
+        <div class="card">
+          <div class="face back"></div>
+          <div class="face front">
+            <div>
+              <div class="card-icon">🎯</div>
+              <div class="card-title">DARE</div>
+              <div class="card-message">Time for a playful challenge.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-wrap" data-index="4">
+        <div class="card">
+          <div class="face back"></div>
+          <div class="face front">
+            <div>
+              <div class="card-icon">🎁</div>
+              <div class="card-title">MYSTERY</div>
+              <div class="card-message">A surprise result is waiting.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="result" id="result">The cards are getting ready...</div>
+    <div class="footer">StimTake Studio • Daily Pack • Pick a Card</div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const wraps = [...document.querySelectorAll('.card-wrap')];
+  const result = document.getElementById('result');
+  const flash = document.getElementById('flash');
+
+  let cards = [
+    {title:'BONUS',icon:'⭐',message:'A little extra luck appears.'},
+    {title:'SWEET PICK',icon:'💖',message:'A cute surprise is chosen.'},
+    {title:'LUCKY',icon:'🎉',message:'Good energy wins this round.'},
+    {title:'DARE',icon:'🎯',message:'Time for a playful challenge.'},
+    {title:'MYSTERY',icon:'🎁',message:'A surprise result is waiting.'}
+  ];
+
+  let running = false;
+
+  function setCards(next){
+    if(!Array.isArray(next) || !next.length) return;
+
+    cards = next.slice(0,5).map((c,i)=>({
+      title:String(c.title || ('CARD ' + (i+1))),
+      icon:String(c.icon || '⭐'),
+      message:String(c.message || 'A surprise is revealed.')
+    }));
+
+    while(cards.length < 5){
+      cards.push({
+        title:'CARD ' + (cards.length + 1),
+        icon:'⭐',
+        message:'A surprise is revealed.'
+      });
+    }
+
+    wraps.forEach((wrap,i)=>{
+      const c = cards[i];
+      wrap.querySelector('.card-icon').textContent = c.icon;
+      wrap.querySelector('.card-title').textContent = c.title;
+      wrap.querySelector('.card-message').textContent = c.message;
+    });
+  }
+
+  function reset(){
+    wraps.forEach(w=>{
+      w.classList.remove('shuffle','winner','dim');
+      w.querySelector('.card').classList.remove('flipped');
+    });
+  }
+
+  function pick(options = {}){
+    if(running) return false;
+    running = true;
+
+    if(Array.isArray(options.cards)) setCards(options.cards);
+
+    reset();
+    result.textContent = 'The cards are shuffling...';
+    wraps.forEach(w=>w.classList.add('shuffle'));
+
+    const forced = Number.isInteger(options.index) ? options.index : null;
+    const selected = forced !== null
+      ? Math.max(0,Math.min(4,forced))
+      : Math.floor(Math.random()*5);
+
+    setTimeout(()=>{
+      wraps.forEach((w,i)=>{
+        w.classList.remove('shuffle');
+        if(i === selected){
+          w.classList.add('winner');
+          w.querySelector('.card').classList.add('flipped');
+        } else {
+          w.classList.add('dim');
+        }
+      });
+
+      const card = cards[selected];
+
+      result.innerHTML =
+        `🃏 <span class="pick">${card.title}</span>` +
+        `<span class="message">${card.message}</span>`;
+
+      flash.classList.remove('active');
+      void flash.offsetWidth;
+      flash.classList.add('active');
+
+      running = false;
+
+      window.parent?.postMessage?.({
+        type:'stimtake-daily-pick-a-card-result',
+        index:selected,
+        card
+      },'*');
+    },2200);
+
+    return true;
+  }
+
+  setCards(cards);
+
+  window.StimTakeDailyPickACard = {
+    pick,
+    setCards
+  };
+
+  window.addEventListener('message',(event)=>{
+    const data = event.data || {};
+    if(data.type === 'stimtake-daily-pick-a-card'){
+      pick({
+        index:Number.isInteger(data.index) ? data.index : undefined,
+        cards:Array.isArray(data.cards) ? data.cards : undefined
+      });
+    }
+  });
+
+  setTimeout(()=>pick(),800);
+})();
+</script>
+</body>
+</html>

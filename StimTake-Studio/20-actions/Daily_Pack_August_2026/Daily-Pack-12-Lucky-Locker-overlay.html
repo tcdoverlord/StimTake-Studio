@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StimTake Daily Lucky Locker</title>
+<style>
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:transparent;font-family:"Segoe UI",Arial,sans-serif}
+*{box-sizing:border-box}
+.scene{position:relative;width:100%;height:100%;display:grid;place-items:center;pointer-events:none}
+.glow{position:absolute;width:900px;height:800px;border-radius:50%;background:radial-gradient(circle,rgba(170,92,255,.22),rgba(255,105,180,.09) 48%,transparent 72%);filter:blur(18px)}
+.sparkle{position:absolute;font-size:30px;opacity:.6;filter:drop-shadow(0 0 8px rgba(255,255,255,.2))}
+.s1{top:14%;left:14%}.s2{top:21%;right:16%}.s3{bottom:16%;left:18%}.s4{bottom:14%;right:19%}
+.panel{position:relative;width:min(1000px,94vw);padding:30px 34px 36px;border-radius:28px;border:2px solid rgba(175,96,255,.70);background:linear-gradient(180deg,rgba(26,19,42,.94),rgba(11,9,20,.95));box-shadow:0 0 32px rgba(175,96,255,.48),0 0 64px rgba(255,105,180,.14)}
+.title{text-align:center;color:#fff5fb;font-size:36px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;text-shadow:0 0 14px rgba(175,96,255,.8)}
+.subtitle{text-align:center;color:#d8cce2;margin-top:6px;font-size:15px}
+.lockers{display:flex;justify-content:center;gap:24px;min-height:390px;margin-top:34px;align-items:center}
+.locker-wrap{position:relative;width:150px;text-align:center;transition:transform .45s ease,opacity .35s ease,filter .35s ease}
+.locker{position:relative;width:125px;height:230px;margin:0 auto;border-radius:16px;background:linear-gradient(145deg,#6f52a8,#3b2a61);border:4px solid rgba(255,255,255,.16);box-shadow:0 0 20px rgba(143,92,255,.26),inset 0 0 22px rgba(255,255,255,.03);overflow:visible}
+.door{position:absolute;inset:7px;border-radius:11px;background:linear-gradient(145deg,#8d68cf,#543a86);border:3px solid rgba(255,255,255,.14);transform-origin:left center;transition:transform .75s ease;z-index:4}
+.door:before{content:"";position:absolute;left:18px;right:18px;top:28px;height:42px;border-top:4px solid rgba(255,255,255,.16);border-bottom:4px solid rgba(255,255,255,.16)}
+.door:after{content:"";position:absolute;right:14px;top:102px;width:12px;height:30px;border-radius:8px;background:#f1ddff;box-shadow:0 0 8px rgba(255,255,255,.25)}
+.lock{position:absolute;left:50%;top:82px;transform:translateX(-50%);font-size:38px;z-index:5;transition:opacity .35s ease}
+.prize{position:absolute;inset:18px;display:grid;place-items:center;text-align:center;color:#fff5fb;font-size:17px;font-weight:900;opacity:0;transform:scale(.75);transition:opacity .45s ease,transform .45s ease;z-index:2}
+.locker.open .door{transform:perspective(600px) rotateY(-105deg)}
+.locker.open .lock{opacity:0}
+.locker.open .prize{opacity:1;transform:scale(1)}
+.locker-wrap.shuffle .locker{animation:shuffle .22s ease-in-out infinite alternate}
+.locker-wrap.dim{opacity:.18;filter:saturate(.4)}
+.locker-wrap.winner{transform:translateY(-22px) scale(1.08)}
+.locker-wrap.winner .locker{box-shadow:0 0 30px rgba(255,157,60,.68),0 0 54px rgba(175,96,255,.5),inset 0 0 22px rgba(255,255,255,.03)}
+.name{margin-top:14px;color:#efe6f6;font-size:13px;font-weight:900}
+.locker-wrap.winner .name{color:#ffad61;text-shadow:0 0 10px rgba(255,157,60,.5)}
+.crown{position:absolute;top:-42px;left:50%;transform:translateX(-50%);font-size:34px;opacity:0}
+.locker-wrap.winner .crown{opacity:1}
+.result{min-height:78px;margin-top:14px;text-align:center;color:#fff5fb;font-size:28px;font-weight:900}
+.result .headline{color:#ff9d3c;text-shadow:0 0 12px rgba(255,157,60,.55)}
+.result .message{display:block;margin-top:8px;color:#c98cff;font-size:20px}
+.flash{position:absolute;inset:0;pointer-events:none;opacity:0}.flash.active{animation:flash .9s ease-out}
+.footer{text-align:center;margin-top:10px;color:#9f93aa;font-size:12px}
+@keyframes shuffle{from{transform:translate(-5px,-3px) rotate(-2deg)}to{transform:translate(5px,3px) rotate(2deg)}}
+@keyframes flash{0%{opacity:0}25%{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.32),transparent 48%)}100%{opacity:0}}
+@media(max-height:760px){.panel{transform:scale(.84)}}
+</style>
+</head>
+<body>
+<div class="scene">
+<div class="glow"></div>
+<div class="sparkle s1">✨</div><div class="sparkle s2">💖</div><div class="sparkle s3">⭐</div><div class="sparkle s4">✨</div>
+
+<section class="panel">
+<div class="flash" id="flash"></div>
+<div class="title">🔐 Lucky Locker</div>
+<div class="subtitle">Five lockers appear. One unlocks and reveals the result.</div>
+
+<div class="lockers">
+  <div class="locker-wrap" data-index="0">
+    <div class="crown">👑</div>
+    <div class="locker"><div class="door"></div><div class="lock">🔒</div><div class="prize">Sexy Pose</div></div>
+    <div class="name">Locker 1</div>
+  </div>
+  <div class="locker-wrap" data-index="1">
+    <div class="crown">👑</div>
+    <div class="locker"><div class="door"></div><div class="lock">🔒</div><div class="prize">Slow Dance</div></div>
+    <div class="name">Locker 2</div>
+  </div>
+  <div class="locker-wrap" data-index="2">
+    <div class="crown">👑</div>
+    <div class="locker"><div class="door"></div><div class="lock">🔒</div><div class="prize">Mystery Choice</div></div>
+    <div class="name">Locker 3</div>
+  </div>
+  <div class="locker-wrap" data-index="3">
+    <div class="crown">👑</div>
+    <div class="locker"><div class="door"></div><div class="lock">🔒</div><div class="prize">Model Choice</div></div>
+    <div class="name">Locker 4</div>
+  </div>
+  <div class="locker-wrap" data-index="4">
+    <div class="crown">👑</div>
+    <div class="locker"><div class="door"></div><div class="lock">🔒</div><div class="prize">Lucky Bonus</div></div>
+    <div class="name">Locker 5</div>
+  </div>
+</div>
+
+<div class="result" id="result">The lockers are sealed...</div>
+<div class="footer">StimTake Studio • Daily Pack • Lucky Locker</div>
+</section>
+</div>
+
+<script>
+(()=>{
+const lockers=[...document.querySelectorAll('.locker-wrap')];
+const result=document.getElementById('result');
+const flash=document.getElementById('flash');
+
+let prizes=[
+  {title:'Sexy Pose',message:'Locker 1 reveals a playful pose.'},
+  {title:'Slow Dance',message:'Locker 2 unlocks a smooth dance.'},
+  {title:'Mystery Choice',message:'Locker 3 reveals a surprise.'},
+  {title:'Model Choice',message:'Locker 4 lets the model choose.'},
+  {title:'Lucky Bonus',message:'Locker 5 unlocks a little extra fun.'}
+];
+
+let running=false;
+
+function setPrizes(next){
+ if(!Array.isArray(next)||!next.length)return;
+ prizes=next.slice(0,5).map((p,i)=>({
+   title:String(p.title||('Prize '+(i+1))),
+   message:String(p.message||'A surprise is revealed!')
+ }));
+ while(prizes.length<5){
+   prizes.push({title:'Prize '+(prizes.length+1),message:'A surprise is revealed!'});
+ }
+ lockers.forEach((w,i)=>w.querySelector('.prize').textContent=prizes[i].title);
+}
+
+function reset(){
+ lockers.forEach(w=>{
+   w.classList.remove('shuffle','winner','dim');
+   w.querySelector('.locker').classList.remove('open');
+ });
+}
+
+function unlock(options={}){
+ if(running)return false;
+ running=true;
+ if(Array.isArray(options.prizes))setPrizes(options.prizes);
+
+ reset();
+ result.textContent='The lockers are shuffling...';
+ lockers.forEach(w=>w.classList.add('shuffle'));
+
+ const forced=Number.isInteger(options.index)?Math.max(0,Math.min(4,options.index)):null;
+ const selected=forced!==null?forced:Math.floor(Math.random()*5);
+
+ setTimeout(()=>{
+   lockers.forEach((w,i)=>{
+     w.classList.remove('shuffle');
+     if(i===selected){
+       w.classList.add('winner');
+       w.querySelector('.locker').classList.add('open');
+     }else{
+       w.classList.add('dim');
+     }
+   });
+
+   const prize=prizes[selected];
+   result.innerHTML=`🔐 <span class="headline">${prize.title}</span><span class="message">${prize.message}</span>`;
+
+   flash.classList.remove('active');
+   void flash.offsetWidth;
+   flash.classList.add('active');
+
+   running=false;
+   window.parent?.postMessage?.({
+     type:'stimtake-daily-lucky-locker-result',
+     index:selected,
+     prize
+   },'*');
+ },2300);
+
+ return true;
+}
+
+setPrizes(prizes);
+window.StimTakeDailyLuckyLocker={unlock,setPrizes};
+
+window.addEventListener('message',event=>{
+ const d=event.data||{};
+ if(d.type==='stimtake-daily-lucky-locker'){
+   unlock({
+     index:Number.isInteger(d.index)?d.index:undefined,
+     prizes:Array.isArray(d.prizes)?d.prizes:undefined
+   });
+ }
+});
+
+setTimeout(()=>unlock(),800);
+})();
+</script>
+</body>
+</html>

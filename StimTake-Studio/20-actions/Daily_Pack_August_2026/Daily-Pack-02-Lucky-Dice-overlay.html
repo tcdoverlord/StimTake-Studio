@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StimTake Daily Lucky Dice</title>
+<style>
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  overflow:hidden;
+  background:transparent;
+  font-family:"Segoe UI",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+.scene{
+  position:relative;
+  width:100%;
+  height:100%;
+  display:grid;
+  place-items:center;
+  pointer-events:none;
+}
+.glow{
+  position:absolute;
+  width:820px;
+  height:760px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(170,92,255,.22),rgba(255,105,180,.08) 48%,transparent 72%);
+  filter:blur(18px);
+}
+.sparkle{
+  position:absolute;
+  font-size:30px;
+  opacity:.6;
+  filter:drop-shadow(0 0 8px rgba(255,255,255,.2));
+}
+.s1{top:14%;left:14%}
+.s2{top:21%;right:16%}
+.s3{bottom:16%;left:18%}
+.s4{bottom:14%;right:19%}
+
+.panel{
+  position:relative;
+  width:min(920px,92vw);
+  padding:30px 34px 36px;
+  border-radius:28px;
+  border:2px solid rgba(175,96,255,.70);
+  background:linear-gradient(180deg,rgba(26,19,42,.94),rgba(11,9,20,.95));
+  box-shadow:0 0 32px rgba(175,96,255,.48),0 0 64px rgba(255,105,180,.14);
+}
+.title{
+  text-align:center;
+  color:#fff5fb;
+  font-size:36px;
+  font-weight:900;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  text-shadow:0 0 14px rgba(175,96,255,.8);
+}
+.subtitle{
+  text-align:center;
+  color:#d8cce2;
+  margin-top:6px;
+  font-size:15px;
+}
+
+.dice-row{
+  display:flex;
+  justify-content:center;
+  gap:54px;
+  margin-top:38px;
+}
+.die{
+  width:220px;
+  height:220px;
+  border-radius:28px;
+  background:linear-gradient(145deg,#2d2342,#17111f);
+  border:4px solid #a45fff;
+  box-shadow:
+    0 0 26px rgba(164,95,255,.45),
+    inset 0 0 30px rgba(255,255,255,.03);
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  grid-template-rows:repeat(3,1fr);
+  padding:28px;
+}
+.die.rolling{animation:shake .14s linear infinite}
+.pip{
+  width:30px;
+  height:30px;
+  border-radius:50%;
+  align-self:center;
+  justify-self:center;
+  background:#fff5fb;
+  box-shadow:0 0 10px rgba(255,105,180,.5);
+  opacity:0;
+}
+.pip.on{opacity:1}
+
+.total-badge{
+  margin:28px auto 0;
+  width:200px;
+  padding:10px 18px;
+  border-radius:999px;
+  text-align:center;
+  color:#fff5fb;
+  background:rgba(175,96,255,.14);
+  border:1px solid rgba(175,96,255,.45);
+  font-size:16px;
+  font-weight:900;
+}
+.total-badge span{color:#ffb04f}
+
+.result{
+  min-height:74px;
+  margin-top:18px;
+  text-align:center;
+  color:#fff5fb;
+  font-size:28px;
+  font-weight:900;
+}
+.result .headline{
+  color:#ff9d3c;
+  text-shadow:0 0 12px rgba(255,157,60,.55);
+}
+.result .message{
+  display:block;
+  margin-top:8px;
+  color:#c98cff;
+  font-size:20px;
+}
+.flash{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:0;
+}
+.flash.active{animation:flash .9s ease-out}
+.footer{
+  text-align:center;
+  margin-top:10px;
+  color:#9f93aa;
+  font-size:12px;
+}
+@keyframes shake{
+  0%{transform:rotate(-4deg) translate(-3px,1px)}
+  25%{transform:rotate(5deg) translate(3px,-2px)}
+  50%{transform:rotate(-3deg) translate(2px,3px)}
+  75%{transform:rotate(4deg) translate(-2px,-3px)}
+  100%{transform:rotate(0deg)}
+}
+@keyframes flash{
+  0%{opacity:0}
+  25%{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.32),transparent 48%)}
+  100%{opacity:0}
+}
+@media(max-height:760px){.panel{transform:scale(.84)}}
+</style>
+</head>
+<body>
+<div class="scene">
+  <div class="glow"></div>
+  <div class="sparkle s1">✨</div>
+  <div class="sparkle s2">💖</div>
+  <div class="sparkle s3">⭐</div>
+  <div class="sparkle s4">✨</div>
+
+  <section class="panel">
+    <div class="flash" id="flash"></div>
+
+    <div class="title">Lucky Dice</div>
+    <div class="subtitle">Roll two dice and let the total choose the result.</div>
+
+    <div class="dice-row">
+      <div class="die" id="die1"></div>
+      <div class="die" id="die2"></div>
+    </div>
+
+    <div class="total-badge">
+      TOTAL: <span id="totalValue">2</span>
+    </div>
+
+    <div class="result" id="result">The dice are getting ready...</div>
+    <div class="footer">StimTake Studio • Daily Pack • Lucky Dice</div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const die1 = document.getElementById('die1');
+  const die2 = document.getElementById('die2');
+  const totalValue = document.getElementById('totalValue');
+  const result = document.getElementById('result');
+  const flash = document.getElementById('flash');
+
+  const layouts = {
+    1:[4],
+    2:[0,8],
+    3:[0,4,8],
+    4:[0,2,6,8],
+    5:[0,2,4,6,8],
+    6:[0,2,3,5,6,8]
+  };
+
+  let outcomes = {
+    2:'Mini Surprise',
+    3:'Lucky Start',
+    4:'Sweet Pick',
+    5:'Fun Choice',
+    6:'Bonus Moment',
+    7:'Lucky Seven',
+    8:'Big Energy',
+    9:'Mystery Result',
+    10:'Double Bonus',
+    11:'Hot Roll',
+    12:'Jackpot Roll'
+  };
+
+  let running = false;
+
+  function buildDie(el){
+    el.innerHTML = '';
+    for(let i=0;i<9;i++){
+      const pip = document.createElement('div');
+      pip.className = 'pip';
+      el.appendChild(pip);
+    }
+  }
+
+  function showDie(el,value){
+    const pips = [...el.children];
+    pips.forEach(p=>p.classList.remove('on'));
+    (layouts[value] || []).forEach(i=>pips[i].classList.add('on'));
+  }
+
+  function setOutcomes(next){
+    if(!next || typeof next !== 'object' || Array.isArray(next)) return;
+    outcomes = {...outcomes, ...next};
+  }
+
+  function roll(options = {}){
+    if(running) return false;
+    running = true;
+
+    if(options.outcomes) setOutcomes(options.outcomes);
+
+    die1.classList.add('rolling');
+    die2.classList.add('rolling');
+    result.textContent = 'The dice are rolling...';
+
+    const forced1 = Number.isInteger(options.die1) ? Math.max(1,Math.min(6,options.die1)) : null;
+    const forced2 = Number.isInteger(options.die2) ? Math.max(1,Math.min(6,options.die2)) : null;
+
+    let ticks = 0;
+
+    const ticker = setInterval(() => {
+      showDie(die1,1+Math.floor(Math.random()*6));
+      showDie(die2,1+Math.floor(Math.random()*6));
+      ticks++;
+
+      if(ticks > 18){
+        clearInterval(ticker);
+
+        const a = forced1 || 1+Math.floor(Math.random()*6);
+        const b = forced2 || 1+Math.floor(Math.random()*6);
+        const total = a+b;
+        const outcome = outcomes[total] || 'Mystery Result';
+
+        showDie(die1,a);
+        showDie(die2,b);
+
+        die1.classList.remove('rolling');
+        die2.classList.remove('rolling');
+
+        totalValue.textContent = total;
+
+        result.innerHTML =
+          `🎲 <span class="headline">${outcome}</span>` +
+          `<span class="message">${a} + ${b} = ${total}</span>`;
+
+        flash.classList.remove('active');
+        void flash.offsetWidth;
+        flash.classList.add('active');
+
+        running = false;
+
+        window.parent?.postMessage?.({
+          type:'stimtake-daily-lucky-dice-result',
+          die1:a,
+          die2:b,
+          total,
+          outcome
+        },'*');
+      }
+    },120);
+
+    return true;
+  }
+
+  buildDie(die1);
+  buildDie(die2);
+  showDie(die1,1);
+  showDie(die2,1);
+
+  window.StimTakeDailyLuckyDice = {
+    roll,
+    setOutcomes
+  };
+
+  window.addEventListener('message',(event)=>{
+    const data = event.data || {};
+    if(data.type === 'stimtake-daily-lucky-dice-roll'){
+      roll({
+        die1:Number.isInteger(data.die1) ? data.die1 : undefined,
+        die2:Number.isInteger(data.die2) ? data.die2 : undefined,
+        outcomes:data.outcomes
+      });
+    }
+  });
+
+  setTimeout(()=>roll(),800);
+})();
+</script>
+</body>
+</html>

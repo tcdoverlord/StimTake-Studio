@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StimTake Halloween Witch Wheel</title>
+
+<style>
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: transparent;
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.scene {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.glow {
+  position: absolute;
+  width: 720px;
+  height: 720px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(180, 76, 255, 0.24),
+    rgba(123, 44, 255, 0.08) 45%,
+    transparent 70%
+  );
+  filter: blur(14px);
+}
+
+.moon {
+  position: absolute;
+  top: 6%;
+  right: 9%;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 35% 35%,
+    #fff5d7,
+    #ffd989 55%,
+    #d59b41 100%
+  );
+  box-shadow: 0 0 30px rgba(255, 217, 137, 0.45);
+}
+
+.moon::after {
+  content: "";
+  position: absolute;
+  width: 95px;
+  height: 95px;
+  left: 28px;
+  top: -10px;
+  border-radius: 50%;
+  background: rgba(8, 5, 14, 0.97);
+}
+
+.bat {
+  position: absolute;
+  font-size: 42px;
+  filter: drop-shadow(0 0 5px rgba(180, 76, 255, 0.45));
+}
+
+.bat1 {
+  top: 11%;
+  left: 11%;
+  transform: rotate(-10deg);
+}
+
+.bat2 {
+  top: 20%;
+  right: 20%;
+  transform: scale(.8) rotate(10deg);
+}
+
+.bat3 {
+  bottom: 15%;
+  left: 18%;
+  transform: scale(.7) rotate(14deg);
+}
+
+.web {
+  position: absolute;
+  font-size: 105px;
+  opacity: 0.20;
+}
+
+.web-left {
+  top: -8px;
+  left: -4px;
+}
+
+.web-right {
+  bottom: -8px;
+  right: -4px;
+  transform: rotate(180deg);
+}
+
+.panel {
+  position: relative;
+  width: min(900px, 90vw);
+  padding: 28px 32px 34px;
+  border-radius: 28px;
+  border: 2px solid rgba(180, 76, 255, 0.70);
+  background: linear-gradient(
+    180deg,
+    rgba(25, 12, 40, 0.94),
+    rgba(12, 7, 23, 0.95)
+  );
+  box-shadow:
+    0 0 30px rgba(180, 76, 255, 0.55),
+    0 0 60px rgba(255, 79, 184, 0.18);
+}
+
+.title {
+  text-align: center;
+  color: #fff2dd;
+  font-size: 36px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-shadow: 0 0 14px rgba(180, 76, 255, 0.90);
+}
+
+.subtitle {
+  text-align: center;
+  margin-top: 6px;
+  color: #d3c0df;
+  font-size: 15px;
+}
+
+.wheel-wrap {
+  position: relative;
+  width: 560px;
+  height: 560px;
+  margin: 20px auto 0;
+  display: grid;
+  place-items: center;
+}
+
+.pointer {
+  position: absolute;
+  top: -7px;
+  z-index: 10;
+  width: 0;
+  height: 0;
+  border-left: 28px solid transparent;
+  border-right: 28px solid transparent;
+  border-bottom: 58px solid #ff8a2a;
+  filter: drop-shadow(0 0 12px rgba(255, 138, 42, 0.80));
+}
+
+.wheel {
+  position: relative;
+  width: 520px;
+  height: 520px;
+  border-radius: 50%;
+  border: 10px solid #281735;
+  overflow: hidden;
+
+  background: conic-gradient(
+    #8f3cff 0deg 45deg,
+    #ff7f2a 45deg 90deg,
+    #ca4cff 90deg 135deg,
+    #ff4fb8 135deg 180deg,
+    #6530c8 180deg 225deg,
+    #ff9d39 225deg 270deg,
+    #9a3cff 270deg 315deg,
+    #ff5e95 315deg 360deg
+  );
+
+  box-shadow:
+    0 0 0 4px rgba(180, 76, 255, 0.85),
+    0 0 36px rgba(180, 76, 255, 0.65),
+    inset 0 0 45px rgba(0, 0, 0, 0.55);
+
+  transition: transform 5.2s cubic-bezier(.12, .72, .08, 1);
+}
+
+.wheel::after {
+  content: "✦";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 94px;
+  height: 94px;
+  margin-left: -47px;
+  margin-top: -47px;
+
+  display: grid;
+  place-items: center;
+
+  color: #fff2dd;
+  font-size: 38px;
+
+  border-radius: 50%;
+  border: 4px solid rgba(255,255,255,.30);
+
+  background: radial-gradient(circle, #38204b, #160c22);
+
+  box-shadow: 0 0 22px rgba(255,255,255,.15);
+}
+
+.label {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 170px;
+  margin-left: -85px;
+  margin-top: -14px;
+
+  color: white;
+  font-size: 17px;
+  font-weight: 900;
+  text-align: center;
+
+  text-shadow:
+    0 2px 4px rgba(0,0,0,.85),
+    0 0 5px rgba(0,0,0,.60);
+}
+
+.result {
+  min-height: 52px;
+  margin-top: 12px;
+
+  text-align: center;
+
+  color: #fff2dd;
+  font-size: 28px;
+  font-weight: 900;
+}
+
+.result span {
+  color: #ff9d39;
+  text-shadow: 0 0 12px rgba(255, 157, 57, 0.60);
+}
+
+.footer {
+  text-align: center;
+  margin-top: 8px;
+
+  color: #a999b7;
+  font-size: 12px;
+}
+
+.flash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.flash.active {
+  animation: flash 0.9s ease-out;
+}
+
+@keyframes flash {
+  0% {
+    opacity: 0;
+  }
+
+  25% {
+    opacity: 1;
+    background: radial-gradient(
+      circle,
+      rgba(255,255,255,.36),
+      transparent 48%
+    );
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (max-height: 760px) {
+  .panel {
+    transform: scale(.82);
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="scene">
+
+  <div class="glow"></div>
+
+  <div class="moon"></div>
+
+  <div class="bat bat1">🦇</div>
+  <div class="bat bat2">🦇</div>
+  <div class="bat bat3">🦇</div>
+
+  <div class="web web-left">🕸️</div>
+  <div class="web web-right">🕸️</div>
+
+  <div class="panel">
+
+    <div class="flash" id="flash"></div>
+
+    <div class="title">
+      Witch's Wheel
+    </div>
+
+    <div class="subtitle">
+      The spirits have chosen your fate
+    </div>
+
+    <div class="wheel-wrap">
+
+      <div class="pointer"></div>
+
+      <div class="wheel" id="wheel">
+
+        <div class="label" data-index="0">TRICK</div>
+        <div class="label" data-index="1">TREAT</div>
+        <div class="label" data-index="2">DANCE</div>
+        <div class="label" data-index="3">POSE</div>
+        <div class="label" data-index="4">DARE</div>
+        <div class="label" data-index="5">BONUS</div>
+        <div class="label" data-index="6">WITCHY</div>
+        <div class="label" data-index="7">SURPRISE</div>
+
+      </div>
+
+    </div>
+
+    <div class="result" id="result">
+      The spirits are choosing...
+    </div>
+
+    <div class="footer">
+      StimTake Studio Halloween Wheel
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+
+const wheel = document.getElementById("wheel");
+const result = document.getElementById("result");
+const flash = document.getElementById("flash");
+
+let choices = [
+  "TRICK",
+  "TREAT",
+  "DANCE",
+  "POSE",
+  "DARE",
+  "BONUS",
+  "WITCHY",
+  "SURPRISE"
+];
+
+let rotation = 0;
+let spinning = false;
+
+
+function positionLabels() {
+
+  document
+    .querySelectorAll(".label")
+    .forEach((label, index) => {
+
+      const angle = index * 45 + 22.5;
+
+      label.style.transform =
+        `rotate(${angle}deg)
+         translateY(-205px)
+         rotate(${-angle}deg)`;
+
+    });
+
+}
+
+
+function spinWheel() {
+
+  if (spinning) {
+    return;
+  }
+
+  spinning = true;
+
+  result.textContent =
+    "The spirits are choosing...";
+
+
+  const selected =
+    Math.floor(Math.random() * choices.length);
+
+
+  const extraTurns =
+    5 + Math.floor(Math.random() * 3);
+
+
+  const segmentCenter =
+    selected * 45 + 22.5;
+
+
+  const targetRotation =
+    extraTurns * 360 +
+    (360 - segmentCenter);
+
+
+  rotation += targetRotation;
+
+
+  wheel.style.transform =
+    `rotate(${rotation}deg)`;
+
+
+  setTimeout(() => {
+
+    result.innerHTML =
+      `✨ <span>${choices[selected]}</span> ✨`;
+
+
+    flash.classList.remove("active");
+
+    void flash.offsetWidth;
+
+    flash.classList.add("active");
+
+
+    spinning = false;
+
+
+    window.parent.postMessage({
+
+      type: "stimtake-wheel-result",
+
+      index: selected,
+
+      label: choices[selected]
+
+    }, "*");
+
+
+  }, 5250);
+
+}
+
+
+positionLabels();
+
+
+/*
+StimTake can call this later:
+
+window.StimTakeWheel.spin();
+
+*/
+
+window.StimTakeWheel = {
+
+  spin: spinWheel,
+
+  setChoices: function(newChoices) {
+
+    if (!Array.isArray(newChoices)) {
+      return;
+    }
+
+    choices =
+      newChoices
+        .slice(0, 8);
+
+
+    document
+      .querySelectorAll(".label")
+      .forEach((label, index) => {
+
+        label.textContent =
+          choices[index] ||
+          ("OPTION " + (index + 1));
+
+      });
+
+  }
+
+};
+
+
+/*
+Automatically spin once when this
+overlay is triggered/loaded.
+*/
+
+setTimeout(() => {
+
+  spinWheel();
+
+}, 800);
+
+</script>
+
+</body>
+</html>

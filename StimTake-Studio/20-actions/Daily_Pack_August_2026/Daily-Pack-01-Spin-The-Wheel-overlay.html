@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StimTake Daily Spin the Wheel</title>
+<style>
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:transparent;font-family:"Segoe UI",Arial,sans-serif}
+*{box-sizing:border-box}
+.scene{position:relative;width:100%;height:100%;display:grid;place-items:center;pointer-events:none}
+.glow{position:absolute;width:760px;height:760px;border-radius:50%;background:radial-gradient(circle,rgba(173,85,255,.22),rgba(255,105,180,.08) 46%,transparent 72%);filter:blur(18px)}
+.sparkle{position:absolute;font-size:30px;opacity:.55;filter:drop-shadow(0 0 8px rgba(255,255,255,.2))}
+.s1{top:13%;left:14%}.s2{top:20%;right:16%}.s3{bottom:17%;left:18%}.s4{bottom:15%;right:20%}
+.panel{position:relative;width:min(920px,92vw);padding:28px 32px 36px;border-radius:28px;border:2px solid rgba(175,96,255,.70);background:linear-gradient(180deg,rgba(26,19,42,.94),rgba(11,9,20,.95));box-shadow:0 0 32px rgba(175,96,255,.48),0 0 64px rgba(255,105,180,.14)}
+.title{text-align:center;color:#fff5fb;font-size:36px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;text-shadow:0 0 14px rgba(175,96,255,.8)}
+.subtitle{text-align:center;color:#d8cce2;margin-top:6px;font-size:15px}
+.wheel-wrap{position:relative;width:560px;height:560px;margin:22px auto 0;display:grid;place-items:center}
+.pointer{position:absolute;top:-7px;z-index:10;width:0;height:0;border-left:28px solid transparent;border-right:28px solid transparent;border-bottom:58px solid #ff9d3c;filter:drop-shadow(0 0 12px rgba(255,157,60,.75))}
+.wheel{position:relative;width:520px;height:520px;border-radius:50%;border:10px solid #221a30;overflow:hidden;background:conic-gradient(#7d4dff 0deg 45deg,#ff6fae 45deg 90deg,#42c8ff 90deg 135deg,#ffb14f 135deg 180deg,#a85cff 180deg 225deg,#55d6a5 225deg 270deg,#ff7e76 270deg 315deg,#f4cf54 315deg 360deg);box-shadow:0 0 0 4px rgba(175,96,255,.82),0 0 36px rgba(175,96,255,.58),inset 0 0 45px rgba(0,0,0,.38);transition:transform 5.2s cubic-bezier(.12,.72,.08,1)}
+.wheel:after{content:"★";position:absolute;left:50%;top:50%;width:96px;height:96px;margin-left:-48px;margin-top:-48px;display:grid;place-items:center;color:#fff7e7;font-size:40px;border-radius:50%;border:4px solid rgba(255,255,255,.28);background:radial-gradient(circle,#392650,#17111f);box-shadow:0 0 22px rgba(255,255,255,.14)}
+.label{position:absolute;left:50%;top:50%;width:170px;margin-left:-85px;margin-top:-14px;text-align:center;color:#fff;font-size:17px;font-weight:900;text-shadow:0 2px 4px rgba(0,0,0,.8)}
+.result{min-height:58px;margin-top:14px;text-align:center;color:#fff5fb;font-size:28px;font-weight:900}
+.result span{color:#ff9d3c;text-shadow:0 0 12px rgba(255,157,60,.55)}
+.flash{position:absolute;inset:0;pointer-events:none;opacity:0}.flash.active{animation:flash .9s ease-out}
+.footer{text-align:center;margin-top:10px;color:#9f93aa;font-size:12px}
+@keyframes flash{0%{opacity:0}25%{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.32),transparent 48%)}100%{opacity:0}}
+@media(max-height:760px){.panel{transform:scale(.84)}}
+</style>
+</head>
+<body>
+<div class="scene">
+<div class="glow"></div><div class="sparkle s1">✨</div><div class="sparkle s2">💖</div><div class="sparkle s3">⭐</div><div class="sparkle s4">✨</div>
+<section class="panel">
+<div class="flash" id="flash"></div>
+<div class="title">Spin the Wheel</div>
+<div class="subtitle">One spin. One random room result.</div>
+<div class="wheel-wrap">
+<div class="pointer"></div>
+<div class="wheel" id="wheel">
+<div class="label">BONUS</div><div class="label">LUCKY</div><div class="label">DANCE</div><div class="label">POSE</div>
+<div class="label">MYSTERY</div><div class="label">TREAT</div><div class="label">DARE</div><div class="label">SURPRISE</div>
+</div>
+</div>
+<div class="result" id="result">The wheel is getting ready...</div>
+<div class="footer">StimTake Studio • Daily Pack • Spin the Wheel</div>
+</section>
+</div>
+<script>
+(()=>{
+const wheel=document.getElementById('wheel'),result=document.getElementById('result'),flash=document.getElementById('flash');
+let choices=['BONUS','LUCKY','DANCE','POSE','MYSTERY','TREAT','DARE','SURPRISE'],rotation=0,spinning=false;
+function layout(){document.querySelectorAll('.label').forEach((el,i)=>{const a=i*45+22.5;el.textContent=choices[i]||('OPTION '+(i+1));el.style.transform=`rotate(${a}deg) translateY(-205px) rotate(${-a}deg)`})}
+function setChoices(next){if(!Array.isArray(next)||!next.length)return;choices=next.slice(0,8).map(String);while(choices.length<8)choices.push('OPTION '+(choices.length+1));layout()}
+function spin(options={}){
+ if(spinning)return false;spinning=true;
+ if(Array.isArray(options.choices))setChoices(options.choices);
+ result.textContent='The wheel is spinning...';
+ const forced=Number.isInteger(options.index)?options.index:null;
+ const selected=forced!==null?Math.max(0,Math.min(7,forced)):Math.floor(Math.random()*8);
+ rotation+=(5+Math.floor(Math.random()*3))*360+(360-(selected*45+22.5));
+ wheel.style.transform=`rotate(${rotation}deg)`;
+ setTimeout(()=>{const picked=choices[selected];result.innerHTML=`🎡 <span>${picked}</span>`;flash.classList.remove('active');void flash.offsetWidth;flash.classList.add('active');spinning=false;window.parent?.postMessage?.({type:'stimtake-daily-wheel-result',index:selected,choice:picked},'*')},5250);
+ return true;
+}
+layout();
+window.StimTakeDailyWheel={spin,setChoices};
+window.addEventListener('message',e=>{const d=e.data||{};if(d.type==='stimtake-daily-wheel-spin')spin({index:Number.isInteger(d.index)?d.index:undefined,choices:Array.isArray(d.choices)?d.choices:undefined})});
+setTimeout(()=>spin(),800);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StimTake Daily Mini Race</title>
+<style>
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:transparent;font-family:"Segoe UI",Arial,sans-serif}
+*{box-sizing:border-box}
+.scene{position:relative;width:100%;height:100%;display:grid;place-items:center;pointer-events:none}
+.glow{position:absolute;width:930px;height:800px;border-radius:50%;background:radial-gradient(circle,rgba(170,92,255,.22),rgba(255,105,180,.09) 48%,transparent 72%);filter:blur(18px)}
+.panel{position:relative;width:min(1080px,96vw);padding:28px 34px 34px;border-radius:28px;border:2px solid rgba(175,96,255,.70);background:linear-gradient(180deg,rgba(26,19,42,.94),rgba(11,9,20,.95));box-shadow:0 0 32px rgba(175,96,255,.48),0 0 64px rgba(255,105,180,.14)}
+.title{text-align:center;color:#fff5fb;font-size:38px;font-weight:1000;letter-spacing:.06em;text-transform:uppercase;text-shadow:0 0 14px rgba(175,96,255,.8)}
+.subtitle{text-align:center;color:#d8cce2;margin-top:6px;font-size:15px}
+.race{position:relative;width:950px;height:500px;margin:20px auto 0;border-radius:24px;overflow:hidden;background:linear-gradient(180deg,#2d2538,#18131f);border:1px solid rgba(255,255,255,.06)}
+.track{position:absolute;left:55px;right:55px;top:30px;bottom:30px;border-radius:18px;background:linear-gradient(180deg,#4a4a55,#30303a);box-shadow:inset 0 0 25px rgba(0,0,0,.4)}
+.track:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(180deg,transparent 0 86px,rgba(255,255,255,.12) 86px 89px)}
+.start{position:absolute;top:30px;bottom:30px;left:115px;width:8px;background:repeating-linear-gradient(180deg,#fff 0 16px,#1c1c1f 16px 32px)}
+.finish{position:absolute;top:30px;bottom:30px;right:105px;width:12px;background:repeating-linear-gradient(180deg,#fff 0 14px,#1c1c1f 14px 28px);box-shadow:0 0 12px rgba(255,255,255,.25)}
+.finish-label{position:absolute;right:28px;top:45%;transform:rotate(90deg);color:#ffad61;font-size:12px;font-weight:900;letter-spacing:.18em}
+.lane{position:absolute;left:0;right:0;height:88px}
+.l1{top:40px}.l2{top:128px}.l3{top:216px}.l4{top:304px}.l5{top:392px}
+.car-wrap{position:absolute;left:132px;top:9px;width:135px;text-align:center;transition:transform 4.2s cubic-bezier(.15,.72,.15,1)}
+.car{position:relative;width:110px;height:52px;margin:0 auto;border-radius:22px 28px 14px 14px;box-shadow:0 7px 9px rgba(0,0,0,.35)}
+.car:before{content:"";position:absolute;left:23px;top:-18px;width:55px;height:26px;border-radius:18px 18px 4px 4px;background:rgba(255,255,255,.35)}
+.car:after{content:"";position:absolute;left:12px;right:12px;bottom:-9px;height:14px;background:radial-gradient(circle at 15% 50%,#111 0 6px,transparent 7px),radial-gradient(circle at 85% 50%,#111 0 6px,transparent 7px)}
+.c1 .car{background:linear-gradient(90deg,#ff6fae,#d7478e)}
+.c2 .car{background:linear-gradient(90deg,#8f6cff,#5b3acb)}
+.c3 .car{background:linear-gradient(90deg,#55c9ff,#277ec0)}
+.c4 .car{background:linear-gradient(90deg,#66ddb2,#24996e)}
+.c5 .car{background:linear-gradient(90deg,#ffb65f,#e37724)}
+.name{margin-top:6px;color:#fff5fb;font-size:12px;font-weight:900}
+.car-wrap.racing .car{animation:vibrate .16s ease-in-out infinite alternate}
+.car-wrap.winner{z-index:7}
+.car-wrap.winner .car{animation:winnerPulse .45s ease-in-out infinite alternate;box-shadow:0 0 22px rgba(255,157,60,.75),0 0 34px rgba(175,96,255,.5)}
+.car-wrap.winner .name{color:#ffad61;text-shadow:0 0 10px rgba(255,157,60,.5)}
+.crown{position:absolute;top:-30px;left:50%;transform:translateX(-50%);font-size:30px;opacity:0}
+.car-wrap.winner .crown{opacity:1}
+.result{min-height:82px;margin-top:16px;text-align:center;color:#fff5fb;font-size:28px;font-weight:900}
+.result .headline{color:#ff9d3c;text-shadow:0 0 12px rgba(255,157,60,.55)}
+.result .message{display:block;margin-top:8px;color:#c98cff;font-size:20px}
+.flash{position:absolute;inset:0;pointer-events:none;opacity:0}.flash.active{animation:flash .9s ease-out}
+.footer{text-align:center;margin-top:8px;color:#9f93aa;font-size:12px}
+@keyframes vibrate{from{transform:translateY(-2px) rotate(-1deg)}to{transform:translateY(2px) rotate(1deg)}}
+@keyframes winnerPulse{from{transform:scale(1)}to{transform:scale(1.08)}}
+@keyframes flash{0%{opacity:0}25%{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.34),transparent 48%)}100%{opacity:0}}
+@media(max-height:760px){.panel{transform:scale(.82)}}
+</style>
+</head>
+<body>
+<div class="scene"><div class="glow"></div>
+<section class="panel">
+<div class="flash" id="flash"></div>
+<div class="title">🏎️ Mini Race</div>
+<div class="subtitle">Five colorful racers. One crosses the finish line first.</div>
+
+<div class="race">
+<div class="track"></div><div class="start"></div><div class="finish"></div><div class="finish-label">FINISH</div>
+
+<div class="lane l1"><div class="car-wrap c1" data-index="0"><div class="crown">👑</div><div class="car"></div><div class="name">Hot Pink</div></div></div>
+<div class="lane l2"><div class="car-wrap c2" data-index="1"><div class="crown">👑</div><div class="car"></div><div class="name">Purple Rush</div></div></div>
+<div class="lane l3"><div class="car-wrap c3" data-index="2"><div class="crown">👑</div><div class="car"></div><div class="name">Blue Flash</div></div></div>
+<div class="lane l4"><div class="car-wrap c4" data-index="3"><div class="crown">👑</div><div class="car"></div><div class="name">Mint Rocket</div></div></div>
+<div class="lane l5"><div class="car-wrap c5" data-index="4"><div class="crown">👑</div><div class="car"></div><div class="name">Golden Heat</div></div></div>
+</div>
+
+<div class="result" id="result">The engines are revving...</div>
+<div class="footer">StimTake Studio • Daily Pack • Mini Race</div>
+</section></div>
+
+<script>
+(()=>{
+const racers=[...document.querySelectorAll('.car-wrap')];
+const result=document.getElementById('result');
+const flash=document.getElementById('flash');
+
+let entries=[
+ {name:'Hot Pink',prize:'Flirty Outfit Pick',message:'The winner unlocks a flirty outfit choice.'},
+ {name:'Purple Rush',prize:'60-Second Tease Dance',message:'A full minute tease dance is unlocked.'},
+ {name:'Blue Flash',prize:'Viewer Picks the Next Pose',message:'The winning viewer chooses the next pose.'},
+ {name:'Mint Rocket',prize:'Double Mystery Reward',message:'Two surprise rewards are unlocked.'},
+ {name:'Golden Heat',prize:'After-Dark Race Jackpot',message:'The top car unlocks the secret jackpot.'}
+];
+
+let running=false;
+
+function setEntries(next){
+ if(!Array.isArray(next)||!next.length)return;
+ entries=next.slice(0,5).map((e,i)=>({
+   name:String(e.name||('Car '+(i+1))),
+   prize:String(e.prize||'Surprise'),
+   message:String(e.message||'A surprise reward is unlocked.')
+ }));
+ while(entries.length<5)entries.push({name:'Car '+(entries.length+1),prize:'Surprise',message:'A surprise reward is unlocked.'});
+ racers.forEach((r,i)=>r.querySelector('.name').textContent=entries[i].name);
+}
+
+function reset(){
+ racers.forEach(r=>{
+   r.classList.remove('racing','winner');
+   r.style.transition='none';
+   r.style.transform='translateX(0px)';
+   void r.offsetWidth;
+   r.style.transition='transform 4.2s cubic-bezier(.15,.72,.15,1)';
+ });
+}
+
+function race(options={}){
+ if(running)return false;
+ running=true;
+ if(Array.isArray(options.entries))setEntries(options.entries);
+ reset();
+
+ const forced=Number.isInteger(options.index)?Math.max(0,Math.min(4,options.index)):null;
+ const winner=forced!==null?forced:Math.floor(Math.random()*5);
+
+ const distances=racers.map((_,i)=>{
+   if(i===winner)return 660;
+   return 500+Math.floor(Math.random()*120);
+ });
+
+ result.textContent='GO! The mini race is on...';
+
+ racers.forEach((r,i)=>{
+   r.classList.add('racing');
+   setTimeout(()=>r.style.transform=`translateX(${distances[i]}px)`,120+i*65);
+ });
+
+ setTimeout(()=>{
+   racers.forEach(r=>r.classList.remove('racing'));
+   racers[winner].classList.add('winner');
+
+   const win=entries[winner];
+   result.innerHTML=`🏎️ <span class="headline">${win.name} WINS — ${win.prize}</span><span class="message">${win.message}</span>`;
+
+   flash.classList.remove('active');void flash.offsetWidth;flash.classList.add('active');
+
+   running=false;
+   window.parent?.postMessage?.({
+     type:'stimtake-daily-mini-race-result',
+     index:winner,
+     entry:win
+   },'*');
+ },4450);
+
+ return true;
+}
+
+setEntries(entries);
+window.StimTakeDailyMiniRace={race,setEntries};
+window.addEventListener('message',e=>{
+ const d=e.data||{};
+ if(d.type==='stimtake-daily-mini-race'){
+   race({index:Number.isInteger(d.index)?d.index:undefined,entries:Array.isArray(d.entries)?d.entries:undefined});
+ }
+});
+setTimeout(()=>race(),800);
+})();
+</script>
+</body>
+</html>

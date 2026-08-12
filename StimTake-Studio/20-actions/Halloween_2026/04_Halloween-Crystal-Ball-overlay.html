@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StimTake Halloween Crystal Ball</title>
+<style>
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  overflow:hidden;
+  background:transparent;
+  font-family:"Segoe UI",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+.scene{
+  position:relative;
+  width:100%;
+  height:100%;
+  display:grid;
+  place-items:center;
+  pointer-events:none;
+}
+.glow{
+  position:absolute;
+  width:780px;
+  height:780px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(180,76,255,.24),rgba(255,79,184,.08) 45%,transparent 72%);
+  filter:blur(18px);
+}
+.moon{
+  position:absolute;
+  top:5%;
+  right:8%;
+  width:115px;
+  height:115px;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#fff6dc,#ffd989 58%,#ca9042);
+  box-shadow:0 0 30px rgba(255,217,137,.45);
+}
+.moon:after{
+  content:"";
+  position:absolute;
+  width:100px;
+  height:100px;
+  left:30px;
+  top:-10px;
+  border-radius:50%;
+  background:rgba(8,5,14,.97);
+}
+.bat{position:absolute;font-size:40px;filter:drop-shadow(0 0 5px rgba(180,76,255,.45))}
+.b1{top:12%;left:11%;transform:rotate(-12deg)}
+.b2{top:20%;right:20%;transform:scale(.8) rotate(10deg)}
+.web{position:absolute;font-size:110px;opacity:.18}
+.web1{top:-10px;left:-6px}
+.web2{bottom:-10px;right:-6px;transform:rotate(180deg)}
+
+.panel{
+  position:relative;
+  width:min(900px,90vw);
+  padding:30px 34px 36px;
+  border-radius:28px;
+  border:2px solid rgba(180,76,255,.72);
+  background:linear-gradient(180deg,rgba(27,13,43,.94),rgba(11,7,22,.95));
+  box-shadow:0 0 32px rgba(180,76,255,.55),0 0 64px rgba(255,79,184,.18);
+}
+.title{
+  text-align:center;
+  color:#fff2dd;
+  font-size:36px;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  text-shadow:0 0 14px rgba(180,76,255,.9);
+}
+.subtitle{
+  text-align:center;
+  color:#d6c3e1;
+  margin-top:6px;
+  font-size:15px;
+}
+.ball-wrap{
+  position:relative;
+  width:520px;
+  height:520px;
+  margin:28px auto 0;
+  display:grid;
+  place-items:center;
+}
+.base{
+  position:absolute;
+  bottom:6px;
+  width:300px;
+  height:110px;
+  border-radius:50% 50% 24px 24px;
+  background:linear-gradient(180deg,#3a2148,#180c22);
+  border:3px solid rgba(180,76,255,.7);
+  box-shadow:0 0 24px rgba(180,76,255,.4);
+}
+.ball{
+  position:relative;
+  width:390px;
+  height:390px;
+  border-radius:50%;
+  overflow:hidden;
+  border:6px solid rgba(219,190,255,.7);
+  background:
+    radial-gradient(circle at 38% 32%,rgba(255,255,255,.35),transparent 18%),
+    radial-gradient(circle at center,#6f38aa 0%,#3d1d66 45%,#170c2a 75%,#0b0714 100%);
+  box-shadow:
+    0 0 30px rgba(180,76,255,.75),
+    0 0 70px rgba(255,79,184,.22),
+    inset 0 0 55px rgba(255,255,255,.08);
+  z-index:2;
+}
+.smoke{
+  position:absolute;
+  inset:-20%;
+  filter:blur(18px);
+  opacity:.72;
+}
+.smoke:before,
+.smoke:after{
+  content:"";
+  position:absolute;
+  width:260px;
+  height:260px;
+  border-radius:50%;
+  background:rgba(209,154,255,.18);
+}
+.smoke:before{
+  left:50px;
+  top:70px;
+  animation:swirl1 4s ease-in-out infinite alternate;
+}
+.smoke:after{
+  right:40px;
+  bottom:55px;
+  background:rgba(255,118,190,.15);
+  animation:swirl2 4.5s ease-in-out infinite alternate;
+}
+.fortune{
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  padding:72px;
+  text-align:center;
+  color:#fff5e4;
+  font-size:28px;
+  line-height:1.25;
+  font-weight:900;
+  opacity:0;
+  transform:scale(.88);
+  text-shadow:0 0 14px rgba(255,255,255,.35),0 0 18px rgba(180,76,255,.75);
+  transition:opacity .8s ease,transform .8s ease;
+  z-index:3;
+}
+.fortune.show{
+  opacity:1;
+  transform:scale(1);
+}
+.sparkles{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  z-index:4;
+}
+.spark{
+  position:absolute;
+  color:#fff3cc;
+  font-size:20px;
+  opacity:0;
+  animation:spark 1.8s ease-in-out infinite;
+}
+.s1{left:18%;top:22%;animation-delay:.1s}
+.s2{right:20%;top:30%;animation-delay:.5s}
+.s3{left:28%;bottom:20%;animation-delay:.9s}
+.s4{right:24%;bottom:24%;animation-delay:1.3s}
+
+.result{
+  min-height:62px;
+  margin-top:18px;
+  text-align:center;
+  color:#fff2dd;
+  font-size:24px;
+  font-weight:900;
+}
+.result span{
+  color:#c98cff;
+  text-shadow:0 0 12px rgba(201,140,255,.55);
+}
+.footer{
+  text-align:center;
+  margin-top:10px;
+  color:#a99ab7;
+  font-size:12px;
+}
+.flash{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:0;
+}
+.flash.active{animation:flash .9s ease-out}
+@keyframes swirl1{
+  from{transform:translate(-20px,-10px) scale(.9)}
+  to{transform:translate(40px,30px) scale(1.15)}
+}
+@keyframes swirl2{
+  from{transform:translate(20px,20px) scale(1.05)}
+  to{transform:translate(-35px,-25px) scale(.88)}
+}
+@keyframes spark{
+  0%,100%{opacity:0;transform:scale(.6) rotate(0deg)}
+  50%{opacity:1;transform:scale(1.25) rotate(45deg)}
+}
+@keyframes flash{
+  0%{opacity:0}
+  25%{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.33),transparent 48%)}
+  100%{opacity:0}
+}
+@media(max-height:760px){.panel{transform:scale(.84)}}
+</style>
+</head>
+<body>
+<div class="scene">
+  <div class="glow"></div>
+  <div class="moon"></div>
+  <div class="bat b1">🦇</div>
+  <div class="bat b2">🦇</div>
+  <div class="web web1">🕸️</div>
+  <div class="web web2">🕸️</div>
+
+  <section class="panel">
+    <div class="flash" id="flash"></div>
+
+    <div class="title">Crystal Ball</div>
+    <div class="subtitle">The spirits are revealing your Halloween fate</div>
+
+    <div class="ball-wrap">
+      <div class="base"></div>
+
+      <div class="ball">
+        <div class="smoke"></div>
+
+        <div class="sparkles">
+          <div class="spark s1">✦</div>
+          <div class="spark s2">✧</div>
+          <div class="spark s3">✦</div>
+          <div class="spark s4">✧</div>
+        </div>
+
+        <div class="fortune" id="fortune">
+          The spirits are listening...
+        </div>
+      </div>
+    </div>
+
+    <div class="result" id="result">
+      The crystal ball is clouding over...
+    </div>
+
+    <div class="footer">StimTake Studio • Halloween Crystal Ball Placeholder</div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const fortune = document.getElementById('fortune');
+  const result = document.getElementById('result');
+  const flash = document.getElementById('flash');
+
+  let fortunes = [
+    'A wicked surprise is coming',
+    'Tonight brings lucky energy',
+    'A spooky dance awaits',
+    'The moon favors a bold pose',
+    'A sweet treat is near',
+    'Mystery magic is choosing you',
+    'Your next moment will be wild',
+    'The witching hour brings a bonus'
+  ];
+
+  let running = false;
+
+  function setFortunes(next){
+    if(!Array.isArray(next) || !next.length) return;
+    fortunes = next.slice(0,12);
+  }
+
+  function reveal(options = {}){
+    if(running) return false;
+    running = true;
+
+    if(Array.isArray(options.fortunes)){
+      setFortunes(options.fortunes);
+    }
+
+    fortune.classList.remove('show');
+    fortune.textContent = 'The spirits are listening...';
+    result.textContent = 'The crystal ball is clouding over...';
+
+    const forced = Number.isInteger(options.index) ? options.index : null;
+    const selected = forced !== null
+      ? Math.max(0, Math.min(fortunes.length - 1, forced))
+      : Math.floor(Math.random() * fortunes.length);
+
+    setTimeout(() => {
+      fortune.textContent = fortunes[selected];
+      fortune.classList.add('show');
+
+      result.innerHTML =
+        `🔮 <span>${fortunes[selected]}</span>`;
+
+      flash.classList.remove('active');
+      void flash.offsetWidth;
+      flash.classList.add('active');
+
+      running = false;
+
+      window.parent?.postMessage?.({
+        type:'stimtake-crystal-ball-result',
+        index:selected,
+        fortune:fortunes[selected]
+      },'*');
+    },2600);
+
+    return true;
+  }
+
+  window.StimTakeCrystalBall = {
+    reveal,
+    setFortunes
+  };
+
+  window.addEventListener('message',(event)=>{
+    const data = event.data || {};
+    if(data.type === 'stimtake-crystal-ball-reveal'){
+      reveal({
+        index:Number.isInteger(data.index) ? data.index : undefined,
+        fortunes:Array.isArray(data.fortunes) ? data.fortunes : undefined
+      });
+    }
+  });
+
+  setTimeout(()=>reveal(),800);
+})();
+</script>
+</body>
+</html>

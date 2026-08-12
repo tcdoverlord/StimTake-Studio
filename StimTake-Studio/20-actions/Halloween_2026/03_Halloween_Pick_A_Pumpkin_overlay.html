@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StimTake Pick a Pumpkin</title>
+<style>
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  overflow:hidden;
+  background:transparent;
+  font-family:"Segoe UI",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+.scene{
+  position:relative;
+  width:100%;
+  height:100%;
+  display:grid;
+  place-items:center;
+  pointer-events:none;
+}
+.glow{
+  position:absolute;
+  width:780px;
+  height:780px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(180,76,255,.22),rgba(255,126,38,.08) 48%,transparent 72%);
+  filter:blur(18px);
+}
+.moon{
+  position:absolute;
+  top:5%;
+  right:8%;
+  width:115px;
+  height:115px;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#fff7de,#ffd88a 58%,#c99042);
+  box-shadow:0 0 30px rgba(255,216,138,.45);
+}
+.moon:after{
+  content:"";
+  position:absolute;
+  width:100px;
+  height:100px;
+  left:30px;
+  top:-10px;
+  border-radius:50%;
+  background:rgba(8,5,14,.97);
+}
+.bat{position:absolute;font-size:40px;filter:drop-shadow(0 0 5px rgba(180,76,255,.45))}
+.b1{top:12%;left:10%;transform:rotate(-12deg)}
+.b2{top:20%;right:20%;transform:scale(.8) rotate(10deg)}
+.web{position:absolute;font-size:110px;opacity:.18}
+.web1{top:-10px;left:-6px}
+.web2{bottom:-10px;right:-6px;transform:rotate(180deg)}
+
+.panel{
+  position:relative;
+  width:min(960px,92vw);
+  padding:28px 32px 34px;
+  border-radius:28px;
+  border:2px solid rgba(180,76,255,.72);
+  background:linear-gradient(180deg,rgba(27,13,43,.94),rgba(11,7,22,.95));
+  box-shadow:0 0 32px rgba(180,76,255,.55),0 0 64px rgba(255,79,184,.18);
+}
+.title{
+  text-align:center;
+  color:#fff2dd;
+  font-size:36px;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  text-shadow:0 0 14px rgba(180,76,255,.9);
+}
+.subtitle{
+  text-align:center;
+  color:#d6c3e1;
+  margin-top:6px;
+  font-size:15px;
+}
+.pumpkin-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:24px;
+  margin:30px auto 0;
+  max-width:760px;
+}
+.pumpkin{
+  position:relative;
+  height:180px;
+  border-radius:28px;
+  background:linear-gradient(145deg,#ff9a3c,#df6517);
+  border:4px solid rgba(255,190,110,.9);
+  box-shadow:0 0 20px rgba(255,124,36,.35), inset 0 0 30px rgba(110,35,0,.22);
+  display:grid;
+  place-items:center;
+  transform:scale(1);
+  transition:transform .25s ease, box-shadow .25s ease, opacity .25s ease;
+  overflow:visible;
+}
+.pumpkin:before{
+  content:"";
+  position:absolute;
+  top:-30px;
+  width:28px;
+  height:45px;
+  background:linear-gradient(#4d8f3c,#1f5422);
+  border-radius:12px 12px 4px 4px;
+  transform:rotate(6deg);
+}
+.pumpkin .face{
+  font-size:72px;
+  filter:drop-shadow(0 4px 4px rgba(0,0,0,.25));
+}
+.pumpkin .num{
+  position:absolute;
+  bottom:10px;
+  right:14px;
+  color:#4a1600;
+  font-weight:900;
+  font-size:18px;
+  opacity:.65;
+}
+.pumpkin.shuffle{
+  animation:shuffle .45s ease-in-out infinite alternate;
+}
+.pumpkin.dim{
+  opacity:.28;
+  transform:scale(.9);
+  filter:saturate(.5);
+}
+.pumpkin.winner{
+  transform:scale(1.14);
+  box-shadow:0 0 30px rgba(255,175,64,.8),0 0 60px rgba(180,76,255,.65);
+  animation:winnerPulse .65s ease-in-out infinite alternate;
+}
+.result{
+  min-height:70px;
+  margin-top:26px;
+  text-align:center;
+  color:#fff2dd;
+  font-size:28px;
+  font-weight:900;
+}
+.result .pick{
+  color:#ff9a3c;
+  text-shadow:0 0 12px rgba(255,154,60,.6);
+}
+.result .outcome{
+  display:block;
+  margin-top:8px;
+  color:#c78cff;
+  font-size:20px;
+}
+.flash{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:0;
+}
+.flash.active{animation:flash .9s ease-out}
+.footer{
+  text-align:center;
+  margin-top:10px;
+  color:#a99ab7;
+  font-size:12px;
+}
+@keyframes shuffle{
+  from{transform:translate(-7px,-4px) rotate(-2deg)}
+  to{transform:translate(7px,4px) rotate(2deg)}
+}
+@keyframes winnerPulse{
+  from{transform:scale(1.08)}
+  to{transform:scale(1.16)}
+}
+@keyframes flash{
+  0%{opacity:0}
+  25%{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.35),transparent 48%)}
+  100%{opacity:0}
+}
+@media(max-height:760px){.panel{transform:scale(.82)}}
+</style>
+</head>
+<body>
+<div class="scene">
+  <div class="glow"></div>
+  <div class="moon"></div>
+  <div class="bat b1">🦇</div>
+  <div class="bat b2">🦇</div>
+  <div class="web web1">🕸️</div>
+  <div class="web web2">🕸️</div>
+
+  <section class="panel">
+    <div class="flash" id="flash"></div>
+
+    <div class="title">Pick a Pumpkin</div>
+    <div class="subtitle">Six enchanted pumpkins. One Halloween surprise.</div>
+
+    <div class="pumpkin-grid" id="pumpkinGrid">
+      <div class="pumpkin" data-index="0"><div class="face">🎃</div><div class="num">1</div></div>
+      <div class="pumpkin" data-index="1"><div class="face">🎃</div><div class="num">2</div></div>
+      <div class="pumpkin" data-index="2"><div class="face">🎃</div><div class="num">3</div></div>
+      <div class="pumpkin" data-index="3"><div class="face">🎃</div><div class="num">4</div></div>
+      <div class="pumpkin" data-index="4"><div class="face">🎃</div><div class="num">5</div></div>
+      <div class="pumpkin" data-index="5"><div class="face">🎃</div><div class="num">6</div></div>
+    </div>
+
+    <div class="result" id="result">The pumpkins are whispering...</div>
+    <div class="footer">StimTake Studio • Halloween Pumpkin Placeholder</div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const pumpkins = [...document.querySelectorAll('.pumpkin')];
+  const result = document.getElementById('result');
+  const flash = document.getElementById('flash');
+
+  let outcomes = [
+    'Sweet Treat',
+    'Witchy Dance',
+    'Spooky Pose',
+    'Lucky Bonus',
+    'Mystery Dare',
+    'Pumpkin Surprise'
+  ];
+
+  let running = false;
+
+  function setOutcomes(next){
+    if(!Array.isArray(next) || !next.length) return;
+    outcomes = next.slice(0,6);
+    while(outcomes.length < 6){
+      outcomes.push('SURPRISE ' + (outcomes.length + 1));
+    }
+  }
+
+  function resetPumpkins(){
+    pumpkins.forEach(p => {
+      p.classList.remove('shuffle','dim','winner');
+    });
+  }
+
+  function pickPumpkin(options = {}){
+    if(running) return false;
+    running = true;
+    resetPumpkins();
+
+    if(Array.isArray(options.outcomes)) setOutcomes(options.outcomes);
+
+    result.textContent = 'The pumpkins are shuffling...';
+    pumpkins.forEach(p => p.classList.add('shuffle'));
+
+    const forced = Number.isInteger(options.index) ? options.index : null;
+    const selected = forced !== null
+      ? Math.max(0, Math.min(5, forced))
+      : Math.floor(Math.random() * 6);
+
+    setTimeout(() => {
+      pumpkins.forEach((p, i) => {
+        p.classList.remove('shuffle');
+        if(i === selected){
+          p.classList.add('winner');
+        } else {
+          p.classList.add('dim');
+        }
+      });
+
+      result.innerHTML =
+        `🎃 Pumpkin <span class="pick">${selected + 1}</span>` +
+        `<span class="outcome">${outcomes[selected]}</span>`;
+
+      flash.classList.remove('active');
+      void flash.offsetWidth;
+      flash.classList.add('active');
+
+      running = false;
+
+      window.parent?.postMessage?.({
+        type: 'stimtake-pumpkin-result',
+        index: selected,
+        pumpkin: selected + 1,
+        outcome: outcomes[selected]
+      }, '*');
+    }, 2200);
+
+    return true;
+  }
+
+  window.StimTakePumpkin = {
+    pick: pickPumpkin,
+    setOutcomes
+  };
+
+  window.addEventListener('message', (event) => {
+    const data = event.data || {};
+    if(data.type === 'stimtake-pumpkin-pick'){
+      pickPumpkin({
+        index: Number.isInteger(data.index) ? data.index : undefined,
+        outcomes: Array.isArray(data.outcomes) ? data.outcomes : undefined
+      });
+    }
+  });
+
+  setTimeout(() => pickPumpkin(), 800);
+})();
+</script>
+</body>
+</html>

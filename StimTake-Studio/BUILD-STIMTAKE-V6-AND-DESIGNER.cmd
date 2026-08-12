@@ -18,6 +18,13 @@ if not exist "%OUTPUT_DIR%" mkdir "%OUTPUT_DIR%"
 > "%BUILD_LOG%" echo StimTake Studio 6.0 + Designer build
 >>"%BUILD_LOG%" echo %DATE% %TIME%
 
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%SCRIPT_DIR%UPDATE-V6-PAYLOAD.ps1" >>"%BUILD_LOG%" 2>&1
+if errorlevel 1 (
+  echo STIMTAKE V6 PAYLOAD UPDATE FAILED
+  type "%BUILD_LOG%"
+  exit /b 1
+)
+
 echo.
 echo ==========================================
 echo   Building StimTake Studio 6.0

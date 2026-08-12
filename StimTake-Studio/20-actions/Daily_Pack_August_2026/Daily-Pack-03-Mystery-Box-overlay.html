@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StimTake Daily Mystery Box</title>
+<style>
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  overflow:hidden;
+  background:transparent;
+  font-family:"Segoe UI",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+.scene{
+  position:relative;
+  width:100%;
+  height:100%;
+  display:grid;
+  place-items:center;
+  pointer-events:none;
+}
+.glow{
+  position:absolute;
+  width:820px;
+  height:760px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(170,92,255,.22),rgba(255,105,180,.08) 48%,transparent 72%);
+  filter:blur(18px);
+}
+.sparkle{
+  position:absolute;
+  font-size:30px;
+  opacity:.6;
+  filter:drop-shadow(0 0 8px rgba(255,255,255,.2));
+}
+.s1{top:14%;left:14%}
+.s2{top:21%;right:16%}
+.s3{bottom:16%;left:18%}
+.s4{bottom:14%;right:19%}
+
+.panel{
+  position:relative;
+  width:min(980px,94vw);
+  padding:30px 34px 36px;
+  border-radius:28px;
+  border:2px solid rgba(175,96,255,.70);
+  background:linear-gradient(180deg,rgba(26,19,42,.94),rgba(11,9,20,.95));
+  box-shadow:0 0 32px rgba(175,96,255,.48),0 0 64px rgba(255,105,180,.14);
+}
+.title{
+  text-align:center;
+  color:#fff5fb;
+  font-size:36px;
+  font-weight:900;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  text-shadow:0 0 14px rgba(175,96,255,.8);
+}
+.subtitle{
+  text-align:center;
+  color:#d8cce2;
+  margin-top:6px;
+  font-size:15px;
+}
+
+.box-row{
+  display:flex;
+  justify-content:center;
+  gap:28px;
+  margin:42px auto 0;
+  min-height:350px;
+  align-items:center;
+}
+.box-wrap{
+  position:relative;
+  width:150px;
+  text-align:center;
+  transition:transform .45s ease,opacity .35s ease,filter .35s ease;
+}
+.gift{
+  position:relative;
+  width:130px;
+  height:130px;
+  margin:0 auto;
+  border-radius:20px;
+  background:linear-gradient(145deg,#8f5cff,#5b34c8);
+  border:4px solid rgba(255,255,255,.20);
+  box-shadow:0 0 20px rgba(143,92,255,.35),inset 0 0 22px rgba(255,255,255,.04);
+  overflow:visible;
+}
+.gift:before{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:0;
+  bottom:0;
+  width:20px;
+  margin-left:-10px;
+  background:#ff7eb6;
+}
+.gift:after{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  top:48px;
+  height:20px;
+  background:#ff7eb6;
+}
+.lid{
+  position:absolute;
+  left:-8px;
+  top:-20px;
+  width:146px;
+  height:42px;
+  border-radius:14px;
+  background:linear-gradient(145deg,#a56bff,#6a3bd2);
+  border:4px solid rgba(255,255,255,.20);
+  transform-origin:left bottom;
+  transition:transform .65s ease;
+  z-index:4;
+}
+.bow{
+  position:absolute;
+  left:50%;
+  top:-52px;
+  width:70px;
+  height:44px;
+  margin-left:-35px;
+  z-index:5;
+}
+.bow:before,.bow:after{
+  content:"";
+  position:absolute;
+  top:10px;
+  width:34px;
+  height:24px;
+  border:8px solid #ff7eb6;
+  border-radius:50%;
+}
+.bow:before{left:0;transform:rotate(-12deg)}
+.bow:after{right:0;transform:rotate(12deg)}
+.prize{
+  position:absolute;
+  inset:12px;
+  display:grid;
+  place-items:center;
+  text-align:center;
+  color:#fff5fb;
+  font-size:16px;
+  font-weight:900;
+  opacity:0;
+  transform:scale(.7);
+  transition:opacity .45s ease,transform .45s ease;
+  z-index:3;
+}
+.gift.open .lid{
+  transform:rotate(-26deg) translate(-8px,-34px);
+}
+.gift.open .prize{
+  opacity:1;
+  transform:scale(1);
+}
+.box-wrap.shuffle .gift{
+  animation:shuffle .22s ease-in-out infinite alternate;
+}
+.box-wrap.dim{
+  opacity:.2;
+  filter:saturate(.4);
+}
+.box-wrap.winner{
+  transform:translateY(-24px) scale(1.1);
+}
+.box-wrap.winner .gift{
+  box-shadow:
+    0 0 28px rgba(255,157,60,.7),
+    0 0 54px rgba(175,96,255,.5),
+    inset 0 0 22px rgba(255,255,255,.04);
+}
+.box-name{
+  margin-top:16px;
+  color:#efe6f6;
+  font-size:13px;
+  font-weight:900;
+  letter-spacing:.04em;
+}
+.box-wrap.winner .box-name{
+  color:#ffad61;
+  text-shadow:0 0 10px rgba(255,154,60,.5);
+}
+.crown{
+  position:absolute;
+  top:-42px;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:34px;
+  opacity:0;
+}
+.box-wrap.winner .crown{opacity:1}
+
+.confetti{
+  position:absolute;
+  inset:0;
+  overflow:hidden;
+  pointer-events:none;
+  z-index:7;
+}
+.confetti i{
+  position:absolute;
+  top:48%;
+  left:50%;
+  width:10px;
+  height:18px;
+  background:#ff9a3c;
+  opacity:0;
+}
+.confetti.active i{animation:confetti 1.15s ease-out forwards}
+.confetti i:nth-child(2){background:#a75cff;--x:-120px;--y:-120px;animation-delay:.05s}
+.confetti i:nth-child(3){background:#ff79be;--x:110px;--y:-135px;animation-delay:.10s}
+.confetti i:nth-child(4){background:#67e5b2;--x:-170px;--y:-60px;animation-delay:.15s}
+.confetti i:nth-child(5){background:#ffd36a;--x:170px;--y:-70px;animation-delay:.20s}
+.confetti i:nth-child(6){background:#fff0dd;--x:-70px;--y:-170px;animation-delay:.25s}
+.confetti i:nth-child(7){background:#c78cff;--x:65px;--y:-175px;animation-delay:.30s}
+.confetti i:nth-child(8){background:#ff9a3c;--x:0px;--y:-190px;animation-delay:.35s}
+
+.result{
+  min-height:74px;
+  margin-top:18px;
+  text-align:center;
+  color:#fff5fb;
+  font-size:28px;
+  font-weight:900;
+}
+.result .pick{
+  color:#ff9d3c;
+  text-shadow:0 0 12px rgba(255,157,60,.55);
+}
+.result .message{
+  display:block;
+  margin-top:8px;
+  color:#c98cff;
+  font-size:20px;
+}
+.flash{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:0;
+}
+.flash.active{animation:flash .9s ease-out}
+.footer{
+  text-align:center;
+  margin-top:10px;
+  color:#9f93aa;
+  font-size:12px;
+}
+@keyframes shuffle{
+  from{transform:translate(-5px,-3px) rotate(-3deg)}
+  to{transform:translate(5px,3px) rotate(3deg)}
+}
+@keyframes confetti{
+  0%{opacity:0;transform:translate(0,0) rotate(0deg)}
+  20%{opacity:1}
+  100%{opacity:0;transform:translate(var(--x,90px),var(--y,-130px)) rotate(540deg)}
+}
+@keyframes flash{
+  0%{opacity:0}
+  25%{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.32),transparent 48%)}
+  100%{opacity:0}
+}
+@media(max-height:760px){.panel{transform:scale(.84)}}
+</style>
+</head>
+<body>
+<div class="scene">
+  <div class="glow"></div>
+  <div class="sparkle s1">✨</div>
+  <div class="sparkle s2">💖</div>
+  <div class="sparkle s3">⭐</div>
+  <div class="sparkle s4">✨</div>
+
+  <section class="panel">
+    <div class="flash" id="flash"></div>
+
+    <div class="title">Mystery Box</div>
+    <div class="subtitle">Five gift boxes shuffle. One opens with the surprise.</div>
+
+    <div class="box-row">
+      <div class="box-wrap" data-index="0">
+        <div class="crown">👑</div>
+        <div class="gift">
+          <div class="lid"></div>
+          <div class="bow"></div>
+          <div class="prize">BONUS</div>
+        </div>
+        <div class="box-name">Box 1</div>
+      </div>
+
+      <div class="box-wrap" data-index="1">
+        <div class="crown">👑</div>
+        <div class="gift">
+          <div class="lid"></div>
+          <div class="bow"></div>
+          <div class="prize">LUCKY</div>
+        </div>
+        <div class="box-name">Box 2</div>
+      </div>
+
+      <div class="box-wrap" data-index="2">
+        <div class="crown">👑</div>
+        <div class="gift">
+          <div class="lid"></div>
+          <div class="bow"></div>
+          <div class="prize">DARE</div>
+        </div>
+        <div class="box-name">Box 3</div>
+      </div>
+
+      <div class="box-wrap" data-index="3">
+        <div class="crown">👑</div>
+        <div class="gift">
+          <div class="lid"></div>
+          <div class="bow"></div>
+          <div class="prize">MYSTERY</div>
+        </div>
+        <div class="box-name">Box 4</div>
+      </div>
+
+      <div class="box-wrap" data-index="4">
+        <div class="crown">👑</div>
+        <div class="gift">
+          <div class="lid"></div>
+          <div class="bow"></div>
+          <div class="prize">SURPRISE</div>
+        </div>
+        <div class="box-name">Box 5</div>
+      </div>
+    </div>
+
+    <div class="confetti" id="confetti">
+      <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+    </div>
+
+    <div class="result" id="result">The boxes are getting ready...</div>
+    <div class="footer">StimTake Studio • Daily Pack • Mystery Box</div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const boxes = [...document.querySelectorAll('.box-wrap')];
+  const result = document.getElementById('result');
+  const flash = document.getElementById('flash');
+  const confetti = document.getElementById('confetti');
+
+  let prizes = ['BONUS','LUCKY','DARE','MYSTERY','SURPRISE'];
+  let running = false;
+
+  function setPrizes(next){
+    if(!Array.isArray(next) || !next.length) return;
+    prizes = next.slice(0,5).map(String);
+    while(prizes.length < 5){
+      prizes.push('PRIZE ' + (prizes.length + 1));
+    }
+    boxes.forEach((box,i)=>{
+      box.querySelector('.prize').textContent = prizes[i];
+    });
+  }
+
+  function reset(){
+    boxes.forEach(box=>{
+      box.classList.remove('shuffle','winner','dim');
+      box.querySelector('.gift').classList.remove('open');
+    });
+    confetti.classList.remove('active');
+  }
+
+  function pick(options = {}){
+    if(running) return false;
+    running = true;
+
+    if(Array.isArray(options.prizes)){
+      setPrizes(options.prizes);
+    }
+
+    reset();
+    result.textContent = 'The mystery boxes are shuffling...';
+    boxes.forEach(box=>box.classList.add('shuffle'));
+
+    const forced = Number.isInteger(options.index) ? options.index : null;
+    const selected = forced !== null
+      ? Math.max(0,Math.min(4,forced))
+      : Math.floor(Math.random()*5);
+
+    setTimeout(()=>{
+      boxes.forEach((box,i)=>{
+        box.classList.remove('shuffle');
+        if(i === selected){
+          box.classList.add('winner');
+          box.querySelector('.gift').classList.add('open');
+        } else {
+          box.classList.add('dim');
+        }
+      });
+
+      confetti.classList.remove('active');
+      void confetti.offsetWidth;
+      confetti.classList.add('active');
+
+      result.innerHTML =
+        `🎁 <span class="pick">${prizes[selected]}</span>` +
+        `<span class="message">Mystery Box ${selected + 1} wins!</span>`;
+
+      flash.classList.remove('active');
+      void flash.offsetWidth;
+      flash.classList.add('active');
+
+      running = false;
+
+      window.parent?.postMessage?.({
+        type:'stimtake-daily-mystery-box-result',
+        index:selected,
+        prize:prizes[selected]
+      },'*');
+    },2200);
+
+    return true;
+  }
+
+  setPrizes(prizes);
+
+  window.StimTakeDailyMysteryBox = {
+    pick,
+    setPrizes
+  };
+
+  window.addEventListener('message',(event)=>{
+    const data = event.data || {};
+    if(data.type === 'stimtake-daily-mystery-box-pick'){
+      pick({
+        index:Number.isInteger(data.index) ? data.index : undefined,
+        prizes:Array.isArray(data.prizes) ? data.prizes : undefined
+      });
+    }
+  });
+
+  setTimeout(()=>pick(),800);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StimTake Halloween Tarot Draw</title>
+<style>
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  overflow:hidden;
+  background:transparent;
+  font-family:"Segoe UI",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+.scene{
+  position:relative;
+  width:100%;
+  height:100%;
+  display:grid;
+  place-items:center;
+  pointer-events:none;
+}
+.glow{
+  position:absolute;
+  width:780px;
+  height:780px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(180,76,255,.22),rgba(255,79,184,.08) 46%,transparent 72%);
+  filter:blur(18px);
+}
+.moon{
+  position:absolute;
+  top:5%;
+  right:8%;
+  width:115px;
+  height:115px;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#fff7df,#ffd98b 58%,#c98e3e);
+  box-shadow:0 0 30px rgba(255,217,139,.45);
+}
+.moon:after{
+  content:"";
+  position:absolute;
+  width:100px;
+  height:100px;
+  left:30px;
+  top:-10px;
+  border-radius:50%;
+  background:rgba(8,5,14,.97);
+}
+.bat{position:absolute;font-size:40px;filter:drop-shadow(0 0 5px rgba(180,76,255,.45))}
+.b1{top:12%;left:10%;transform:rotate(-12deg)}
+.b2{top:20%;right:20%;transform:scale(.8) rotate(10deg)}
+.web{position:absolute;font-size:110px;opacity:.18}
+.web1{top:-10px;left:-6px}
+.web2{bottom:-10px;right:-6px;transform:rotate(180deg)}
+
+.panel{
+  position:relative;
+  width:min(960px,92vw);
+  padding:28px 32px 36px;
+  border-radius:28px;
+  border:2px solid rgba(180,76,255,.72);
+  background:linear-gradient(180deg,rgba(27,13,43,.94),rgba(11,7,22,.95));
+  box-shadow:0 0 32px rgba(180,76,255,.55),0 0 64px rgba(255,79,184,.18);
+}
+.title{
+  text-align:center;
+  color:#fff2dd;
+  font-size:36px;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  text-shadow:0 0 14px rgba(180,76,255,.9);
+}
+.subtitle{
+  text-align:center;
+  color:#d6c3e1;
+  margin-top:6px;
+  font-size:15px;
+}
+.deck{
+  position:relative;
+  width:720px;
+  height:400px;
+  margin:28px auto 0;
+}
+.card{
+  position:absolute;
+  width:190px;
+  height:310px;
+  left:265px;
+  top:38px;
+  border-radius:18px;
+  border:3px solid rgba(220,190,255,.72);
+  background:
+    linear-gradient(145deg,rgba(44,20,64,.98),rgba(19,9,30,.98));
+  box-shadow:0 0 26px rgba(180,76,255,.48);
+  transform-origin:50% 120%;
+  transition:transform .7s ease,opacity .7s ease,box-shadow .4s ease;
+  overflow:hidden;
+}
+.card:before{
+  content:"✦";
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  color:#b985ff;
+  font-size:62px;
+  background:
+    radial-gradient(circle at 50% 50%,rgba(180,76,255,.12),transparent 55%),
+    repeating-linear-gradient(45deg,rgba(255,255,255,.025) 0 8px,transparent 8px 16px);
+}
+.card:nth-child(1){transform:rotate(-32deg) translateX(-190px)}
+.card:nth-child(2){transform:rotate(-22deg) translateX(-135px)}
+.card:nth-child(3){transform:rotate(-12deg) translateX(-72px)}
+.card:nth-child(4){transform:rotate(0deg)}
+.card:nth-child(5){transform:rotate(12deg) translateX(72px)}
+.card:nth-child(6){transform:rotate(22deg) translateX(135px)}
+.card:nth-child(7){transform:rotate(32deg) translateX(190px)}
+
+.card.shuffle{
+  animation:shuffle .28s ease-in-out infinite alternate;
+}
+.card.dim{
+  opacity:.15;
+  filter:saturate(.5);
+}
+.card.selected{
+  z-index:10;
+  opacity:1;
+  transform:translateY(-14px) scale(1.12) rotateY(180deg);
+  box-shadow:0 0 34px rgba(255,153,64,.7),0 0 60px rgba(180,76,255,.6);
+}
+.card-face{
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  padding:20px;
+  text-align:center;
+  backface-visibility:hidden;
+}
+.card-front{
+  transform:rotateY(180deg);
+  background:linear-gradient(180deg,#2d143f,#130a1f);
+}
+.symbol{
+  font-size:70px;
+  margin-bottom:10px;
+}
+.card-name{
+  color:#fff3df;
+  font-size:24px;
+  font-weight:900;
+  letter-spacing:.04em;
+}
+.card-message{
+  margin-top:10px;
+  color:#d6c3e1;
+  font-size:15px;
+  line-height:1.3;
+}
+.result{
+  min-height:70px;
+  margin-top:18px;
+  text-align:center;
+  color:#fff2dd;
+  font-size:28px;
+  font-weight:900;
+}
+.result .pick{
+  color:#ff9a3c;
+  text-shadow:0 0 12px rgba(255,154,60,.6);
+}
+.result .meaning{
+  display:block;
+  margin-top:8px;
+  color:#c78cff;
+  font-size:20px;
+}
+.flash{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:0;
+}
+.flash.active{animation:flash .9s ease-out}
+.footer{
+  text-align:center;
+  margin-top:10px;
+  color:#a99ab7;
+  font-size:12px;
+}
+@keyframes shuffle{
+  from{transform:translate(-5px,-3px) rotate(-2deg)}
+  to{transform:translate(5px,3px) rotate(2deg)}
+}
+@keyframes flash{
+  0%{opacity:0}
+  25%{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.35),transparent 48%)}
+  100%{opacity:0}
+}
+@media(max-height:760px){.panel{transform:scale(.82)}}
+</style>
+</head>
+<body>
+<div class="scene">
+  <div class="glow"></div>
+  <div class="moon"></div>
+  <div class="bat b1">🦇</div>
+  <div class="bat b2">🦇</div>
+  <div class="web web1">🕸️</div>
+  <div class="web web2">🕸️</div>
+
+  <section class="panel">
+    <div class="flash" id="flash"></div>
+
+    <div class="title">Midnight Tarot</div>
+    <div class="subtitle">One card. One spooky little message from fate.</div>
+
+    <div class="deck" id="deck"></div>
+
+    <div class="result" id="result">The deck is shuffling...</div>
+    <div class="footer">StimTake Studio • Halloween Tarot Placeholder</div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const deck = document.getElementById('deck');
+  const result = document.getElementById('result');
+  const flash = document.getElementById('flash');
+
+  let cards = [
+    {name:'The Moon',symbol:'🌙',meaning:'Trust the mystery tonight'},
+    {name:'The Witch',symbol:'🧙‍♀️',meaning:'Your magic is stronger than you think'},
+    {name:'The Pumpkin',symbol:'🎃',meaning:'A playful surprise is coming'},
+    {name:'The Bat',symbol:'🦇',meaning:'Something exciting is flying your way'},
+    {name:'The Black Cat',symbol:'🐈‍⬛',meaning:'Luck is stalking the room'},
+    {name:'The Crystal',symbol:'🔮',meaning:'A bold moment is about to reveal itself'},
+    {name:'The Flame',symbol:'🔥',meaning:'Turn up the energy'}
+  ];
+
+  let running = false;
+
+  function buildDeck(){
+    deck.innerHTML='';
+    cards.slice(0,7).forEach((card,index)=>{
+      const el=document.createElement('div');
+      el.className='card';
+      el.dataset.index=index;
+
+      const front=document.createElement('div');
+      front.className='card-face card-front';
+      front.innerHTML =
+        `<div>
+          <div class="symbol">${card.symbol}</div>
+          <div class="card-name">${card.name}</div>
+          <div class="card-message">${card.meaning}</div>
+        </div>`;
+
+      el.appendChild(front);
+      deck.appendChild(el);
+    });
+  }
+
+  function setCards(next){
+    if(!Array.isArray(next) || next.length < 1) return;
+    cards = next.slice(0,7).map((c,i)=>({
+      name:String(c.name || ('Card ' + (i+1))),
+      symbol:String(c.symbol || '✦'),
+      meaning:String(c.meaning || 'A mystery remains')
+    }));
+    buildDeck();
+  }
+
+  function draw(options = {}){
+    if(running) return false;
+    running=true;
+    result.textContent='The deck is shuffling...';
+
+    if(Array.isArray(options.cards)) setCards(options.cards);
+
+    let els=[...document.querySelectorAll('.card')];
+    els.forEach(el=>{
+      el.classList.remove('selected','dim');
+      el.classList.add('shuffle');
+    });
+
+    const forced = Number.isInteger(options.index) ? options.index : null;
+    const selected = forced !== null
+      ? Math.max(0,Math.min(cards.length-1,forced))
+      : Math.floor(Math.random()*cards.length);
+
+    setTimeout(()=>{
+      els=[...document.querySelectorAll('.card')];
+      els.forEach((el,i)=>{
+        el.classList.remove('shuffle');
+        if(i===selected){
+          el.classList.add('selected');
+        }else{
+          el.classList.add('dim');
+        }
+      });
+
+      const card=cards[selected];
+      result.innerHTML =
+        `🃏 <span class="pick">${card.name}</span>` +
+        `<span class="meaning">${card.meaning}</span>`;
+
+      flash.classList.remove('active');
+      void flash.offsetWidth;
+      flash.classList.add('active');
+
+      running=false;
+
+      window.parent?.postMessage?.({
+        type:'stimtake-tarot-result',
+        index:selected,
+        card
+      },'*');
+    },2200);
+
+    return true;
+  }
+
+  buildDeck();
+
+  window.StimTakeTarot = {
+    draw,
+    setCards
+  };
+
+  window.addEventListener('message',(event)=>{
+    const data=event.data||{};
+    if(data.type==='stimtake-tarot-draw'){
+      draw({
+        index:Number.isInteger(data.index)?data.index:undefined,
+        cards:Array.isArray(data.cards)?data.cards:undefined
+      });
+    }
+  });
+
+  setTimeout(()=>draw(),800);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StimTake Daily Pick a Gem</title>
+<style>
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:transparent;font-family:"Segoe UI",Arial,sans-serif}
+*{box-sizing:border-box}
+.scene{position:relative;width:100%;height:100%;display:grid;place-items:center;pointer-events:none}
+.glow{position:absolute;width:900px;height:780px;border-radius:50%;background:radial-gradient(circle,rgba(166,92,255,.24),rgba(255,105,180,.09) 48%,transparent 72%);filter:blur(18px)}
+.sparkle{position:absolute;font-size:30px;opacity:.65;animation:twinkle 1.5s ease-in-out infinite alternate}
+.s1{top:15%;left:14%}.s2{top:20%;right:15%;animation-delay:.4s}.s3{bottom:16%;left:18%;animation-delay:.8s}.s4{bottom:14%;right:18%;animation-delay:1.1s}
+.panel{position:relative;width:min(1000px,94vw);padding:30px 34px 36px;border-radius:28px;border:2px solid rgba(175,96,255,.72);background:linear-gradient(180deg,rgba(26,19,42,.95),rgba(11,9,20,.96));box-shadow:0 0 34px rgba(175,96,255,.5),0 0 70px rgba(255,105,180,.14)}
+.title{text-align:center;color:#fff5fb;font-size:38px;font-weight:1000;letter-spacing:.06em;text-transform:uppercase;text-shadow:0 0 15px rgba(175,96,255,.85)}
+.subtitle{text-align:center;color:#d8cce2;margin-top:6px;font-size:15px}
+.gems{display:flex;justify-content:center;align-items:center;gap:28px;min-height:360px;margin-top:25px}
+.gem-wrap{position:relative;width:150px;text-align:center;transition:transform .5s ease,opacity .4s ease,filter .4s ease}
+.gem{position:relative;width:130px;height:130px;margin:0 auto;display:grid;place-items:center;font-size:88px;filter:drop-shadow(0 12px 8px rgba(0,0,0,.35));transform-origin:center;transition:transform .45s ease,filter .45s ease}
+.gem:before{content:"";position:absolute;inset:4px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.18),transparent 62%);opacity:.5}
+.gem-wrap.shuffle .gem{animation:gemShuffle .24s ease-in-out infinite alternate}
+.gem-wrap.winner{transform:translateY(-24px) scale(1.13)}
+.gem-wrap.winner .gem{animation:winnerPulse .65s ease-in-out infinite alternate;filter:drop-shadow(0 0 18px rgba(255,255,255,.9)) drop-shadow(0 0 35px rgba(175,96,255,.85))}
+.gem-wrap.dim{opacity:.18;filter:saturate(.35)}
+.gem-name{margin-top:10px;color:#eee4f6;font-size:13px;font-weight:900;letter-spacing:.04em}
+.gem-wrap.winner .gem-name{color:#ffad61;text-shadow:0 0 10px rgba(255,157,60,.55)}
+.crown{position:absolute;top:-35px;left:50%;transform:translateX(-50%);font-size:34px;opacity:0}
+.gem-wrap.winner .crown{opacity:1}
+.aura{position:absolute;left:50%;top:50%;width:180px;height:180px;margin:-90px;border-radius:50%;border:4px solid rgba(255,255,255,.75);opacity:0}
+.gem-wrap.winner .aura{animation:aura 1s ease-out infinite}
+.result{min-height:82px;margin-top:10px;text-align:center;color:#fff5fb;font-size:28px;font-weight:900}
+.result .headline{color:#ff9d3c;text-shadow:0 0 12px rgba(255,157,60,.55)}
+.result .message{display:block;margin-top:8px;color:#c98cff;font-size:20px}
+.flash{position:absolute;inset:0;pointer-events:none;opacity:0}.flash.active{animation:flash .9s ease-out}
+.footer{text-align:center;margin-top:10px;color:#9f93aa;font-size:12px}
+@keyframes gemShuffle{from{transform:translateY(-7px) rotate(-5deg) scale(.96)}to{transform:translateY(7px) rotate(5deg) scale(1.04)}}
+@keyframes winnerPulse{from{transform:scale(1)}to{transform:scale(1.12)}}
+@keyframes aura{0%{opacity:.8;transform:scale(.45)}100%{opacity:0;transform:scale(1.25)}}
+@keyframes twinkle{from{opacity:.25;transform:scale(.8)}to{opacity:.85;transform:scale(1.2)}}
+@keyframes flash{0%{opacity:0}25%{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.34),transparent 48%)}100%{opacity:0}}
+@media(max-height:760px){.panel{transform:scale(.84)}}
+</style>
+</head>
+<body>
+<div class="scene">
+<div class="glow"></div>
+<div class="sparkle s1">✨</div><div class="sparkle s2">💖</div><div class="sparkle s3">⭐</div><div class="sparkle s4">✨</div>
+
+<section class="panel">
+<div class="flash" id="flash"></div>
+<div class="title">💎 Pick a Gem</div>
+<div class="subtitle">Five sparkling gems appear. One lights up and reveals your result.</div>
+
+<div class="gems">
+  <div class="gem-wrap" data-index="0"><div class="crown">👑</div><div class="aura"></div><div class="gem">💎</div><div class="gem-name">Diamond</div></div>
+  <div class="gem-wrap" data-index="1"><div class="crown">👑</div><div class="aura"></div><div class="gem">💜</div><div class="gem-name">Amethyst</div></div>
+  <div class="gem-wrap" data-index="2"><div class="crown">👑</div><div class="aura"></div><div class="gem">💖</div><div class="gem-name">Rose</div></div>
+  <div class="gem-wrap" data-index="3"><div class="crown">👑</div><div class="aura"></div><div class="gem">💚</div><div class="gem-name">Emerald</div></div>
+  <div class="gem-wrap" data-index="4"><div class="crown">👑</div><div class="aura"></div><div class="gem">💙</div><div class="gem-name">Sapphire</div></div>
+</div>
+
+<div class="result" id="result">The gems are gathering their sparkle...</div>
+<div class="footer">StimTake Studio • Daily Pack • Pick a Gem</div>
+</section>
+</div>
+
+<script>
+(()=>{
+const wraps=[...document.querySelectorAll('.gem-wrap')];
+const result=document.getElementById('result');
+const flash=document.getElementById('flash');
+
+let gems=[
+ {icon:'💎',name:'Diamond',result:'Jackpot Choice',message:'The brightest gem wins the round!'},
+ {icon:'💜',name:'Amethyst',result:'Mystery Pick',message:'A mysterious surprise is revealed!'},
+ {icon:'💖',name:'Rose',result:'Sweet Bonus',message:'A sweet little bonus appears!'},
+ {icon:'💚',name:'Emerald',result:'Lucky Choice',message:'Luck is shining on this pick!'},
+ {icon:'💙',name:'Sapphire',result:'Model Choice',message:'The model chooses the result!'}
+];
+
+let running=false;
+
+function setGems(next){
+ if(!Array.isArray(next)||!next.length)return;
+ gems=next.slice(0,5).map((g,i)=>({
+   icon:String(g.icon||'💎'),
+   name:String(g.name||('Gem '+(i+1))),
+   result:String(g.result||'Surprise'),
+   message:String(g.message||'A surprise is revealed!')
+ }));
+ while(gems.length<5){
+   gems.push({icon:'💎',name:'Gem '+(gems.length+1),result:'Surprise',message:'A surprise is revealed!'});
+ }
+ wraps.forEach((w,i)=>{
+   w.querySelector('.gem').textContent=gems[i].icon;
+   w.querySelector('.gem-name').textContent=gems[i].name;
+ });
+}
+
+function reset(){
+ wraps.forEach(w=>w.classList.remove('shuffle','winner','dim'));
+}
+
+function pick(options={}){
+ if(running)return false;
+ running=true;
+ if(Array.isArray(options.gems))setGems(options.gems);
+
+ reset();
+ result.textContent='The gems are sparkling...';
+ wraps.forEach(w=>w.classList.add('shuffle'));
+
+ const forced=Number.isInteger(options.index)?Math.max(0,Math.min(4,options.index)):null;
+ const selected=forced!==null?forced:Math.floor(Math.random()*5);
+
+ setTimeout(()=>{
+   wraps.forEach((w,i)=>{
+     w.classList.remove('shuffle');
+     if(i===selected)w.classList.add('winner');
+     else w.classList.add('dim');
+   });
+
+   const gem=gems[selected];
+   result.innerHTML=`${gem.icon} <span class="headline">${gem.result}</span><span class="message">${gem.name} Gem — ${gem.message}</span>`;
+
+   flash.classList.remove('active');
+   void flash.offsetWidth;
+   flash.classList.add('active');
+
+   running=false;
+   window.parent?.postMessage?.({
+     type:'stimtake-daily-pick-a-gem-result',
+     index:selected,
+     gem
+   },'*');
+ },2300);
+
+ return true;
+}
+
+setGems(gems);
+window.StimTakeDailyPickAGem={pick,setGems};
+
+window.addEventListener('message',event=>{
+ const d=event.data||{};
+ if(d.type==='stimtake-daily-pick-a-gem'){
+   pick({
+     index:Number.isInteger(d.index)?d.index:undefined,
+     gems:Array.isArray(d.gems)?d.gems:undefined
+   });
+ }
+});
+
+setTimeout(()=>pick(),800);
+})();
+</script>
+</body>
+</html>

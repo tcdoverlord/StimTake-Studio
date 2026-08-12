@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StimTake Daily Lucky Slots</title>
+<style>
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  overflow:hidden;
+  background:transparent;
+  font-family:"Segoe UI",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+.scene{
+  position:relative;
+  width:100%;
+  height:100%;
+  display:grid;
+  place-items:center;
+  pointer-events:none;
+}
+.glow{
+  position:absolute;
+  width:860px;
+  height:780px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(170,92,255,.22),rgba(255,105,180,.08) 48%,transparent 72%);
+  filter:blur(18px);
+}
+.sparkle{
+  position:absolute;
+  font-size:30px;
+  opacity:.6;
+  filter:drop-shadow(0 0 8px rgba(255,255,255,.2));
+}
+.s1{top:14%;left:14%}
+.s2{top:21%;right:16%}
+.s3{bottom:16%;left:18%}
+.s4{bottom:14%;right:19%}
+
+.panel{
+  position:relative;
+  width:min(940px,92vw);
+  padding:30px 34px 36px;
+  border-radius:28px;
+  border:2px solid rgba(175,96,255,.70);
+  background:linear-gradient(180deg,rgba(26,19,42,.94),rgba(11,9,20,.95));
+  box-shadow:0 0 32px rgba(175,96,255,.48),0 0 64px rgba(255,105,180,.14);
+}
+.title{
+  text-align:center;
+  color:#fff5fb;
+  font-size:36px;
+  font-weight:900;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  text-shadow:0 0 14px rgba(175,96,255,.8);
+}
+.subtitle{
+  text-align:center;
+  color:#d8cce2;
+  margin-top:6px;
+  font-size:15px;
+}
+
+.machine{
+  position:relative;
+  width:720px;
+  margin:30px auto 0;
+  padding:28px;
+  border-radius:26px;
+  background:linear-gradient(145deg,#2a203c,#15101e);
+  border:4px solid #8f5cff;
+  box-shadow:0 0 30px rgba(143,92,255,.42),inset 0 0 30px rgba(255,255,255,.03);
+}
+.machine:before{
+  content:"LUCKY LIVE";
+  position:absolute;
+  top:-19px;
+  left:50%;
+  transform:translateX(-50%);
+  padding:7px 20px;
+  border-radius:999px;
+  background:#1a1424;
+  border:2px solid rgba(255,157,60,.72);
+  color:#ffb066;
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:.14em;
+  box-shadow:0 0 16px rgba(255,157,60,.28);
+}
+.reels{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:20px;
+}
+.reel{
+  position:relative;
+  height:230px;
+  border-radius:18px;
+  background:linear-gradient(180deg,#111019,#22182f 45%,#111019);
+  border:3px solid rgba(255,255,255,.12);
+  box-shadow:inset 0 0 30px rgba(0,0,0,.52),0 0 15px rgba(143,92,255,.18);
+  overflow:hidden;
+  display:grid;
+  place-items:center;
+}
+.symbol{
+  font-size:96px;
+  filter:drop-shadow(0 6px 5px rgba(0,0,0,.4));
+}
+.reel.spinning .symbol{
+  animation:spinFlick .11s linear infinite;
+}
+.reel.win{
+  border-color:#ff9d3c;
+  box-shadow:0 0 28px rgba(255,157,60,.65),inset 0 0 20px rgba(255,157,60,.08);
+}
+
+.bonus-strip{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:8px;
+  margin-top:20px;
+}
+.bonus{
+  padding:8px 6px;
+  border-radius:10px;
+  background:rgba(255,255,255,.035);
+  border:1px solid rgba(255,255,255,.06);
+  color:#9f93aa;
+  font-size:11px;
+  font-weight:800;
+  text-align:center;
+}
+.bonus.active{
+  color:#fff5fb;
+  background:rgba(255,157,60,.15);
+  border-color:rgba(255,157,60,.55);
+  box-shadow:0 0 12px rgba(255,157,60,.26);
+}
+
+.result{
+  min-height:82px;
+  margin-top:22px;
+  text-align:center;
+  color:#fff5fb;
+  font-size:28px;
+  font-weight:900;
+}
+.result .headline{
+  color:#ff9d3c;
+  text-shadow:0 0 12px rgba(255,157,60,.55);
+}
+.result .message{
+  display:block;
+  margin-top:8px;
+  color:#c98cff;
+  font-size:20px;
+}
+
+.flash{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:0;
+}
+.flash.active{animation:flash .9s ease-out}
+
+.footer{
+  text-align:center;
+  margin-top:10px;
+  color:#9f93aa;
+  font-size:12px;
+}
+@keyframes spinFlick{
+  0%{transform:translateY(-10px) scale(.96)}
+  50%{transform:translateY(10px) scale(1.04)}
+  100%{transform:translateY(-10px) scale(.96)}
+}
+@keyframes flash{
+  0%{opacity:0}
+  25%{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.32),transparent 48%)}
+  100%{opacity:0}
+}
+@media(max-height:760px){.panel{transform:scale(.84)}}
+</style>
+</head>
+<body>
+<div class="scene">
+  <div class="glow"></div>
+  <div class="sparkle s1">✨</div>
+  <div class="sparkle s2">💖</div>
+  <div class="sparkle s3">⭐</div>
+  <div class="sparkle s4">✨</div>
+
+  <section class="panel">
+    <div class="flash" id="flash"></div>
+
+    <div class="title">Lucky Slots</div>
+    <div class="subtitle">Three bright reels spin for a matching-symbol bonus.</div>
+
+    <div class="machine">
+      <div class="reels">
+        <div class="reel" id="reel1"><div class="symbol" id="symbol1">💖</div></div>
+        <div class="reel" id="reel2"><div class="symbol" id="symbol2">⭐</div></div>
+        <div class="reel" id="reel3"><div class="symbol" id="symbol3">🎁</div></div>
+      </div>
+
+      <div class="bonus-strip">
+        <div class="bonus" id="bonus0">TRIPLE JACKPOT</div>
+        <div class="bonus" id="bonus1">LUCKY PAIR</div>
+        <div class="bonus" id="bonus2">HEART BONUS</div>
+        <div class="bonus" id="bonus3">STAR BONUS</div>
+        <div class="bonus" id="bonus4">MYSTERY MIX</div>
+      </div>
+    </div>
+
+    <div class="result" id="result">The reels are getting ready...</div>
+    <div class="footer">StimTake Studio • Daily Pack • Lucky Slots</div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const reelEls = [
+    document.getElementById('reel1'),
+    document.getElementById('reel2'),
+    document.getElementById('reel3')
+  ];
+
+  const symbolEls = [
+    document.getElementById('symbol1'),
+    document.getElementById('symbol2'),
+    document.getElementById('symbol3')
+  ];
+
+  const bonuses = [
+    document.getElementById('bonus0'),
+    document.getElementById('bonus1'),
+    document.getElementById('bonus2'),
+    document.getElementById('bonus3'),
+    document.getElementById('bonus4')
+  ];
+
+  const result = document.getElementById('result');
+  const flash = document.getElementById('flash');
+
+  let symbols = ['💖','⭐','🎁','💎','✨','🍒'];
+
+  let running = false;
+
+  function setSymbols(next){
+    if(!Array.isArray(next) || next.length < 3) return;
+    symbols = next.slice(0,10);
+  }
+
+  function clearBonuses(){
+    bonuses.forEach(b=>b.classList.remove('active'));
+    reelEls.forEach(r=>r.classList.remove('win'));
+  }
+
+  function evaluate(final){
+    const counts = {};
+    final.forEach(s => counts[s] = (counts[s] || 0) + 1);
+
+    const triple = final[0] === final[1] && final[1] === final[2];
+    const pair = Object.values(counts).some(v => v === 2);
+    const hearts = counts['💖'] || 0;
+    const stars = counts['⭐'] || 0;
+
+    if(triple){
+      return {
+        index:0,
+        headline:'TRIPLE JACKPOT',
+        message:'Three matching symbols — big lucky win!',
+        highlight:[0,1,2]
+      };
+    }
+
+    if(pair){
+      const matched = Object.keys(counts).find(k => counts[k] === 2);
+      const highlight = final.map((s,i)=>s===matched?i:-1).filter(i=>i>=0);
+      return {
+        index:1,
+        headline:'LUCKY PAIR',
+        message:'A matching pair brings a bonus!',
+        highlight
+      };
+    }
+
+    if(hearts >= 1){
+      return {
+        index:2,
+        headline:'HEART BONUS',
+        message:'A sweet little bonus appears!',
+        highlight:final.map((s,i)=>s==='💖'?i:-1).filter(i=>i>=0)
+      };
+    }
+
+    if(stars >= 1){
+      return {
+        index:3,
+        headline:'STAR BONUS',
+        message:'A lucky star lights up the result!',
+        highlight:final.map((s,i)=>s==='⭐'?i:-1).filter(i=>i>=0)
+      };
+    }
+
+    return {
+      index:4,
+      headline:'MYSTERY MIX',
+      message:'A surprise combination lands!',
+      highlight:[]
+    };
+  }
+
+  function spin(options = {}){
+    if(running) return false;
+    running = true;
+
+    if(Array.isArray(options.symbols)) setSymbols(options.symbols);
+
+    clearBonuses();
+    result.textContent = 'The reels are spinning...';
+    reelEls.forEach(r=>r.classList.add('spinning'));
+
+    const forced = Array.isArray(options.result) && options.result.length === 3
+      ? options.result
+      : null;
+
+    let tick = 0;
+
+    const ticker = setInterval(() => {
+      symbolEls.forEach(el => {
+        el.textContent = symbols[Math.floor(Math.random()*symbols.length)];
+      });
+
+      tick++;
+
+      if(tick > 20){
+        clearInterval(ticker);
+
+        const final = forced || [
+          symbols[Math.floor(Math.random()*symbols.length)],
+          symbols[Math.floor(Math.random()*symbols.length)],
+          symbols[Math.floor(Math.random()*symbols.length)]
+        ];
+
+        reelEls.forEach(r=>r.classList.remove('spinning'));
+        symbolEls.forEach((el,i)=>el.textContent = final[i]);
+
+        const outcome = evaluate(final);
+
+        bonuses[outcome.index].classList.add('active');
+        outcome.highlight.forEach(i=>reelEls[i].classList.add('win'));
+
+        result.innerHTML =
+          `${final.join('  ')}<br>` +
+          `<span class="headline">${outcome.headline}</span>` +
+          `<span class="message">${outcome.message}</span>`;
+
+        flash.classList.remove('active');
+        void flash.offsetWidth;
+        flash.classList.add('active');
+
+        running = false;
+
+        window.parent?.postMessage?.({
+          type:'stimtake-daily-lucky-slots-result',
+          reels:final,
+          outcome
+        },'*');
+      }
+    },110);
+
+    return true;
+  }
+
+  window.StimTakeDailyLuckySlots = {
+    spin,
+    setSymbols
+  };
+
+  window.addEventListener('message',(event)=>{
+    const data = event.data || {};
+    if(data.type === 'stimtake-daily-lucky-slots-spin'){
+      spin({
+        symbols:Array.isArray(data.symbols) ? data.symbols : undefined,
+        result:Array.isArray(data.result) ? data.result : undefined
+      });
+    }
+  });
+
+  setTimeout(()=>spin(),800);
+})();
+</script>
+</body>
+</html>

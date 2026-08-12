@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StimTake Daily Lucky Strike</title>
+<style>
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:transparent;font-family:"Segoe UI",Arial,sans-serif}
+*{box-sizing:border-box}
+.scene{position:relative;width:100%;height:100%;display:grid;place-items:center;pointer-events:none}
+.glow{position:absolute;width:900px;height:800px;border-radius:50%;background:radial-gradient(circle,rgba(170,92,255,.22),rgba(255,105,180,.09) 48%,transparent 72%);filter:blur(18px)}
+.sparkle{position:absolute;font-size:30px;opacity:.6;filter:drop-shadow(0 0 8px rgba(255,255,255,.2))}
+.s1{top:14%;left:14%}.s2{top:21%;right:16%}.s3{bottom:16%;left:18%}.s4{bottom:14%;right:19%}
+.panel{position:relative;width:min(1020px,95vw);padding:28px 34px 34px;border-radius:28px;border:2px solid rgba(175,96,255,.70);background:linear-gradient(180deg,rgba(26,19,42,.94),rgba(11,9,20,.95));box-shadow:0 0 32px rgba(175,96,255,.48),0 0 64px rgba(255,105,180,.14)}
+.title{text-align:center;color:#fff5fb;font-size:38px;font-weight:1000;letter-spacing:.06em;text-transform:uppercase;text-shadow:0 0 14px rgba(175,96,255,.8)}
+.subtitle{text-align:center;color:#d8cce2;margin-top:6px;font-size:15px}
+.lane-wrap{position:relative;width:900px;height:500px;margin:18px auto 0}
+.lane{position:absolute;left:105px;right:105px;top:35px;bottom:30px;border-radius:24px 24px 70px 70px;background:linear-gradient(180deg,#d7a15a 0%,#b87536 100%);box-shadow:inset 0 0 35px rgba(75,38,10,.28),0 0 25px rgba(0,0,0,.25);overflow:hidden;border:5px solid #7b4c27}
+.lane:before{content:"";position:absolute;left:50%;top:0;bottom:0;width:4px;background:rgba(255,255,255,.15);transform:translateX(-50%)}
+.gutter{position:absolute;top:35px;bottom:30px;width:65px;border-radius:26px;background:linear-gradient(180deg,#241a31,#120e1b);box-shadow:inset 0 0 18px rgba(0,0,0,.5)}
+.g1{left:40px}.g2{right:40px}
+.ball{position:absolute;left:50%;bottom:55px;width:86px;height:86px;margin-left:-43px;border-radius:50%;background:radial-gradient(circle at 30% 25%,#d9c6ff,#8f5cff 42%,#41216d 100%);box-shadow:0 8px 12px rgba(0,0,0,.35),0 0 18px rgba(143,92,255,.35);z-index:8}
+.ball:before,.ball:after{content:"";position:absolute;width:12px;height:12px;border-radius:50%;background:#241733;top:20px}
+.ball:before{left:23px}.ball:after{left:42px}
+.ball .hole{position:absolute;width:12px;height:12px;border-radius:50%;background:#241733;top:37px;left:31px}
+.ball.roll{animation:roll 2.2s cubic-bezier(.18,.7,.18,1) forwards}
+.pins{position:absolute;left:50%;top:78px;width:280px;height:175px;margin-left:-140px}
+.pin{position:absolute;width:38px;height:92px;border-radius:50% 50% 40% 40% / 18% 18% 82% 82%;background:linear-gradient(90deg,#f9f9ff,#ded9ea);border:2px solid rgba(255,255,255,.55);box-shadow:0 6px 8px rgba(0,0,0,.2);transform-origin:50% 100%;transition:transform .5s ease,opacity .45s ease}
+.pin:before{content:"";position:absolute;left:3px;right:3px;top:22px;height:10px;background:#ff5c7d;box-shadow:0 13px 0 #ff5c7d}
+.p1{left:121px;top:0}
+.p2{left:88px;top:35px}.p3{left:154px;top:35px}
+.p4{left:55px;top:72px}.p5{left:121px;top:72px}.p6{left:187px;top:72px}
+.p7{left:22px;top:108px}.p8{left:88px;top:108px}.p9{left:154px;top:108px}.p10{left:220px;top:108px}
+.pin.down{transform:rotate(var(--r,65deg)) translateY(14px);opacity:.3}
+.impact{position:absolute;left:50%;top:135px;width:220px;height:130px;margin-left:-110px;border-radius:50%;border:5px solid rgba(255,255,255,.8);opacity:0;z-index:6}
+.impact.show{animation:impact .8s ease-out forwards}
+.scorecard{position:absolute;right:12px;top:105px;width:220px;padding:16px 18px;border-radius:20px;background:rgba(19,14,29,.85);border:1px solid rgba(175,96,255,.35);text-align:center}
+.score-big{font-size:56px;font-weight:1000;color:#ff9d3c;text-shadow:0 0 16px rgba(255,157,60,.55)}
+.score-label{margin-top:2px;color:#fff5fb;font-size:19px;font-weight:900}
+.result{min-height:80px;text-align:center;color:#fff5fb;font-size:28px;font-weight:900}
+.result .headline{color:#ff9d3c;text-shadow:0 0 12px rgba(255,157,60,.55)}
+.result .message{display:block;margin-top:8px;color:#c98cff;font-size:20px}
+.flash{position:absolute;inset:0;pointer-events:none;opacity:0}.flash.active{animation:flash .9s ease-out}
+.footer{text-align:center;margin-top:8px;color:#9f93aa;font-size:12px}
+@keyframes roll{
+  0%{transform:translateY(0) rotate(0deg)}
+  35%{transform:translateY(-120px) rotate(280deg)}
+  70%{transform:translateY(-250px) rotate(620deg)}
+  100%{transform:translateY(-355px) rotate(980deg)}
+}
+@keyframes impact{0%{opacity:0;transform:scale(.3)}35%{opacity:1}100%{opacity:0;transform:scale(1.55)}}
+@keyframes flash{0%{opacity:0}25%{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.34),transparent 48%)}100%{opacity:0}}
+@media(max-height:760px){.panel{transform:scale(.83)}}
+</style>
+</head>
+<body>
+<div class="scene">
+<div class="glow"></div>
+<div class="sparkle s1">✨</div><div class="sparkle s2">💖</div><div class="sparkle s3">⭐</div><div class="sparkle s4">✨</div>
+<section class="panel">
+<div class="flash" id="flash"></div>
+<div class="title">🎳 Lucky Strike</div>
+<div class="subtitle">The ball rolls. The pins decide your lucky result.</div>
+
+<div class="lane-wrap">
+  <div class="gutter g1"></div><div class="gutter g2"></div>
+  <div class="lane"></div>
+
+  <div class="pins" id="pins">
+    <div class="pin p1"></div><div class="pin p2"></div><div class="pin p3"></div>
+    <div class="pin p4"></div><div class="pin p5"></div><div class="pin p6"></div>
+    <div class="pin p7"></div><div class="pin p8"></div><div class="pin p9"></div><div class="pin p10"></div>
+  </div>
+
+  <div class="impact" id="impact"></div>
+
+  <div class="ball" id="ball"><div class="hole"></div></div>
+
+  <div class="scorecard">
+    <div class="score-big" id="scoreBig">10</div>
+    <div class="score-label" id="scoreLabel">STRIKE!</div>
+  </div>
+</div>
+
+<div class="result" id="result">The ball is lined up...</div>
+<div class="footer">StimTake Studio • Daily Pack • Lucky Strike</div>
+</section>
+</div>
+
+<script>
+(()=>{
+const ball=document.getElementById('ball');
+const pins=[...document.querySelectorAll('.pin')];
+const impact=document.getElementById('impact');
+const scoreBig=document.getElementById('scoreBig');
+const scoreLabel=document.getElementById('scoreLabel');
+const result=document.getElementById('result');
+const flash=document.getElementById('flash');
+
+let running=false;
+let outcomes=[
+ {pins:10,label:'STRIKE!',message:"Model's Jackpot Choice"},
+ {pins:9,label:'SO CLOSE!',message:'Viewer Picks a Flirty Challenge'},
+ {pins:8,label:'GREAT ROLL!',message:'Remove One Clothing Item'},
+ {pins:7,label:'LUCKY SEVEN!',message:'30-Second Slow Dance'},
+ {pins:6,label:'SOLID HIT!',message:'Blow a Kiss'}
+];
+
+function reset(){
+ ball.classList.remove('roll');
+ ball.style.transform='';
+ pins.forEach(p=>{p.classList.remove('down');p.style.setProperty('--r','65deg')});
+ impact.classList.remove('show');
+}
+
+function play(options={}){
+ if(running)return false;
+ running=true;
+ reset();
+
+ const forced=Number.isInteger(options.index)?Math.max(0,Math.min(outcomes.length-1,options.index)):null;
+ const selected=forced!==null?forced:Math.floor(Math.random()*outcomes.length);
+ const outcome=outcomes[selected];
+
+ result.textContent='The ball is rolling...';
+ scoreBig.textContent='...';
+ scoreLabel.textContent='ROLLING';
+
+ void ball.offsetWidth;
+ ball.classList.add('roll');
+
+ setTimeout(()=>{
+   impact.classList.remove('show');void impact.offsetWidth;impact.classList.add('show');
+
+   const order=[0,1,2,3,4,5,6,7,8,9].sort(()=>Math.random()-.5);
+   order.slice(0,outcome.pins).forEach((idx,i)=>{
+     setTimeout(()=>{
+       pins[idx].style.setProperty('--r', (Math.random()>.5?1:-1)*(45+Math.floor(Math.random()*40))+'deg');
+       pins[idx].classList.add('down');
+     },i*55);
+   });
+
+   setTimeout(()=>{
+     scoreBig.textContent=outcome.pins;
+     scoreLabel.textContent=outcome.label;
+     result.innerHTML=`🎳 <span class="headline">${outcome.label} — ${outcome.pins} PINS</span><span class="message">${outcome.message}</span>`;
+
+     flash.classList.remove('active');void flash.offsetWidth;flash.classList.add('active');
+     running=false;
+     window.parent?.postMessage?.({
+       type:'stimtake-daily-lucky-strike-result',
+       index:selected,
+       pins:outcome.pins,
+       label:outcome.label
+     },'*');
+   },900);
+ },2250);
+
+ return true;
+}
+
+window.StimTakeDailyLuckyStrike={play};
+
+window.addEventListener('message',e=>{
+ const d=e.data||{};
+ if(d.type==='stimtake-daily-lucky-strike'){
+   play({index:Number.isInteger(d.index)?d.index:undefined});
+ }
+});
+
+setTimeout(()=>play(),800);
+})();
+</script>
+</body>
+</html>

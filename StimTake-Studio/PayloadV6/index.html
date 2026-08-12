@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StimTake Live Overlay</title>
+<style>
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:transparent;font-family:"Segoe UI",Arial,sans-serif;color:#fff}*{box-sizing:border-box}#stimtake-root{position:fixed;inset:0;pointer-events:none}#supporter-card{position:absolute;top:34px;left:34px;width:360px;padding:20px 22px;background:rgba(10,15,24,.9);border:1px solid rgba(171,103,255,.6);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.35)}.title{font-size:20px;font-weight:800;letter-spacing:.04em;color:#c49aff;margin-bottom:14px}#vip{padding:10px 12px;margin-bottom:14px;background:rgba(126,58,235,.18);border:1px solid rgba(171,103,255,.4);border-radius:10px}.vip-label{font-size:11px;color:#aeb6c4;text-transform:uppercase;letter-spacing:.08em}#vip-name{font-size:18px;font-weight:800;margin-top:3px}#vip-total{color:#c49aff;font-size:14px;margin-top:2px}#top-list{display:grid;gap:8px}.tipper{display:grid;grid-template-columns:30px 1fr auto;align-items:center;gap:8px;padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.06)}.rank{color:#9ca3af;font-size:12px}.name{font-size:15px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.total{color:#b985ff;font-weight:800;font-size:14px}#last-tipper{position:absolute;left:34px;bottom:34px;min-width:320px;padding:14px 18px;background:rgba(10,15,24,.9);border:1px solid rgba(171,103,255,.45);border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.3)}#last-tipper .label{color:#9ca3af;font-size:10px;text-transform:uppercase;letter-spacing:.08em}#last-tipper-value{font-size:18px;font-weight:800;margin-top:4px}#action-layer{position:absolute;inset:0;display:grid;place-items:center;overflow:hidden}#action-frame{width:100%;height:100%;border:0;background:transparent;display:none}.empty{color:#7f8896;font-size:13px;padding:8px}
+</style>
+</head>
+<body>
+<div id="stimtake-root">
+  <section id="supporter-card">
+    <div class="title">TOP TIPPERS — THIS SESSION</div>
+    <div id="vip"><div class="vip-label">VIP</div><div id="vip-name">Waiting for first tip…</div><div id="vip-total"></div></div>
+    <div id="top-list"><div class="empty">Waiting for real tips…</div></div>
+  </section>
+  <section id="last-tipper"><div class="label">Last Tipper</div><div id="last-tipper-value">Waiting…</div></section>
+  <div id="action-layer"><iframe id="action-frame" sandbox="allow-scripts" allow="autoplay"></iframe></div>
+</div>
+<script src="scripts/overlay.js"></script>
+</body>
+</html>

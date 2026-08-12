@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StimTake Halloween Spider Drop</title>
+<style>
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  overflow:hidden;
+  background:transparent;
+  font-family:"Segoe UI",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+.scene{
+  position:relative;
+  width:100%;
+  height:100%;
+  display:grid;
+  place-items:center;
+  pointer-events:none;
+}
+.glow{
+  position:absolute;
+  width:820px;
+  height:820px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(180,76,255,.22),rgba(255,79,184,.08) 46%,transparent 72%);
+  filter:blur(18px);
+}
+.moon{
+  position:absolute;
+  top:5%;
+  right:8%;
+  width:115px;
+  height:115px;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#fff7df,#ffd98b 58%,#c98e3e);
+  box-shadow:0 0 30px rgba(255,217,139,.45);
+}
+.moon:after{
+  content:"";
+  position:absolute;
+  width:100px;
+  height:100px;
+  left:30px;
+  top:-10px;
+  border-radius:50%;
+  background:rgba(8,5,14,.97);
+}
+.bat{position:absolute;font-size:38px;filter:drop-shadow(0 0 5px rgba(180,76,255,.45))}
+.b1{top:12%;left:10%;transform:rotate(-10deg)}
+.b2{top:20%;right:20%;transform:scale(.8) rotate(11deg)}
+.web-corner{position:absolute;font-size:110px;opacity:.18}
+.w1{top:-10px;left:-6px}
+.w2{bottom:-10px;right:-6px;transform:rotate(180deg)}
+
+.panel{
+  position:relative;
+  width:min(980px,94vw);
+  padding:28px 32px 34px;
+  border-radius:28px;
+  border:2px solid rgba(180,76,255,.72);
+  background:linear-gradient(180deg,rgba(27,13,43,.94),rgba(11,7,22,.95));
+  box-shadow:0 0 32px rgba(180,76,255,.55),0 0 64px rgba(255,79,184,.18);
+}
+.title{
+  text-align:center;
+  color:#fff2dd;
+  font-size:36px;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  text-shadow:0 0 14px rgba(180,76,255,.9);
+}
+.subtitle{
+  text-align:center;
+  color:#d6c3e1;
+  margin-top:6px;
+  font-size:15px;
+}
+.race{
+  position:relative;
+  width:820px;
+  height:500px;
+  margin:26px auto 0;
+  border-radius:20px;
+  overflow:hidden;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.025),rgba(255,255,255,.01)),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 163px,
+      rgba(255,255,255,.045) 163px 164px
+    );
+  border:1px solid rgba(255,255,255,.07);
+}
+.finish{
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:36px;
+  height:8px;
+  background:repeating-linear-gradient(
+    90deg,
+    #ff9a3c 0 18px,
+    #20122d 18px 36px
+  );
+  box-shadow:0 0 15px rgba(255,154,60,.55);
+}
+.finish-label{
+  position:absolute;
+  right:16px;
+  bottom:51px;
+  color:#ffb06a;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.12em;
+}
+.lane{
+  position:absolute;
+  top:0;
+  bottom:0;
+  width:164px;
+}
+.lane:nth-child(1){left:0}
+.lane:nth-child(2){left:164px}
+.lane:nth-child(3){left:328px}
+.lane:nth-child(4){left:492px}
+.lane:nth-child(5){left:656px}
+
+.web-line{
+  position:absolute;
+  top:0;
+  left:50%;
+  width:2px;
+  height:100%;
+  margin-left:-1px;
+  background:linear-gradient(
+    180deg,
+    rgba(255,255,255,.55),
+    rgba(255,255,255,.15)
+  );
+  box-shadow:0 0 8px rgba(255,255,255,.12);
+}
+.spider-wrap{
+  position:absolute;
+  top:12px;
+  left:50%;
+  width:120px;
+  margin-left:-60px;
+  text-align:center;
+  transition:transform 3.6s cubic-bezier(.18,.75,.18,1);
+}
+.spider{
+  font-size:64px;
+  filter:drop-shadow(0 5px 4px rgba(0,0,0,.4));
+}
+.name{
+  margin-top:-2px;
+  color:#fff2dd;
+  font-size:13px;
+  font-weight:800;
+  text-shadow:0 2px 4px rgba(0,0,0,.8);
+}
+.spider-wrap.racing .spider{
+  animation:wiggle .18s ease-in-out infinite alternate;
+}
+.spider-wrap.winner .spider{
+  animation:winnerBounce .45s ease-in-out infinite alternate;
+  filter:drop-shadow(0 0 14px rgba(255,154,60,.8));
+}
+.spider-wrap.winner .name{
+  color:#ffad61;
+  text-shadow:0 0 10px rgba(255,154,60,.5);
+}
+.crown{
+  position:absolute;
+  top:-20px;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:30px;
+  opacity:0;
+}
+.spider-wrap.winner .crown{opacity:1}
+
+.result{
+  min-height:66px;
+  margin-top:18px;
+  text-align:center;
+  color:#fff2dd;
+  font-size:28px;
+  font-weight:900;
+}
+.result .winner-name{
+  color:#ff9a3c;
+  text-shadow:0 0 12px rgba(255,154,60,.6);
+}
+.result .message{
+  display:block;
+  margin-top:8px;
+  color:#c78cff;
+  font-size:20px;
+}
+.flash{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:0;
+}
+.flash.active{animation:flash .9s ease-out}
+.footer{
+  text-align:center;
+  margin-top:10px;
+  color:#a99ab7;
+  font-size:12px;
+}
+@keyframes wiggle{
+  from{transform:rotate(-6deg)}
+  to{transform:rotate(6deg)}
+}
+@keyframes winnerBounce{
+  from{transform:translateY(0) scale(1)}
+  to{transform:translateY(-8px) scale(1.08)}
+}
+@keyframes flash{
+  0%{opacity:0}
+  25%{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.35),transparent 48%)}
+  100%{opacity:0}
+}
+@media(max-height:760px){.panel{transform:scale(.82)}}
+</style>
+</head>
+<body>
+<div class="scene">
+  <div class="glow"></div>
+  <div class="moon"></div>
+  <div class="bat b1">🦇</div>
+  <div class="bat b2">🦇</div>
+  <div class="web-corner w1">🕸️</div>
+  <div class="web-corner w2">🕸️</div>
+
+  <section class="panel">
+    <div class="flash" id="flash"></div>
+
+    <div class="title">Spider Drop</div>
+    <div class="subtitle">Five spooky racers. One wins the web.</div>
+
+    <div class="race" id="race">
+      <div class="finish"></div>
+      <div class="finish-label">FINISH</div>
+
+      <div class="lane">
+        <div class="web-line"></div>
+        <div class="spider-wrap" data-index="0">
+          <div class="crown">👑</div>
+          <div class="spider">🕷️</div>
+          <div class="name">Velvet</div>
+        </div>
+      </div>
+
+      <div class="lane">
+        <div class="web-line"></div>
+        <div class="spider-wrap" data-index="1">
+          <div class="crown">👑</div>
+          <div class="spider">🕷️</div>
+          <div class="name">Luna</div>
+        </div>
+      </div>
+
+      <div class="lane">
+        <div class="web-line"></div>
+        <div class="spider-wrap" data-index="2">
+          <div class="crown">👑</div>
+          <div class="spider">🕷️</div>
+          <div class="name">Hexie</div>
+        </div>
+      </div>
+
+      <div class="lane">
+        <div class="web-line"></div>
+        <div class="spider-wrap" data-index="3">
+          <div class="crown">👑</div>
+          <div class="spider">🕷️</div>
+          <div class="name">Raven</div>
+        </div>
+      </div>
+
+      <div class="lane">
+        <div class="web-line"></div>
+        <div class="spider-wrap" data-index="4">
+          <div class="crown">👑</div>
+          <div class="spider">🕷️</div>
+          <div class="name">Pumpkin</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="result" id="result">The spiders are getting ready...</div>
+    <div class="footer">StimTake Studio • Halloween Spider Drop Placeholder</div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const spiders = [...document.querySelectorAll('.spider-wrap')];
+  const result = document.getElementById('result');
+  const flash = document.getElementById('flash');
+
+  let names = ['Velvet','Luna','Hexie','Raven','Pumpkin'];
+  let messages = [
+    'wins the spooky sprint',
+    'takes the web crown',
+    'drops fastest tonight',
+    'claims the haunted finish',
+    'rules the spider race'
+  ];
+
+  let running = false;
+
+  function setNames(next){
+    if(!Array.isArray(next) || !next.length) return;
+    names = next.slice(0,5);
+    while(names.length < 5) names.push('Spider ' + (names.length + 1));
+    spiders.forEach((el,i)=>{
+      const nameEl=el.querySelector('.name');
+      nameEl.textContent=names[i];
+    });
+  }
+
+  function reset(){
+    spiders.forEach(el=>{
+      el.classList.remove('racing','winner');
+      el.style.transition='none';
+      el.style.transform='translateY(0px)';
+      void el.offsetWidth;
+      el.style.transition='transform 3.6s cubic-bezier(.18,.75,.18,1)';
+    });
+  }
+
+  function race(options = {}){
+    if(running) return false;
+    running=true;
+
+    if(Array.isArray(options.names)) setNames(options.names);
+
+    reset();
+    result.textContent='The spiders are dropping...';
+
+    const forced = Number.isInteger(options.index) ? options.index : null;
+    const winner = forced !== null
+      ? Math.max(0,Math.min(4,forced))
+      : Math.floor(Math.random()*5);
+
+    const distances = spiders.map((_,i)=>{
+      if(i===winner) return 360;
+      return 250 + Math.floor(Math.random()*85);
+    });
+
+    spiders.forEach((el,i)=>{
+      el.classList.add('racing');
+      const delay = 100 + i*80;
+      setTimeout(()=>{
+        el.style.transform=`translateY(${distances[i]}px)`;
+      },delay);
+    });
+
+    setTimeout(()=>{
+      spiders.forEach(el=>el.classList.remove('racing'));
+      spiders[winner].classList.add('winner');
+
+      const message = messages[Math.floor(Math.random()*messages.length)];
+
+      result.innerHTML =
+        `🕷️ <span class="winner-name">${names[winner]}</span>` +
+        `<span class="message">${message}</span>`;
+
+      flash.classList.remove('active');
+      void flash.offsetWidth;
+      flash.classList.add('active');
+
+      running=false;
+
+      window.parent?.postMessage?.({
+        type:'stimtake-spider-drop-result',
+        index:winner,
+        name:names[winner],
+        message
+      },'*');
+    },3950);
+
+    return true;
+  }
+
+  setNames(names);
+
+  window.StimTakeSpiderDrop = {
+    race,
+    setNames
+  };
+
+  window.addEventListener('message',(event)=>{
+    const data=event.data||{};
+    if(data.type==='stimtake-spider-drop-race'){
+      race({
+        index:Number.isInteger(data.index)?data.index:undefined,
+        names:Array.isArray(data.names)?data.names:undefined
+      });
+    }
+  });
+
+  setTimeout(()=>race(),800);
+})();
+</script>
+</body>
+</html>

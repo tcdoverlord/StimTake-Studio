@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StimTake Daily Star Pick</title>
+<style>
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:transparent;font-family:"Segoe UI",Arial,sans-serif}
+*{box-sizing:border-box}
+.scene{position:relative;width:100%;height:100%;display:grid;place-items:center;pointer-events:none}
+.glow{position:absolute;width:900px;height:800px;border-radius:50%;background:radial-gradient(circle,rgba(170,92,255,.22),rgba(255,105,180,.09) 48%,transparent 72%);filter:blur(18px)}
+.panel{position:relative;width:min(980px,94vw);padding:30px 34px 36px;border-radius:28px;border:2px solid rgba(175,96,255,.70);background:linear-gradient(180deg,rgba(26,19,42,.94),rgba(11,9,20,.95));box-shadow:0 0 32px rgba(175,96,255,.48),0 0 64px rgba(255,105,180,.14)}
+.title{text-align:center;color:#fff5fb;font-size:36px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;text-shadow:0 0 14px rgba(175,96,255,.8)}
+.subtitle{text-align:center;color:#d8cce2;margin-top:6px;font-size:15px}
+.field{position:relative;width:840px;height:450px;margin:28px auto 0;border-radius:22px;overflow:hidden;background:radial-gradient(circle at 50% 50%,rgba(175,96,255,.08),transparent 55%),linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01));border:1px solid rgba(255,255,255,.06)}
+.star-wrap{position:absolute;width:140px;text-align:center;transition:transform .45s ease,opacity .35s ease,filter .35s ease}
+.st1{left:70px;top:85px}.st2{left:235px;top:230px}.st3{left:400px;top:65px}.st4{left:565px;top:230px}.st5{left:690px;top:90px}
+.star{font-size:95px;filter:drop-shadow(0 0 12px rgba(255,216,94,.35));transform-origin:center}
+.star-wrap.move .star{animation:float 1s ease-in-out infinite alternate}
+.star-wrap.shuffle .star{animation:shuffle .22s ease-in-out infinite alternate}
+.star-wrap.dim{opacity:.16;filter:saturate(.35)}
+.star-wrap.winner{transform:scale(1.18) translateY(-12px);z-index:7}
+.star-wrap.winner .star{animation:winnerPulse .55s ease-in-out infinite alternate;filter:drop-shadow(0 0 20px rgba(255,255,255,.9)) drop-shadow(0 0 34px rgba(255,207,90,.8))}
+.star-name{margin-top:2px;color:#efe6f6;font-size:13px;font-weight:900}
+.star-wrap.winner .star-name{color:#ffad61;text-shadow:0 0 10px rgba(255,157,60,.5)}
+.crown{position:absolute;top:-34px;left:50%;transform:translateX(-50%);font-size:34px;opacity:0}
+.star-wrap.winner .crown{opacity:1}
+.aura{position:absolute;left:50%;top:50%;width:175px;height:175px;margin:-87px;border-radius:50%;border:4px solid rgba(255,255,255,.75);opacity:0}
+.star-wrap.winner .aura{animation:aura 1s ease-out infinite}
+.result{min-height:78px;margin-top:18px;text-align:center;color:#fff5fb;font-size:28px;font-weight:900}
+.result .headline{color:#ff9d3c;text-shadow:0 0 12px rgba(255,157,60,.55)}
+.result .message{display:block;margin-top:8px;color:#c98cff;font-size:20px}
+.flash{position:absolute;inset:0;pointer-events:none;opacity:0}.flash.active{animation:flash .9s ease-out}
+.footer{text-align:center;margin-top:10px;color:#9f93aa;font-size:12px}
+@keyframes float{from{transform:translateY(-8px) rotate(-3deg)}to{transform:translateY(8px) rotate(3deg)}}
+@keyframes shuffle{from{transform:translate(-6px,-4px) scale(.96)}to{transform:translate(6px,4px) scale(1.04)}}
+@keyframes winnerPulse{from{transform:scale(1)}to{transform:scale(1.12)}}
+@keyframes aura{0%{opacity:.8;transform:scale(.45)}100%{opacity:0;transform:scale(1.3)}}
+@keyframes flash{0%{opacity:0}25%{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.32),transparent 48%)}100%{opacity:0}}
+@media(max-height:760px){.panel{transform:scale(.84)}}
+</style>
+</head>
+<body>
+<div class="scene">
+<section class="panel">
+<div class="flash" id="flash"></div>
+<div class="title">🌟 Star Pick</div>
+<div class="subtitle">Five glowing stars move around. One becomes the winning star.</div>
+
+<div class="field">
+  <div class="star-wrap st1 move" data-index="0"><div class="crown">👑</div><div class="aura"></div><div class="star">⭐</div><div class="star-name">Nova</div></div>
+  <div class="star-wrap st2 move" data-index="1"><div class="crown">👑</div><div class="aura"></div><div class="star">🌟</div><div class="star-name">Glow</div></div>
+  <div class="star-wrap st3 move" data-index="2"><div class="crown">👑</div><div class="aura"></div><div class="star">✨</div><div class="star-name">Spark</div></div>
+  <div class="star-wrap st4 move" data-index="3"><div class="crown">👑</div><div class="aura"></div><div class="star">⭐</div><div class="star-name">Luxe</div></div>
+  <div class="star-wrap st5 move" data-index="4"><div class="crown">👑</div><div class="aura"></div><div class="star">🌠</div><div class="star-name">Wish</div></div>
+</div>
+
+<div class="result" id="result">The stars are twinkling...</div>
+<div class="footer">StimTake Studio • Daily Pack • Star Pick</div>
+</section>
+</div>
+
+<script>
+(()=>{
+const wraps=[...document.querySelectorAll('.star-wrap')];
+const result=document.getElementById('result');
+const flash=document.getElementById('flash');
+
+let entries=[
+ {icon:'⭐',name:'Nova',prize:'Sexy Outfit Piece',message:'Model picks a sexy outfit piece.'},
+ {icon:'🌟',name:'Glow',prize:'60-Second Tease Dance',message:'A full 60-second tease dance is unlocked.'},
+ {icon:'✨',name:'Spark',prize:'Flirty Shout-Out',message:'The tipper gets a special flirty shout-out.'},
+ {icon:'⭐',name:'Luxe',prize:'Pick the Next Pose',message:'The winning viewer chooses the next pose.'},
+ {icon:'🌠',name:'Wish',prize:'After-Dark Mystery Jackpot',message:'The top star unlocks the secret jackpot reward.'}
+];
+
+let running=false;
+
+function setEntries(next){
+ if(!Array.isArray(next)||!next.length)return;
+ entries=next.slice(0,5).map((e,i)=>({
+   icon:String(e.icon||'⭐'),
+   name:String(e.name||('Star '+(i+1))),
+   prize:String(e.prize||'Surprise'),
+   message:String(e.message||'A surprise is revealed.')
+ }));
+ while(entries.length<5){
+   entries.push({icon:'⭐',name:'Star '+(entries.length+1),prize:'Surprise',message:'A surprise is revealed.'});
+ }
+ wraps.forEach((w,i)=>{
+   w.querySelector('.star').textContent=entries[i].icon;
+   w.querySelector('.star-name').textContent=entries[i].name;
+ });
+}
+
+function reset(){
+ wraps.forEach(w=>{
+   w.classList.remove('winner','dim','shuffle');
+   w.classList.add('move');
+ });
+}
+
+function pick(options={}){
+ if(running)return false;
+ running=true;
+ if(Array.isArray(options.entries))setEntries(options.entries);
+
+ reset();
+ result.textContent='The stars are mixing...';
+ wraps.forEach(w=>{w.classList.remove('move');w.classList.add('shuffle')});
+
+ const forced=Number.isInteger(options.index)?Math.max(0,Math.min(4,options.index)):null;
+ const selected=forced!==null?forced:Math.floor(Math.random()*5);
+
+ setTimeout(()=>{
+   wraps.forEach((w,i)=>{
+     w.classList.remove('shuffle');
+     if(i===selected)w.classList.add('winner');
+     else w.classList.add('dim');
+   });
+
+   const win=entries[selected];
+   result.innerHTML=`${win.icon} <span class="headline">${win.prize}</span><span class="message">${win.name} — ${win.message}</span>`;
+
+   flash.classList.remove('active');
+   void flash.offsetWidth;
+   flash.classList.add('active');
+
+   running=false;
+   window.parent?.postMessage?.({
+     type:'stimtake-daily-star-pick-result',
+     index:selected,
+     entry:win
+   },'*');
+ },2200);
+
+ return true;
+}
+
+setEntries(entries);
+window.StimTakeDailyStarPick={pick,setEntries};
+
+window.addEventListener('message',e=>{
+ const d=e.data||{};
+ if(d.type==='stimtake-daily-star-pick'){
+   pick({
+     index:Number.isInteger(d.index)?d.index:undefined,
+     entries:Array.isArray(d.entries)?d.entries:undefined
+   });
+ }
+});
+
+setTimeout(()=>pick(),800);
+})();
+</script>
+</body>
+</html>

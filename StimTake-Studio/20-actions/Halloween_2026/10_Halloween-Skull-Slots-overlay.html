@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StimTake Halloween Skull Slots</title>
+<style>
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  overflow:hidden;
+  background:transparent;
+  font-family:"Segoe UI",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+.scene{
+  position:relative;
+  width:100%;
+  height:100%;
+  display:grid;
+  place-items:center;
+  pointer-events:none;
+}
+.glow{
+  position:absolute;
+  width:840px;
+  height:760px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(180,76,255,.24),rgba(255,79,184,.10) 45%,transparent 72%);
+  filter:blur(18px);
+}
+.moon{
+  position:absolute;
+  top:5%;
+  right:8%;
+  width:115px;
+  height:115px;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#fff7df,#ffd98b 58%,#c98e3e);
+  box-shadow:0 0 30px rgba(255,217,139,.45);
+}
+.moon:after{
+  content:"";
+  position:absolute;
+  width:100px;
+  height:100px;
+  left:30px;
+  top:-10px;
+  border-radius:50%;
+  background:rgba(8,5,14,.97);
+}
+.web{position:absolute;font-size:110px;opacity:.18}
+.w1{top:-10px;left:-6px}
+.w2{bottom:-10px;right:-6px;transform:rotate(180deg)}
+.bat{position:absolute;font-size:40px;filter:drop-shadow(0 0 5px rgba(180,76,255,.45))}
+.b1{top:13%;left:10%;transform:rotate(-12deg)}
+.b2{top:21%;right:20%;transform:scale(.8) rotate(10deg)}
+
+.panel{
+  position:relative;
+  width:min(920px,92vw);
+  padding:28px 34px 36px;
+  border-radius:28px;
+  border:2px solid rgba(180,76,255,.72);
+  background:linear-gradient(180deg,rgba(29,13,46,.95),rgba(11,7,22,.96));
+  box-shadow:0 0 32px rgba(180,76,255,.55),0 0 64px rgba(255,79,184,.18);
+}
+.title{
+  text-align:center;
+  color:#fff2dd;
+  font-size:36px;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  text-shadow:0 0 14px rgba(180,76,255,.9);
+}
+.subtitle{
+  text-align:center;
+  color:#d9c4e4;
+  margin-top:6px;
+  font-size:15px;
+}
+.machine{
+  position:relative;
+  width:700px;
+  margin:28px auto 0;
+  padding:26px 28px 30px;
+  border-radius:24px;
+  background:linear-gradient(145deg,#2a163a,#120a1d);
+  border:4px solid #8c49d7;
+  box-shadow:0 0 30px rgba(180,76,255,.48),inset 0 0 30px rgba(255,255,255,.03);
+}
+.machine:before{
+  content:"SKULL QUEEN";
+  position:absolute;
+  top:-18px;
+  left:50%;
+  transform:translateX(-50%);
+  padding:6px 18px;
+  border-radius:999px;
+  background:#1b0f28;
+  border:2px solid rgba(255,154,60,.75);
+  color:#ffb066;
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:.14em;
+  box-shadow:0 0 16px rgba(255,154,60,.35);
+}
+.reels{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:18px;
+}
+.reel{
+  position:relative;
+  height:230px;
+  border-radius:18px;
+  background:linear-gradient(180deg,#110917,#21122d 45%,#110917);
+  border:3px solid rgba(255,255,255,.12);
+  box-shadow:inset 0 0 30px rgba(0,0,0,.55),0 0 15px rgba(180,76,255,.22);
+  overflow:hidden;
+  display:grid;
+  place-items:center;
+}
+.symbol{
+  font-size:96px;
+  filter:drop-shadow(0 6px 5px rgba(0,0,0,.45));
+  transform:translateY(0);
+}
+.reel.spinning .symbol{
+  animation:spinFlick .12s linear infinite;
+}
+.reel.win{
+  border-color:#ff9a3c;
+  box-shadow:0 0 24px rgba(255,154,60,.65),inset 0 0 20px rgba(255,154,60,.08);
+}
+.decor{
+  display:flex;
+  justify-content:space-between;
+  margin-top:20px;
+  align-items:center;
+}
+.lights{
+  display:flex;
+  gap:8px;
+}
+.light{
+  width:16px;
+  height:16px;
+  border-radius:50%;
+  background:#5f2c85;
+  box-shadow:0 0 8px rgba(180,76,255,.35);
+}
+.light.on{
+  background:#ff8fc9;
+  box-shadow:0 0 12px rgba(255,79,184,.7);
+}
+.badge{
+  color:#cbb7d9;
+  font-size:13px;
+  font-weight:800;
+  letter-spacing:.05em;
+}
+.result{
+  min-height:78px;
+  margin-top:22px;
+  text-align:center;
+  color:#fff2dd;
+  font-size:28px;
+  font-weight:900;
+}
+.result .headline{
+  color:#ff9a3c;
+  text-shadow:0 0 12px rgba(255,154,60,.6);
+}
+.result .message{
+  display:block;
+  margin-top:8px;
+  color:#c98cff;
+  font-size:20px;
+}
+.flash{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:0;
+}
+.flash.active{animation:flash .9s ease-out}
+.footer{
+  text-align:center;
+  margin-top:10px;
+  color:#aa9ab8;
+  font-size:12px;
+}
+@keyframes spinFlick{
+  0%{transform:translateY(-10px) scale(.96);filter:blur(0)}
+  50%{transform:translateY(10px) scale(1.04);filter:blur(1px)}
+  100%{transform:translateY(-10px) scale(.96);filter:blur(0)}
+}
+@keyframes flash{
+  0%{opacity:0}
+  25%{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.35),transparent 48%)}
+  100%{opacity:0}
+}
+@media(max-height:760px){.panel{transform:scale(.84)}}
+</style>
+</head>
+<body>
+<div class="scene">
+  <div class="glow"></div>
+  <div class="moon"></div>
+  <div class="web w1">🕸️</div>
+  <div class="web w2">🕸️</div>
+  <div class="bat b1">🦇</div>
+  <div class="bat b2">🦇</div>
+
+  <section class="panel">
+    <div class="flash" id="flash"></div>
+
+    <div class="title">Skull Slots</div>
+    <div class="subtitle">Three spooky reels. One Halloween fate.</div>
+
+    <div class="machine">
+      <div class="reels">
+        <div class="reel" id="reel1"><div class="symbol" id="symbol1">💀</div></div>
+        <div class="reel" id="reel2"><div class="symbol" id="symbol2">🎃</div></div>
+        <div class="reel" id="reel3"><div class="symbol" id="symbol3">🦇</div></div>
+      </div>
+
+      <div class="decor">
+        <div class="lights">
+          <div class="light"></div>
+          <div class="light"></div>
+          <div class="light"></div>
+          <div class="light"></div>
+          <div class="light"></div>
+        </div>
+        <div class="badge">WITCHING HOUR JACKPOT</div>
+      </div>
+    </div>
+
+    <div class="result" id="result">The reels are waiting...</div>
+    <div class="footer">StimTake Studio • Halloween Skull Slots Placeholder</div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const reelEls = [
+    document.getElementById('reel1'),
+    document.getElementById('reel2'),
+    document.getElementById('reel3')
+  ];
+
+  const symbolEls = [
+    document.getElementById('symbol1'),
+    document.getElementById('symbol2'),
+    document.getElementById('symbol3')
+  ];
+
+  const lights = [...document.querySelectorAll('.light')];
+  const result = document.getElementById('result');
+  const flash = document.getElementById('flash');
+
+  let symbols = ['🎃','💀','🦇','👻','🖤'];
+
+  let messages = {
+    jackpot: 'Triple match — spooky jackpot!',
+    pair: 'A haunted pair appears',
+    mixed: 'Mystery mix — Halloween chooses chaos'
+  };
+
+  let running = false;
+
+  function setSymbols(next){
+    if(!Array.isArray(next) || next.length < 3) return;
+    symbols = next.slice(0,8);
+  }
+
+  function lightShow(on){
+    lights.forEach((l,i)=>{
+      setTimeout(()=>{
+        if(on) l.classList.add('on');
+        else l.classList.remove('on');
+      },i*80);
+    });
+  }
+
+  function spin(options = {}){
+    if(running) return false;
+    running = true;
+
+    if(Array.isArray(options.symbols)) setSymbols(options.symbols);
+
+    result.textContent = 'The reels are spinning...';
+    reelEls.forEach(r=>{
+      r.classList.remove('win');
+      r.classList.add('spinning');
+    });
+
+    lightShow(true);
+
+    const forced = Array.isArray(options.result) && options.result.length === 3
+      ? options.result
+      : null;
+
+    let tick = 0;
+    const ticker = setInterval(()=>{
+      symbolEls.forEach(el=>{
+        el.textContent = symbols[Math.floor(Math.random()*symbols.length)];
+      });
+      tick++;
+      if(tick > 20){
+        clearInterval(ticker);
+
+        const final = forced || [
+          symbols[Math.floor(Math.random()*symbols.length)],
+          symbols[Math.floor(Math.random()*symbols.length)],
+          symbols[Math.floor(Math.random()*symbols.length)]
+        ];
+
+        reelEls.forEach(r=>r.classList.remove('spinning'));
+        symbolEls.forEach((el,i)=>el.textContent=final[i]);
+
+        const triple = final[0] === final[1] && final[1] === final[2];
+        const pair = final[0] === final[1] || final[1] === final[2] || final[0] === final[2];
+
+        let headline = 'MYSTERY MIX';
+        let message = messages.mixed;
+
+        if(triple){
+          headline = 'JACKPOT';
+          message = messages.jackpot;
+          reelEls.forEach(r=>r.classList.add('win'));
+        } else if(pair){
+          headline = 'LUCKY PAIR';
+          message = messages.pair;
+          reelEls.forEach((r,i)=>{
+            const s=final[i];
+            if(final.filter(x=>x===s).length>=2) r.classList.add('win');
+          });
+        }
+
+        result.innerHTML =
+          `${final.join('  ')}<br>` +
+          `<span class="headline">${headline}</span>` +
+          `<span class="message">${message}</span>`;
+
+        flash.classList.remove('active');
+        void flash.offsetWidth;
+        flash.classList.add('active');
+
+        lightShow(false);
+        running = false;
+
+        window.parent?.postMessage?.({
+          type:'stimtake-skull-slots-result',
+          reels:final,
+          jackpot:triple,
+          pair
+        },'*');
+      }
+    },110);
+
+    return true;
+  }
+
+  window.StimTakeSkullSlots = {
+    spin,
+    setSymbols
+  };
+
+  window.addEventListener('message',(event)=>{
+    const data = event.data || {};
+    if(data.type === 'stimtake-skull-slots-spin'){
+      spin({
+        symbols:Array.isArray(data.symbols) ? data.symbols : undefined,
+        result:Array.isArray(data.result) ? data.result : undefined
+      });
+    }
+  });
+
+  setTimeout(()=>spin(),800);
+})();
+</script>
+</body>
+</html>

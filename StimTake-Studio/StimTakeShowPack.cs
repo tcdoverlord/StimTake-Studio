@@ -403,65 +403,217 @@ namespace StimTakeShared
     {
         internal string PackId;
         internal string ActionId;
-        internal int Tokens;
+        internal int MinTokens;
+        internal int MaxTokens; // 0 = no upper bound
         internal bool Enabled;
+
+        internal string RangeText
+        {
+            get
+            {
+                return MaxTokens <= 0
+                    ? MinTokens + "+ tokens"
+                    : MinTokens + "–" + MaxTokens + " tokens";
+            }
+        }
     }
 
     internal static class ShowPackPricing
     {
+        private static ShowPackPrice DefaultPrice(ShowPackValidation pack, ShowPackAction action)
+        {
+            // Friendly starter ranges: 1–4, 5–9, 10–14, ...
+            int min = action.Slot == 1 ? 1 : (action.Slot - 1) * 5;
+            int max = action.Slot == 1 ? 4 : min + 4;
+            if (action.Slot == 20) max = 0;
+            return new ShowPackPrice
+            {
+                PackId = pack.PackId,
+                ActionId = action.Id,
+                MinTokens = min,
+                MaxTokens = max,
+                Enabled = action.DefaultEnabled
+            };
+        }
+
         internal static Dictionary<string, ShowPackPrice> Read(string path, ShowPackValidation pack)
         {
             var values = new Dictionary<string, ShowPackPrice>(StringComparer.OrdinalIgnoreCase);
             if (pack == null) return values;
+
             try
             {
-                if (File.Exists(path)) foreach (string line in File.ReadAllLines(path, Encoding.UTF8))
+                if (File.Exists(path))
                 {
-                    string[] parts = line.Split('\t');
-                    int tokens;
-                    bool enabled;
-                    if (parts.Length < 4 || !String.Equals(parts[0], pack.PackId, StringComparison.OrdinalIgnoreCase) || !Int32.TryParse(parts[2], out tokens) || tokens <= 0 || !Boolean.TryParse(parts[3], out enabled)) continue;
-                    values[parts[1]] = new ShowPackPrice { PackId = parts[0], ActionId = parts[1], Tokens = tokens, Enabled = enabled };
+                    foreach (string line in File.ReadAllLines(path, Encoding.UTF8))
+                    {
+                        string[] parts = line.Split('\t');
+                        if (parts.Length < 4 || !String.Equals(parts[0], pack.PackId, StringComparison.OrdinalIgnoreCase))
+                            continue;
+
+                        int min;
+                        int max;
+                        bool enabled;
+
+                        // V6 range schema:
+                        // pack_id  action_id  min_tokens  max_tokens  enabled
+                        if (parts.Length >= 5 &&
+                            Int32.TryParse(parts[2], out min) &&
+                            Int32.TryParse(parts[3], out max) &&
+                            Boolean.TryParse(parts[4], out enabled) &&
+                            min > 0 && max >= 0 && (max == 0 || max >= min))
+                        {
+                            values[parts[1]] = new ShowPackPrice
+                            {
+                                PackId = parts[0],
+                                ActionId = parts[1],
+                                MinTokens = min,
+                                MaxTokens = max,
+                                Enabled = enabled
+                            };
+                            continue;
+                        }
+
+                        // Backward-compatible migration of the older exact-price schema:
+                        // pack_id  action_id  tokens  enabled
+                        int oldTokens;
+                        if (parts.Length >= 4 &&
+                            Int32.TryParse(parts[2], out oldTokens) &&
+                            oldTokens > 0 &&
+                            Boolean.TryParse(parts[3], out enabled))
+                        {
+                            values[parts[1]] = new ShowPackPrice
+                            {
+                                PackId = parts[0],
+                                ActionId = parts[1],
+                                MinTokens = oldTokens,
+                                MaxTokens = oldTokens,
+                                Enabled = enabled
+                            };
+                        }
+                    }
                 }
             }
             catch { }
+
             foreach (ShowPackAction action in pack.Actions)
             {
                 if (!values.ContainsKey(action.Id))
-                    values[action.Id] = new ShowPackPrice { PackId = pack.PackId, ActionId = action.Id, Tokens = action.Slot * 5, Enabled = action.DefaultEnabled };
+                    values[action.Id] = DefaultPrice(pack, action);
             }
+
             return values;
+        }
+
+        internal static bool ValidateNoOverlap(
+            ShowPackValidation pack,
+            Dictionary<string, ShowPackPrice> current,
+            out string error)
+        {
+            error = "";
+            if (pack == null || current == null) return true;
+
+            var enabled = new List<ShowPackPrice>();
+            foreach (ShowPackAction action in pack.Actions)
+            {
+                ShowPackPrice price;
+                if (!current.TryGetValue(action.Id, out price) || !price.Enabled) continue;
+                if (price.MinTokens <= 0 || price.MaxTokens < 0 || (price.MaxTokens > 0 && price.MaxTokens < price.MinTokens))
+                {
+                    error = action.Name + " has an invalid token range.";
+                    return false;
+                }
+                enabled.Add(price);
+            }
+
+            enabled.Sort(delegate(ShowPackPrice a, ShowPackPrice b)
+            {
+                return a.MinTokens.CompareTo(b.MinTokens);
+            });
+
+            for (int i = 0; i < enabled.Count; i++)
+            {
+                long leftMax = enabled[i].MaxTokens <= 0 ? Int64.MaxValue : enabled[i].MaxTokens;
+                for (int j = i + 1; j < enabled.Count; j++)
+                {
+                    long rightMax = enabled[j].MaxTokens <= 0 ? Int64.MaxValue : enabled[j].MaxTokens;
+                    bool overlap = enabled[i].MinTokens <= rightMax && enabled[j].MinTokens <= leftMax;
+                    if (overlap)
+                    {
+                        error = "Enabled action ranges overlap: " +
+                            enabled[i].ActionId + " (" + enabled[i].RangeText + ") and " +
+                            enabled[j].ActionId + " (" + enabled[j].RangeText + ").";
+                        return false;
+                    }
+                }
+            }
+            return true;
         }
 
         internal static void Write(string path, ShowPackValidation pack, Dictionary<string, ShowPackPrice> current)
         {
             if (pack == null) throw new ArgumentNullException("pack");
+
+            string overlapError;
+            if (!ValidateNoOverlap(pack, current, out overlapError))
+                throw new InvalidOperationException(overlapError);
+
             Directory.CreateDirectory(Path.GetDirectoryName(path));
             var retained = new List<string>();
-            if (File.Exists(path)) foreach (string line in File.ReadAllLines(path, Encoding.UTF8))
+
+            if (File.Exists(path))
             {
-                string[] parts = line.Split('\t');
-                if (parts.Length >= 4 && !String.Equals(parts[0], pack.PackId, StringComparison.OrdinalIgnoreCase)) retained.Add(line);
+                foreach (string line in File.ReadAllLines(path, Encoding.UTF8))
+                {
+                    string[] parts = line.Split('\t');
+                    if (parts.Length >= 4 && !String.Equals(parts[0], pack.PackId, StringComparison.OrdinalIgnoreCase))
+                        retained.Add(line);
+                }
             }
+
             foreach (ShowPackAction action in pack.Actions)
             {
                 ShowPackPrice price;
-                if (!current.TryGetValue(action.Id, out price)) price = new ShowPackPrice { PackId = pack.PackId, ActionId = action.Id, Tokens = action.Slot * 5, Enabled = action.DefaultEnabled };
-                retained.Add(pack.PackId + "\t" + action.Id + "\t" + Math.Max(1, price.Tokens) + "\t" + price.Enabled);
+                if (!current.TryGetValue(action.Id, out price))
+                    price = DefaultPrice(pack, action);
+
+                int min = Math.Max(1, price.MinTokens);
+                int max = Math.Max(0, price.MaxTokens);
+                if (max > 0 && max < min) max = min;
+
+                retained.Add(
+                    pack.PackId + "\t" +
+                    action.Id + "\t" +
+                    min + "\t" +
+                    max + "\t" +
+                    price.Enabled);
             }
+
             File.WriteAllLines(path, retained.ToArray(), new UTF8Encoding(false));
         }
 
-        internal static List<ShowPackAction> Matches(ShowPackValidation pack, Dictionary<string, ShowPackPrice> prices, long amount)
+        internal static List<ShowPackAction> Matches(
+            ShowPackValidation pack,
+            Dictionary<string, ShowPackPrice> prices,
+            long amount)
         {
             var matches = new List<ShowPackAction>();
             if (pack == null || prices == null || amount <= 0 || amount > Int32.MaxValue) return matches;
+
             foreach (ShowPackAction action in pack.Actions)
             {
                 ShowPackPrice price;
-                if (prices.TryGetValue(action.Id, out price) && price.Enabled && price.Tokens == (int)amount) matches.Add(action);
+                if (!prices.TryGetValue(action.Id, out price) || !price.Enabled) continue;
+                bool inRange = amount >= price.MinTokens &&
+                    (price.MaxTokens <= 0 || amount <= price.MaxTokens);
+                if (inRange)
+                {
+                    matches.Add(action);
+                    break; // one accepted tip may trigger at most one HTML overlay
+                }
             }
             return matches;
         }
     }
+
 }

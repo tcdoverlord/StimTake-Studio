@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StimTake Halloween Dice Game</title>
+<style>
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  overflow:hidden;
+  background:transparent;
+  font-family:"Segoe UI",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+.scene{
+  position:relative;
+  width:100%;
+  height:100%;
+  display:grid;
+  place-items:center;
+  pointer-events:none;
+}
+.glow{
+  position:absolute;
+  width:760px;
+  height:760px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(183,76,255,.22),rgba(255,79,184,.08) 45%,transparent 72%);
+  filter:blur(16px);
+}
+.moon{
+  position:absolute;
+  top:6%;
+  right:8%;
+  width:115px;
+  height:115px;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#fff6dc,#ffd88b 58%,#c78c38);
+  box-shadow:0 0 30px rgba(255,216,139,.45);
+}
+.moon:after{
+  content:"";
+  position:absolute;
+  width:100px;
+  height:100px;
+  left:30px;
+  top:-10px;
+  border-radius:50%;
+  background:rgba(8,5,14,.97);
+}
+.bat{position:absolute;font-size:42px;filter:drop-shadow(0 0 5px rgba(183,76,255,.45))}
+.b1{top:12%;left:11%;transform:rotate(-10deg)}
+.b2{top:19%;right:20%;transform:scale(.8) rotate(12deg)}
+.web{position:absolute;font-size:110px;opacity:.18}
+.web1{top:-10px;left:-6px}
+.web2{bottom:-10px;right:-6px;transform:rotate(180deg)}
+
+.panel{
+  position:relative;
+  width:min(880px,90vw);
+  padding:30px 34px 34px;
+  border-radius:28px;
+  border:2px solid rgba(183,76,255,.72);
+  background:linear-gradient(180deg,rgba(27,13,43,.94),rgba(11,7,22,.95));
+  box-shadow:0 0 32px rgba(183,76,255,.55),0 0 64px rgba(255,79,184,.18);
+}
+.title{
+  text-align:center;
+  color:#fff3df;
+  font-size:36px;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  text-shadow:0 0 14px rgba(183,76,255,.9);
+}
+.subtitle{
+  text-align:center;
+  color:#d7c4e2;
+  margin-top:6px;
+  font-size:15px;
+}
+.dice-row{
+  display:flex;
+  justify-content:center;
+  gap:48px;
+  margin-top:34px;
+}
+.die{
+  width:220px;
+  height:220px;
+  border-radius:30px;
+  background:linear-gradient(145deg,#29133d,#13091f);
+  border:4px solid #b44cff;
+  box-shadow:0 0 26px rgba(180,76,255,.55), inset 0 0 28px rgba(255,255,255,.04);
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  grid-template-rows:repeat(3,1fr);
+  padding:28px;
+  transform-style:preserve-3d;
+}
+.die.rolling{animation:shake .15s linear infinite}
+.pip{
+  width:30px;
+  height:30px;
+  border-radius:50%;
+  align-self:center;
+  justify-self:center;
+  background:#fff0dc;
+  box-shadow:0 0 10px rgba(255,138,42,.5);
+  opacity:0;
+}
+.pip.on{opacity:1}
+.result{
+  margin-top:28px;
+  min-height:64px;
+  text-align:center;
+  color:#fff3df;
+  font-size:28px;
+  font-weight:900;
+}
+.result .total{
+  color:#ff963a;
+  text-shadow:0 0 12px rgba(255,150,58,.6);
+}
+.result .outcome{
+  display:block;
+  margin-top:8px;
+  color:#c88cff;
+  font-size:20px;
+}
+.footer{
+  text-align:center;
+  margin-top:10px;
+  color:#a99ab7;
+  font-size:12px;
+}
+.flash{
+  position:absolute;
+  inset:0;
+  opacity:0;
+  pointer-events:none;
+}
+.flash.active{animation:flash .9s ease-out}
+@keyframes flash{
+  0%{opacity:0}
+  25%{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.35),transparent 48%)}
+  100%{opacity:0}
+}
+@keyframes shake{
+  0%{transform:rotate(-4deg) translate(-3px,1px)}
+  25%{transform:rotate(5deg) translate(3px,-2px)}
+  50%{transform:rotate(-3deg) translate(2px,3px)}
+  75%{transform:rotate(4deg) translate(-2px,-3px)}
+  100%{transform:rotate(0deg) translate(0)}
+}
+@media(max-height:760px){.panel{transform:scale(.84)}}
+</style>
+</head>
+<body>
+<div class="scene">
+  <div class="glow"></div>
+  <div class="moon"></div>
+  <div class="bat b1">🦇</div>
+  <div class="bat b2">🦇</div>
+  <div class="web web1">🕸️</div>
+  <div class="web web2">🕸️</div>
+
+  <section class="panel">
+    <div class="flash" id="flash"></div>
+    <div class="title">Witch’s Lucky Dice</div>
+    <div class="subtitle">Let fate choose the Halloween surprise</div>
+
+    <div class="dice-row">
+      <div class="die" id="die1"></div>
+      <div class="die" id="die2"></div>
+    </div>
+
+    <div class="result" id="result">
+      The dice are waking up...
+    </div>
+
+    <div class="footer">StimTake Studio • Halloween Dice Placeholder</div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const die1 = document.getElementById('die1');
+  const die2 = document.getElementById('die2');
+  const result = document.getElementById('result');
+  const flash = document.getElementById('flash');
+
+  const pipLayouts = {
+    1:[4],
+    2:[0,8],
+    3:[0,4,8],
+    4:[0,2,6,8],
+    5:[0,2,4,6,8],
+    6:[0,2,3,5,6,8]
+  };
+
+  const outcomes = [
+    'Sweet Spell',
+    'Sassy Pose',
+    'Witchy Dance',
+    'Mystery Treat',
+    'Lucky Charm',
+    'Double Trouble',
+    'Moonlight Dare',
+    'Pumpkin Surprise',
+    'Haunted Bonus',
+    'Magic Moment',
+    'Jackpot Hex'
+  ];
+
+  let rolling = false;
+
+  function buildDie(el){
+    el.innerHTML = '';
+    for(let i=0;i<9;i++){
+      const pip=document.createElement('div');
+      pip.className='pip';
+      el.appendChild(pip);
+    }
+  }
+
+  function showDie(el,value){
+    const pips=[...el.children];
+    pips.forEach(p=>p.classList.remove('on'));
+    (pipLayouts[value]||[]).forEach(i=>pips[i].classList.add('on'));
+  }
+
+  function pickOutcome(total){
+    return outcomes[Math.max(0,Math.min(outcomes.length-1,total-2))];
+  }
+
+  function rollDice(options={}){
+    if(rolling) return false;
+    rolling=true;
+    result.textContent='The dice are rolling...';
+    die1.classList.add('rolling');
+    die2.classList.add('rolling');
+
+    const forced1 = Number.isInteger(options.die1) ? Math.max(1,Math.min(6,options.die1)) : null;
+    const forced2 = Number.isInteger(options.die2) ? Math.max(1,Math.min(6,options.die2)) : null;
+
+    let ticks=0;
+    const ticker=setInterval(()=>{
+      showDie(die1,1+Math.floor(Math.random()*6));
+      showDie(die2,1+Math.floor(Math.random()*6));
+      ticks++;
+      if(ticks>18){
+        clearInterval(ticker);
+
+        const a=forced1 || 1+Math.floor(Math.random()*6);
+        const b=forced2 || 1+Math.floor(Math.random()*6);
+        const total=a+b;
+        const outcome=pickOutcome(total);
+
+        showDie(die1,a);
+        showDie(die2,b);
+        die1.classList.remove('rolling');
+        die2.classList.remove('rolling');
+
+        result.innerHTML =
+          `🎃 Total: <span class="total">${total}</span>` +
+          `<span class="outcome">${outcome}</span>`;
+
+        flash.classList.remove('active');
+        void flash.offsetWidth;
+        flash.classList.add('active');
+        rolling=false;
+
+        window.parent?.postMessage?.({
+          type:'stimtake-dice-result',
+          die1:a,
+          die2:b,
+          total,
+          outcome
+        },'*');
+      }
+    },120);
+
+    return true;
+  }
+
+  buildDie(die1);
+  buildDie(die2);
+  showDie(die1,1);
+  showDie(die2,1);
+
+  window.StimTakeDice = {
+    roll: rollDice
+  };
+
+  window.addEventListener('message',(event)=>{
+    const data=event.data||{};
+    if(data.type==='stimtake-dice-roll'){
+      rollDice({
+        die1:Number.isInteger(data.die1)?data.die1:undefined,
+        die2:Number.isInteger(data.die2)?data.die2:undefined
+      });
+    }
+  });
+
+  setTimeout(()=>rollDice(),800);
+})();
+</script>
+</body>
+</html>

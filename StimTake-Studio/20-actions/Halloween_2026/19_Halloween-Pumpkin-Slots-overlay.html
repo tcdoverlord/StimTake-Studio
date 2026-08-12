@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StimTake Halloween Pumpkin Slots</title>
+<style>
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  overflow:hidden;
+  background:transparent;
+  font-family:"Segoe UI",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+.scene{
+  position:relative;
+  width:100%;
+  height:100%;
+  display:grid;
+  place-items:center;
+  pointer-events:none;
+}
+.glow{
+  position:absolute;
+  width:860px;
+  height:820px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(180,76,255,.22),rgba(255,126,38,.11) 46%,transparent 72%);
+  filter:blur(18px);
+}
+.moon{
+  position:absolute;
+  top:5%;
+  right:8%;
+  width:118px;
+  height:118px;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#fff7df,#ffd98b 58%,#c98e3e);
+  box-shadow:0 0 30px rgba(255,217,139,.45);
+}
+.moon:after{
+  content:"";
+  position:absolute;
+  width:102px;
+  height:102px;
+  left:31px;
+  top:-10px;
+  border-radius:50%;
+  background:rgba(8,5,14,.97);
+}
+.web{position:absolute;font-size:110px;opacity:.18}
+.w1{top:-10px;left:-6px}
+.w2{bottom:-10px;right:-6px;transform:rotate(180deg)}
+.bat{position:absolute;font-size:40px;filter:drop-shadow(0 0 5px rgba(180,76,255,.45))}
+.b1{top:12%;left:10%;transform:rotate(-12deg)}
+.b2{top:20%;right:20%;transform:scale(.8) rotate(10deg)}
+
+.panel{
+  position:relative;
+  width:min(940px,92vw);
+  padding:28px 34px 36px;
+  border-radius:28px;
+  border:2px solid rgba(180,76,255,.72);
+  background:linear-gradient(180deg,rgba(27,13,43,.94),rgba(11,7,22,.95));
+  box-shadow:0 0 32px rgba(180,76,255,.55),0 0 64px rgba(255,126,38,.18);
+}
+.title{
+  text-align:center;
+  color:#fff2dd;
+  font-size:36px;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  text-shadow:0 0 14px rgba(180,76,255,.9);
+}
+.subtitle{
+  text-align:center;
+  color:#d6c3e1;
+  margin-top:6px;
+  font-size:15px;
+}
+.machine{
+  position:relative;
+  width:720px;
+  margin:30px auto 0;
+  padding:28px;
+  border-radius:26px;
+  background:linear-gradient(145deg,#2a163a,#120a1d);
+  border:4px solid #8c49d7;
+  box-shadow:0 0 30px rgba(180,76,255,.48),inset 0 0 30px rgba(255,255,255,.03);
+}
+.machine:before{
+  content:"PUMPKIN QUEEN";
+  position:absolute;
+  top:-19px;
+  left:50%;
+  transform:translateX(-50%);
+  padding:7px 20px;
+  border-radius:999px;
+  background:#1b0f28;
+  border:2px solid rgba(255,154,60,.75);
+  color:#ffb066;
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:.14em;
+  box-shadow:0 0 16px rgba(255,154,60,.35);
+}
+.reels{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:20px;
+}
+.reel{
+  position:relative;
+  height:230px;
+  border-radius:18px;
+  background:linear-gradient(180deg,#110917,#21122d 45%,#110917);
+  border:3px solid rgba(255,255,255,.12);
+  box-shadow:inset 0 0 30px rgba(0,0,0,.55),0 0 15px rgba(180,76,255,.22);
+  overflow:hidden;
+  display:grid;
+  place-items:center;
+}
+.symbol{
+  font-size:96px;
+  filter:drop-shadow(0 6px 5px rgba(0,0,0,.45));
+}
+.reel.spinning .symbol{
+  animation:spinFlick .11s linear infinite;
+}
+.reel.win{
+  border-color:#ff9a3c;
+  box-shadow:0 0 28px rgba(255,154,60,.7),inset 0 0 20px rgba(255,154,60,.08);
+}
+.bonus-strip{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:8px;
+  margin-top:20px;
+}
+.bonus{
+  padding:8px 6px;
+  border-radius:10px;
+  background:rgba(255,255,255,.035);
+  border:1px solid rgba(255,255,255,.06);
+  color:#a99ab7;
+  font-size:11px;
+  font-weight:800;
+  text-align:center;
+}
+.bonus.active{
+  color:#fff2dd;
+  background:rgba(255,154,60,.15);
+  border-color:rgba(255,154,60,.55);
+  box-shadow:0 0 12px rgba(255,154,60,.28);
+}
+.result{
+  min-height:82px;
+  margin-top:22px;
+  text-align:center;
+  color:#fff2dd;
+  font-size:28px;
+  font-weight:900;
+}
+.result .headline{
+  color:#ff9a3c;
+  text-shadow:0 0 12px rgba(255,154,60,.6);
+}
+.result .message{
+  display:block;
+  margin-top:8px;
+  color:#c78cff;
+  font-size:20px;
+}
+.flash{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:0;
+}
+.flash.active{animation:flash .9s ease-out}
+.footer{
+  text-align:center;
+  margin-top:10px;
+  color:#a99ab7;
+  font-size:12px;
+}
+@keyframes spinFlick{
+  0%{transform:translateY(-10px) scale(.96)}
+  50%{transform:translateY(10px) scale(1.04)}
+  100%{transform:translateY(-10px) scale(.96)}
+}
+@keyframes flash{
+  0%{opacity:0}
+  25%{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.35),transparent 48%)}
+  100%{opacity:0}
+}
+@media(max-height:760px){.panel{transform:scale(.84)}}
+</style>
+</head>
+<body>
+<div class="scene">
+  <div class="glow"></div>
+  <div class="moon"></div>
+  <div class="web w1">🕸️</div>
+  <div class="web w2">🕸️</div>
+  <div class="bat b1">🦇</div>
+  <div class="bat b2">🦇</div>
+
+  <section class="panel">
+    <div class="flash" id="flash"></div>
+
+    <div class="title">Pumpkin Slots</div>
+    <div class="subtitle">Three playful reels. Match them for a Halloween bonus.</div>
+
+    <div class="machine">
+      <div class="reels">
+        <div class="reel" id="reel1"><div class="symbol" id="symbol1">🎃</div></div>
+        <div class="reel" id="reel2"><div class="symbol" id="symbol2">🍬</div></div>
+        <div class="reel" id="reel3"><div class="symbol" id="symbol3">👻</div></div>
+      </div>
+
+      <div class="bonus-strip">
+        <div class="bonus" id="bonus0">TRIPLE JACKPOT</div>
+        <div class="bonus" id="bonus1">LUCKY PAIR</div>
+        <div class="bonus" id="bonus2">PUMPKIN BONUS</div>
+        <div class="bonus" id="bonus3">CANDY BONUS</div>
+        <div class="bonus" id="bonus4">MYSTERY MIX</div>
+      </div>
+    </div>
+
+    <div class="result" id="result">The pumpkin reels are waiting...</div>
+    <div class="footer">StimTake Studio • Halloween Pumpkin Slots Placeholder</div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const reelEls = [
+    document.getElementById('reel1'),
+    document.getElementById('reel2'),
+    document.getElementById('reel3')
+  ];
+
+  const symbolEls = [
+    document.getElementById('symbol1'),
+    document.getElementById('symbol2'),
+    document.getElementById('symbol3')
+  ];
+
+  const bonuses = [
+    document.getElementById('bonus0'),
+    document.getElementById('bonus1'),
+    document.getElementById('bonus2'),
+    document.getElementById('bonus3'),
+    document.getElementById('bonus4')
+  ];
+
+  const result = document.getElementById('result');
+  const flash = document.getElementById('flash');
+
+  let symbols = ['🎃','🍬','👻','🦇','🖤','✨'];
+
+  let running = false;
+
+  function setSymbols(next){
+    if(!Array.isArray(next) || next.length < 3) return;
+    symbols = next.slice(0,10);
+  }
+
+  function clearBonuses(){
+    bonuses.forEach(b=>b.classList.remove('active'));
+    reelEls.forEach(r=>r.classList.remove('win'));
+  }
+
+  function evaluate(final){
+    const counts = {};
+    final.forEach(s => counts[s] = (counts[s] || 0) + 1);
+
+    const triple = final[0] === final[1] && final[1] === final[2];
+    const pair = Object.values(counts).some(v => v === 2);
+    const pumpkins = counts['🎃'] || 0;
+    const candy = counts['🍬'] || 0;
+
+    if(triple){
+      return {index:0,headline:'TRIPLE JACKPOT',message:'Three matching symbols — Halloween jackpot!',highlight:[0,1,2]};
+    }
+    if(pair){
+      const matched = Object.keys(counts).find(k => counts[k] === 2);
+      const highlight = final.map((s,i)=>s===matched?i:-1).filter(i=>i>=0);
+      return {index:1,headline:'LUCKY PAIR',message:'A matching pair brings a playful bonus!',highlight};
+    }
+    if(pumpkins >= 1){
+      return {index:2,headline:'PUMPKIN BONUS',message:'The pumpkin queen grants a spooky surprise!',highlight:final.map((s,i)=>s==='🎃'?i:-1).filter(i=>i>=0)};
+    }
+    if(candy >= 1){
+      return {index:3,headline:'CANDY BONUS',message:'A sweet Halloween treat has appeared!',highlight:final.map((s,i)=>s==='🍬'?i:-1).filter(i=>i>=0)};
+    }
+    return {index:4,headline:'MYSTERY MIX',message:'A playful Halloween mystery mix!',highlight:[]};
+  }
+
+  function spin(options = {}){
+    if(running) return false;
+    running = true;
+
+    if(Array.isArray(options.symbols)) setSymbols(options.symbols);
+
+    clearBonuses();
+    result.textContent = 'The pumpkin reels are spinning...';
+    reelEls.forEach(r=>r.classList.add('spinning'));
+
+    const forced = Array.isArray(options.result) && options.result.length === 3
+      ? options.result
+      : null;
+
+    let tick = 0;
+    const ticker = setInterval(()=>{
+      symbolEls.forEach(el=>{
+        el.textContent = symbols[Math.floor(Math.random()*symbols.length)];
+      });
+
+      tick++;
+
+      if(tick > 20){
+        clearInterval(ticker);
+
+        const final = forced || [
+          symbols[Math.floor(Math.random()*symbols.length)],
+          symbols[Math.floor(Math.random()*symbols.length)],
+          symbols[Math.floor(Math.random()*symbols.length)]
+        ];
+
+        reelEls.forEach(r=>r.classList.remove('spinning'));
+        symbolEls.forEach((el,i)=>el.textContent = final[i]);
+
+        const outcome = evaluate(final);
+
+        bonuses[outcome.index].classList.add('active');
+        outcome.highlight.forEach(i=>reelEls[i].classList.add('win'));
+
+        result.innerHTML =
+          `${final.join('  ')}<br>` +
+          `<span class="headline">${outcome.headline}</span>` +
+          `<span class="message">${outcome.message}</span>`;
+
+        flash.classList.remove('active');
+        void flash.offsetWidth;
+        flash.classList.add('active');
+
+        running = false;
+
+        window.parent?.postMessage?.({
+          type:'stimtake-pumpkin-slots-result',
+          reels:final,
+          outcome
+        },'*');
+      }
+    },110);
+
+    return true;
+  }
+
+  window.StimTakePumpkinSlots = {
+    spin,
+    setSymbols
+  };
+
+  window.addEventListener('message',(event)=>{
+    const data = event.data || {};
+    if(data.type === 'stimtake-pumpkin-slots-spin'){
+      spin({
+        symbols:Array.isArray(data.symbols) ? data.symbols : undefined,
+        result:Array.isArray(data.result) ? data.result : undefined
+      });
+    }
+  });
+
+  setTimeout(()=>spin(),800);
+})();
+</script>
+</body>
+</html>

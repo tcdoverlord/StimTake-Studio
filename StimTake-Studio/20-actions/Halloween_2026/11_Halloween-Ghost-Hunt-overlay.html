@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StimTake Halloween Ghost Hunt</title>
+<style>
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:transparent;font-family:"Segoe UI",Arial,sans-serif}
+*{box-sizing:border-box}
+.scene{position:relative;width:100%;height:100%;display:grid;place-items:center;pointer-events:none}
+.glow{position:absolute;width:860px;height:800px;border-radius:50%;background:radial-gradient(circle,rgba(180,76,255,.22),rgba(255,79,184,.08) 46%,transparent 72%);filter:blur(18px)}
+.moon{position:absolute;top:5%;right:8%;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff7df,#ffd98b 58%,#c98e3e);box-shadow:0 0 30px rgba(255,217,139,.45)}
+.moon:after{content:"";position:absolute;width:104px;height:104px;left:32px;top:-10px;border-radius:50%;background:rgba(8,5,14,.97)}
+.web{position:absolute;font-size:110px;opacity:.18}.w1{top:-10px;left:-6px}.w2{bottom:-10px;right:-6px;transform:rotate(180deg)}
+.bat{position:absolute;font-size:38px;filter:drop-shadow(0 0 5px rgba(180,76,255,.45))}.b1{top:13%;left:10%;transform:rotate(-12deg)}.b2{top:21%;right:20%;transform:scale(.8) rotate(10deg)}
+.panel{position:relative;width:min(980px,94vw);padding:28px 32px 36px;border-radius:28px;border:2px solid rgba(180,76,255,.72);background:linear-gradient(180deg,rgba(27,13,43,.94),rgba(11,7,22,.95));box-shadow:0 0 32px rgba(180,76,255,.55),0 0 64px rgba(255,79,184,.18)}
+.title{text-align:center;color:#fff2dd;font-size:36px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;text-shadow:0 0 14px rgba(180,76,255,.9)}
+.subtitle{text-align:center;color:#d6c3e1;margin-top:6px;font-size:15px}
+.hunt{position:relative;width:840px;height:470px;margin:26px auto 0;border-radius:22px;overflow:hidden;background:radial-gradient(circle at 50% 110%,rgba(180,76,255,.10),transparent 42%),linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01));border:1px solid rgba(255,255,255,.07)}
+.fog{position:absolute;left:-10%;right:-10%;bottom:-40px;height:180px;background:radial-gradient(ellipse at 20% 70%,rgba(255,255,255,.08),transparent 38%),radial-gradient(ellipse at 50% 65%,rgba(255,255,255,.06),transparent 42%),radial-gradient(ellipse at 80% 70%,rgba(255,255,255,.08),transparent 38%);filter:blur(15px)}
+.ghost{position:absolute;width:130px;text-align:center;color:white;transition:transform .8s ease,opacity .5s ease,filter .5s ease}
+.ghost-icon{font-size:76px;filter:drop-shadow(0 0 12px rgba(255,255,255,.25))}
+.ghost-name{margin-top:-6px;color:#efe4f7;font-size:13px;font-weight:800;text-shadow:0 2px 4px rgba(0,0,0,.8)}
+.g1{left:70px;top:55px}.g2{left:245px;top:190px}.g3{left:420px;top:75px}.g4{left:595px;top:210px}.g5{left:690px;top:75px}
+.ghost.flying .ghost-icon{animation:floaty .75s ease-in-out infinite alternate}
+.ghost.captured{z-index:8;filter:drop-shadow(0 0 18px rgba(201,140,255,.9));transform:scale(1.22)}
+.ghost.dim{opacity:.16;filter:saturate(.4)}
+.capture-ring{position:absolute;width:170px;height:170px;border-radius:50%;border:4px solid #c78cff;box-shadow:0 0 20px rgba(199,140,255,.8),inset 0 0 24px rgba(255,255,255,.08);opacity:0;transform:scale(.4);z-index:7}
+.capture-ring.active{animation:capture .8s ease-out forwards}
+.result{min-height:74px;margin-top:18px;text-align:center;color:#fff2dd;font-size:28px;font-weight:900}
+.result .pick{color:#c78cff;text-shadow:0 0 12px rgba(199,140,255,.65)}
+.result .message{display:block;margin-top:8px;color:#ff9a3c;font-size:20px}
+.flash{position:absolute;inset:0;pointer-events:none;opacity:0}.flash.active{animation:flash .9s ease-out}
+.footer{text-align:center;margin-top:10px;color:#a99ab7;font-size:12px}
+@keyframes floaty{from{transform:translate(-8px,-6px) rotate(-3deg)}to{transform:translate(8px,6px) rotate(3deg)}}
+@keyframes capture{0%{opacity:0;transform:scale(.35)}45%{opacity:1}100%{opacity:0;transform:scale(1.45)}}
+@keyframes flash{0%{opacity:0}25%{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.34),transparent 48%)}100%{opacity:0}}
+@media(max-height:760px){.panel{transform:scale(.82)}}
+</style>
+</head>
+<body>
+<div class="scene">
+<div class="glow"></div><div class="moon"></div><div class="web w1">🕸️</div><div class="web w2">🕸️</div><div class="bat b1">🦇</div><div class="bat b2">🦇</div>
+<section class="panel">
+<div class="flash" id="flash"></div>
+<div class="title">Ghost Hunt</div>
+<div class="subtitle">Five spirits are loose. One gets magically captured.</div>
+<div class="hunt" id="hunt">
+<div class="fog"></div>
+<div class="ghost g1" data-index="0"><div class="ghost-icon">👻</div><div class="ghost-name">Luna</div></div>
+<div class="ghost g2" data-index="1"><div class="ghost-icon">👻</div><div class="ghost-name">Velvet</div></div>
+<div class="ghost g3" data-index="2"><div class="ghost-icon">👻</div><div class="ghost-name">Misty</div></div>
+<div class="ghost g4" data-index="3"><div class="ghost-icon">👻</div><div class="ghost-name">Hexie</div></div>
+<div class="ghost g5" data-index="4"><div class="ghost-icon">👻</div><div class="ghost-name">Boo</div></div>
+<div class="capture-ring" id="captureRing"></div>
+</div>
+<div class="result" id="result">The ghosts are hiding...</div>
+<div class="footer">StimTake Studio • Halloween Ghost Hunt Placeholder</div>
+</section>
+</div>
+<script>
+(()=>{
+const hunt=document.getElementById('hunt');
+const ghosts=[...document.querySelectorAll('.ghost')];
+const ring=document.getElementById('captureRing');
+const result=document.getElementById('result');
+const flash=document.getElementById('flash');
+let names=['Luna','Velvet','Misty','Hexie','Boo'];
+let outcomes=['reveals a sweet little surprise','brings a spooky bonus','unlocks a witchy moment','summons a playful challenge','leaves behind a lucky charm'];
+let running=false;
+
+function setNames(next){
+ if(!Array.isArray(next)||!next.length)return;
+ names=next.slice(0,5);
+ while(names.length<5)names.push('Ghost '+(names.length+1));
+ ghosts.forEach((g,i)=>g.querySelector('.ghost-name').textContent=names[i]);
+}
+function reset(){
+ ghosts.forEach(g=>{
+  g.classList.remove('captured','dim','flying');
+  g.style.transition='none';
+  g.style.transform='translate(0,0)';
+  void g.offsetWidth;
+  g.style.transition='transform .8s ease,opacity .5s ease,filter .5s ease';
+ });
+ ring.classList.remove('active');
+}
+function randomMotion(){
+ ghosts.forEach(g=>{
+  const x=-45+Math.floor(Math.random()*90);
+  const y=-35+Math.floor(Math.random()*70);
+  g.style.transform=`translate(${x}px,${y}px)`;
+  g.classList.add('flying');
+ });
+}
+function placeRing(el){
+ const hr=hunt.getBoundingClientRect(),r=el.getBoundingClientRect();
+ ring.style.left=(r.left-hr.left+r.width/2-85)+'px';
+ ring.style.top=(r.top-hr.top+r.height/2-85)+'px';
+}
+function start(options={}){
+ if(running)return false;
+ running=true;
+ if(Array.isArray(options.names))setNames(options.names);
+ reset();
+ result.textContent='The ghosts are flying...';
+ const forced=Number.isInteger(options.index)?options.index:null;
+ const selected=forced!==null?Math.max(0,Math.min(4,forced)):Math.floor(Math.random()*5);
+ let count=0;
+ const mover=setInterval(()=>{
+  randomMotion();
+  count++;
+  if(count>=5){
+   clearInterval(mover);
+   setTimeout(()=>{
+    ghosts.forEach((g,i)=>{
+     g.classList.remove('flying');
+     if(i===selected)g.classList.add('captured');else g.classList.add('dim');
+    });
+    placeRing(ghosts[selected]);
+    void ring.offsetWidth;
+    ring.classList.add('active');
+    const message=outcomes[Math.floor(Math.random()*outcomes.length)];
+    result.innerHTML=`👻 <span class="pick">${names[selected]}</span><span class="message">${message}</span>`;
+    void flash.offsetWidth;
+    flash.classList.add('active');
+    running=false;
+    window.parent?.postMessage?.({type:'stimtake-ghost-hunt-result',index:selected,name:names[selected],message},'*');
+   },500);
+  }
+ },420);
+ return true;
+}
+setNames(names);
+window.StimTakeGhostHunt={hunt:start,setNames};
+window.addEventListener('message',e=>{
+ const d=e.data||{};
+ if(d.type==='stimtake-ghost-hunt')start({index:Number.isInteger(d.index)?d.index:undefined,names:Array.isArray(d.names)?d.names:undefined});
+});
+setTimeout(()=>start(),800);
+})();
+</script>
+</body>
+</html>

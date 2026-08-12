@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StimTake Halloween Mystery Coffin</title>
+<style>
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  overflow:hidden;
+  background:transparent;
+  font-family:"Segoe UI",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+.scene{
+  position:relative;
+  width:100%;
+  height:100%;
+  display:grid;
+  place-items:center;
+  pointer-events:none;
+}
+.glow{
+  position:absolute;
+  width:860px;
+  height:820px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(180,76,255,.23),rgba(255,79,184,.08) 46%,transparent 72%);
+  filter:blur(18px);
+}
+.moon{
+  position:absolute;
+  top:5%;
+  right:8%;
+  width:118px;
+  height:118px;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#fff7df,#ffd98b 58%,#c98e3e);
+  box-shadow:0 0 30px rgba(255,217,139,.45);
+}
+.moon:after{
+  content:"";
+  position:absolute;
+  width:102px;
+  height:102px;
+  left:31px;
+  top:-10px;
+  border-radius:50%;
+  background:rgba(8,5,14,.97);
+}
+.web{position:absolute;font-size:110px;opacity:.18}
+.w1{top:-10px;left:-6px}
+.w2{bottom:-10px;right:-6px;transform:rotate(180deg)}
+.bat{position:absolute;font-size:40px;filter:drop-shadow(0 0 5px rgba(180,76,255,.45))}
+.b1{top:12%;left:10%;transform:rotate(-12deg)}
+.b2{top:20%;right:20%;transform:scale(.8) rotate(10deg)}
+
+.panel{
+  position:relative;
+  width:min(1000px,94vw);
+  padding:28px 32px 36px;
+  border-radius:28px;
+  border:2px solid rgba(180,76,255,.72);
+  background:linear-gradient(180deg,rgba(27,13,43,.94),rgba(11,7,22,.95));
+  box-shadow:0 0 32px rgba(180,76,255,.55),0 0 64px rgba(255,79,184,.16);
+}
+.title{
+  text-align:center;
+  color:#fff2dd;
+  font-size:36px;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  text-shadow:0 0 14px rgba(180,76,255,.9);
+}
+.subtitle{
+  text-align:center;
+  color:#d6c3e1;
+  margin-top:6px;
+  font-size:15px;
+}
+.coffin-row{
+  display:flex;
+  justify-content:center;
+  gap:24px;
+  margin:42px auto 0;
+  min-height:360px;
+  align-items:center;
+}
+.coffin-wrap{
+  position:relative;
+  width:145px;
+  text-align:center;
+  transition:transform .45s ease,opacity .35s ease,filter .35s ease;
+}
+.coffin{
+  position:relative;
+  width:122px;
+  height:220px;
+  margin:0 auto;
+  clip-path:polygon(25% 0,75% 0,100% 18%,88% 100%,12% 100%,0 18%);
+  background:linear-gradient(145deg,#44204f,#160c20 72%);
+  border:4px solid #8c49d7;
+  box-shadow:0 0 22px rgba(180,76,255,.36),inset 0 0 24px rgba(255,255,255,.03);
+  transform-origin:center bottom;
+}
+.coffin-lid{
+  position:absolute;
+  inset:0;
+  clip-path:inherit;
+  background:linear-gradient(145deg,#5a2b68,#21102d);
+  border:4px solid #a75ce8;
+  display:grid;
+  place-items:center;
+  font-size:44px;
+  color:#ffb06a;
+  transition:transform .7s ease,opacity .45s ease;
+  transform-origin:left center;
+}
+.coffin-lid:after{
+  content:"✦";
+  font-size:36px;
+  color:#ff9a3c;
+  text-shadow:0 0 10px rgba(255,154,60,.55);
+}
+.coffin.open .coffin-lid{
+  transform:perspective(600px) rotateY(-105deg);
+  opacity:.25;
+}
+.prize{
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  padding:20px;
+  text-align:center;
+  color:#fff2dd;
+  font-size:18px;
+  font-weight:900;
+  opacity:0;
+  transform:scale(.75);
+  transition:opacity .55s ease,transform .55s ease;
+}
+.coffin.open .prize{
+  opacity:1;
+  transform:scale(1);
+}
+.coffin-wrap.shake .coffin{
+  animation:shake .18s linear infinite;
+}
+.coffin-wrap.dim{
+  opacity:.18;
+  filter:saturate(.35);
+}
+.coffin-wrap.winner{
+  transform:translateY(-22px) scale(1.1);
+}
+.coffin-wrap.winner .coffin{
+  box-shadow:
+    0 0 30px rgba(255,154,60,.75),
+    0 0 60px rgba(180,76,255,.55),
+    inset 0 0 24px rgba(255,255,255,.03);
+}
+.coffin-name{
+  margin-top:14px;
+  color:#efe6f6;
+  font-size:13px;
+  font-weight:900;
+  letter-spacing:.04em;
+}
+.coffin-wrap.winner .coffin-name{
+  color:#ffad61;
+  text-shadow:0 0 10px rgba(255,154,60,.5);
+}
+.crown{
+  position:absolute;
+  top:-40px;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:34px;
+  opacity:0;
+}
+.coffin-wrap.winner .crown{opacity:1}
+
+.smoke{
+  position:absolute;
+  width:180px;
+  height:180px;
+  left:50%;
+  top:40px;
+  margin-left:-90px;
+  border-radius:50%;
+  background:
+    radial-gradient(circle at 30% 60%,rgba(199,140,255,.26),transparent 36%),
+    radial-gradient(circle at 70% 40%,rgba(255,79,184,.16),transparent 38%),
+    radial-gradient(circle at 50% 70%,rgba(255,255,255,.10),transparent 42%);
+  filter:blur(14px);
+  opacity:0;
+  z-index:6;
+}
+.smoke.active{animation:smokeRise 1.4s ease-out forwards}
+
+.confetti{
+  position:absolute;
+  inset:0;
+  overflow:hidden;
+  pointer-events:none;
+  z-index:7;
+}
+.confetti i{
+  position:absolute;
+  top:45%;
+  left:50%;
+  width:10px;
+  height:18px;
+  background:#ff9a3c;
+  opacity:0;
+}
+.confetti.active i{animation:confetti 1.2s ease-out forwards}
+.confetti i:nth-child(2){background:#b44cff;--x:-120px;--y:-120px;animation-delay:.05s}
+.confetti i:nth-child(3){background:#ff79be;--x:110px;--y:-135px;animation-delay:.10s}
+.confetti i:nth-child(4){background:#8cff9f;--x:-170px;--y:-60px;animation-delay:.15s}
+.confetti i:nth-child(5){background:#ffd36a;--x:170px;--y:-70px;animation-delay:.20s}
+.confetti i:nth-child(6){background:#fff0dd;--x:-70px;--y:-170px;animation-delay:.25s}
+.confetti i:nth-child(7){background:#c78cff;--x:65px;--y:-175px;animation-delay:.30s}
+.confetti i:nth-child(8){background:#ff9a3c;--x:0px;--y:-190px;animation-delay:.35s}
+
+.result{
+  min-height:74px;
+  margin-top:18px;
+  text-align:center;
+  color:#fff2dd;
+  font-size:28px;
+  font-weight:900;
+}
+.result .pick{
+  color:#ff9a3c;
+  text-shadow:0 0 12px rgba(255,154,60,.6);
+}
+.result .message{
+  display:block;
+  margin-top:8px;
+  color:#c78cff;
+  font-size:20px;
+}
+.flash{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:0;
+}
+.flash.active{animation:flash .9s ease-out}
+.footer{
+  text-align:center;
+  margin-top:10px;
+  color:#a99ab7;
+  font-size:12px;
+}
+@keyframes shake{
+  0%{transform:rotate(-3deg) translateX(-3px)}
+  25%{transform:rotate(3deg) translateX(3px)}
+  50%{transform:rotate(-2deg) translateY(2px)}
+  75%{transform:rotate(2deg) translateY(-2px)}
+  100%{transform:rotate(0deg)}
+}
+@keyframes smokeRise{
+  0%{opacity:0;transform:translateY(20px) scale(.6)}
+  45%{opacity:.9}
+  100%{opacity:0;transform:translateY(-110px) scale(1.35)}
+}
+@keyframes confetti{
+  0%{opacity:0;transform:translate(0,0) rotate(0deg)}
+  20%{opacity:1}
+  100%{opacity:0;transform:translate(var(--x,90px),var(--y,-130px)) rotate(540deg)}
+}
+@keyframes flash{
+  0%{opacity:0}
+  25%{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.34),transparent 48%)}
+  100%{opacity:0}
+}
+@media(max-height:760px){.panel{transform:scale(.82)}}
+</style>
+</head>
+<body>
+<div class="scene">
+  <div class="glow"></div>
+  <div class="moon"></div>
+  <div class="web w1">🕸️</div>
+  <div class="web w2">🕸️</div>
+  <div class="bat b1">🦇</div>
+  <div class="bat b2">🦇</div>
+
+  <section class="panel">
+    <div class="flash" id="flash"></div>
+
+    <div class="title">Mystery Coffin</div>
+    <div class="subtitle">Five tiny coffins. One opens to reveal the prize.</div>
+
+    <div class="coffin-row">
+      <div class="coffin-wrap" data-index="0">
+        <div class="crown">👑</div>
+        <div class="coffin">
+          <div class="coffin-lid"></div>
+          <div class="prize">Sweet Treat</div>
+        </div>
+        <div class="coffin-name">Velvet</div>
+      </div>
+
+      <div class="coffin-wrap" data-index="1">
+        <div class="crown">👑</div>
+        <div class="coffin">
+          <div class="coffin-lid"></div>
+          <div class="prize">Lucky Bonus</div>
+        </div>
+        <div class="coffin-name">Luna</div>
+      </div>
+
+      <div class="coffin-wrap" data-index="2">
+        <div class="crown">👑</div>
+        <div class="coffin">
+          <div class="coffin-lid"></div>
+          <div class="prize">Witchy Dare</div>
+        </div>
+        <div class="coffin-name">Hexie</div>
+      </div>
+
+      <div class="coffin-wrap" data-index="3">
+        <div class="crown">👑</div>
+        <div class="coffin">
+          <div class="coffin-lid"></div>
+          <div class="prize">Mystery Charm</div>
+        </div>
+        <div class="coffin-name">Raven</div>
+      </div>
+
+      <div class="coffin-wrap" data-index="4">
+        <div class="crown">👑</div>
+        <div class="coffin">
+          <div class="coffin-lid"></div>
+          <div class="prize">Pumpkin Prize</div>
+        </div>
+        <div class="coffin-name">Midnight</div>
+      </div>
+    </div>
+
+    <div class="smoke" id="smoke"></div>
+
+    <div class="confetti" id="confetti">
+      <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+    </div>
+
+    <div class="result" id="result">The coffins are sleeping...</div>
+    <div class="footer">StimTake Studio • Halloween Mystery Coffin Placeholder</div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const coffins = [...document.querySelectorAll('.coffin-wrap')];
+  const result = document.getElementById('result');
+  const flash = document.getElementById('flash');
+  const smoke = document.getElementById('smoke');
+  const confetti = document.getElementById('confetti');
+
+  let entries = [
+    {name:'Velvet',prize:'Sweet Treat'},
+    {name:'Luna',prize:'Lucky Bonus'},
+    {name:'Hexie',prize:'Witchy Dare'},
+    {name:'Raven',prize:'Mystery Charm'},
+    {name:'Midnight',prize:'Pumpkin Prize'}
+  ];
+
+  let messages = [
+    'opens with a spooky little surprise',
+    'reveals a lucky Halloween prize',
+    'unlocks a playful mystery',
+    'brings a touch of witchy magic',
+    'has chosen the room’s next treat'
+  ];
+
+  let running = false;
+
+  function setEntries(next){
+    if(!Array.isArray(next) || !next.length) return;
+    entries = next.slice(0,5).map((e,i)=>({
+      name:String(e.name || ('Coffin ' + (i+1))),
+      prize:String(e.prize || ('Prize ' + (i+1)))
+    }));
+    while(entries.length < 5){
+      entries.push({
+        name:'Coffin ' + (entries.length+1),
+        prize:'Prize ' + (entries.length+1)
+      });
+    }
+    coffins.forEach((c,i)=>{
+      c.querySelector('.coffin-name').textContent = entries[i].name;
+      c.querySelector('.prize').textContent = entries[i].prize;
+    });
+  }
+
+  function reset(){
+    coffins.forEach(c=>{
+      c.classList.remove('shake','winner','dim');
+      c.querySelector('.coffin').classList.remove('open');
+    });
+    smoke.classList.remove('active');
+    confetti.classList.remove('active');
+  }
+
+  function pick(options = {}){
+    if(running) return false;
+    running = true;
+
+    if(Array.isArray(options.entries)) setEntries(options.entries);
+
+    reset();
+    result.textContent = 'The coffins are shaking...';
+    coffins.forEach(c=>c.classList.add('shake'));
+
+    const forced = Number.isInteger(options.index) ? options.index : null;
+    const selected = forced !== null
+      ? Math.max(0,Math.min(4,forced))
+      : Math.floor(Math.random()*5);
+
+    setTimeout(()=>{
+      coffins.forEach((c,i)=>{
+        c.classList.remove('shake');
+        if(i === selected){
+          c.classList.add('winner');
+          c.querySelector('.coffin').classList.add('open');
+        }else{
+          c.classList.add('dim');
+        }
+      });
+
+      smoke.classList.remove('active');
+      void smoke.offsetWidth;
+      smoke.classList.add('active');
+
+      confetti.classList.remove('active');
+      void confetti.offsetWidth;
+      confetti.classList.add('active');
+
+      const entry = entries[selected];
+      const message = messages[Math.floor(Math.random()*messages.length)];
+
+      result.innerHTML =
+        `🎁 <span class="pick">${entry.name}: ${entry.prize}</span>` +
+        `<span class="message">${message}</span>`;
+
+      flash.classList.remove('active');
+      void flash.offsetWidth;
+      flash.classList.add('active');
+
+      running = false;
+
+      window.parent?.postMessage?.({
+        type:'stimtake-mystery-coffin-result',
+        index:selected,
+        entry,
+        message
+      },'*');
+    },2200);
+
+    return true;
+  }
+
+  setEntries(entries);
+
+  window.StimTakeMysteryCoffin = {
+    pick,
+    setEntries
+  };
+
+  window.addEventListener('message',(event)=>{
+    const data = event.data || {};
+    if(data.type === 'stimtake-mystery-coffin-pick'){
+      pick({
+        index:Number.isInteger(data.index) ? data.index : undefined,
+        entries:Array.isArray(data.entries) ? data.entries : undefined
+      });
+    }
+  });
+
+  setTimeout(()=>pick(),800);
+})();
+</script>
+</body>
+</html>

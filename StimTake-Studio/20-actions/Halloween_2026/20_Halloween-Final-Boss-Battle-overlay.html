@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StimTake Halloween Final Boss Battle</title>
+<style>
+html,body{
+  width:100%;height:100%;margin:0;overflow:hidden;background:transparent;
+  font-family:"Segoe UI",Arial,sans-serif
+}
+*{box-sizing:border-box}
+.scene{
+  position:relative;width:100%;height:100%;display:grid;place-items:center;pointer-events:none
+}
+.glow{
+  position:absolute;width:1100px;height:900px;border-radius:50%;
+  background:radial-gradient(circle,rgba(180,76,255,.26),rgba(255,79,184,.09) 48%,transparent 74%);
+  filter:blur(20px)
+}
+.moon{
+  position:absolute;top:5%;right:7%;width:130px;height:130px;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#fff7df,#ffd98b 58%,#c98e3e);
+  box-shadow:0 0 36px rgba(255,217,139,.48)
+}
+.moon:after{
+  content:"";position:absolute;width:112px;height:112px;left:35px;top:-10px;border-radius:50%;
+  background:rgba(8,5,14,.97)
+}
+.web{position:absolute;font-size:120px;opacity:.17}
+.w1{top:-12px;left:-8px}.w2{bottom:-12px;right:-8px;transform:rotate(180deg)}
+.bat{position:absolute;font-size:42px;filter:drop-shadow(0 0 6px rgba(180,76,255,.45))}
+.b1{top:12%;left:9%;transform:rotate(-12deg)}.b2{top:21%;right:20%;transform:scale(.85) rotate(10deg)}
+.b3{bottom:16%;left:16%;transform:scale(.7) rotate(14deg)}
+.panel{
+  position:relative;width:min(1220px,97vw);padding:26px 34px 34px;border-radius:30px;
+  border:2px solid rgba(180,76,255,.75);
+  background:linear-gradient(180deg,rgba(27,13,43,.95),rgba(10,6,20,.96));
+  box-shadow:0 0 38px rgba(180,76,255,.6),0 0 72px rgba(255,79,184,.18)
+}
+.title{
+  text-align:center;color:#fff2dd;font-size:38px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;
+  text-shadow:0 0 16px rgba(180,76,255,.95)
+}
+.subtitle{text-align:center;color:#d6c3e1;margin-top:6px;font-size:15px}
+.battle{
+  position:relative;width:1120px;height:600px;margin:24px auto 0;border-radius:24px;overflow:hidden;
+  background:
+    radial-gradient(circle at 50% 108%,rgba(180,76,255,.12),transparent 42%),
+    linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01));
+  border:1px solid rgba(255,255,255,.07)
+}
+.ground{
+  position:absolute;left:-5%;right:-5%;bottom:-10px;height:170px;
+  background:
+    radial-gradient(ellipse at 25% 55%,rgba(75,41,88,.95),transparent 44%),
+    radial-gradient(ellipse at 55% 50%,rgba(49,29,58,.95),transparent 45%),
+    radial-gradient(ellipse at 85% 60%,rgba(67,39,78,.95),transparent 44%)
+}
+.fog{
+  position:absolute;left:-8%;right:-8%;bottom:25px;height:130px;
+  background:
+    radial-gradient(ellipse at 20% 70%,rgba(255,255,255,.07),transparent 38%),
+    radial-gradient(ellipse at 50% 65%,rgba(255,255,255,.05),transparent 42%),
+    radial-gradient(ellipse at 80% 70%,rgba(255,255,255,.07),transparent 38%);
+  filter:blur(14px)
+}
+.health{
+  position:absolute;top:22px;width:430px
+}
+.health.left{left:70px}.health.right{right:70px}
+.health-labels{
+  display:flex;justify-content:space-between;color:#efe6f6;font-size:12px;font-weight:900;letter-spacing:.05em
+}
+.track{
+  margin-top:7px;height:30px;border-radius:999px;background:#140b1e;border:3px solid #51305f;
+  overflow:hidden;box-shadow:inset 0 0 18px rgba(0,0,0,.5),0 0 15px rgba(180,76,255,.25)
+}
+.bar{height:100%;width:100%;transition:width .55s ease}
+.player-bar{background:linear-gradient(90deg,#ff78c6,#d96fff,#8f4cff)}
+.boss-bar{background:linear-gradient(90deg,#ff5d66,#ff8a3d,#8f2cff)}
+.hptext{
+  position:absolute;top:27px;left:0;right:0;text-align:center;color:#fff;font-size:13px;font-weight:900;
+  text-shadow:0 2px 3px rgba(0,0,0,.75)
+}
+.fighter{
+  position:absolute;bottom:78px;width:320px;text-align:center
+}
+.player{left:95px}.boss{right:95px}
+.icon{
+  font-size:190px;filter:drop-shadow(0 9px 8px rgba(0,0,0,.5));transform-origin:center
+}
+.name{
+  margin-top:-12px;font-size:20px;font-weight:900;letter-spacing:.05em
+}
+.player .name{color:#ff9ad3}.boss .name{color:#c78cff}
+.player.attack .icon{animation:playerAttack .5s ease-out}
+.boss.attack .icon{animation:bossAttack .5s ease-out}
+.player.hit .icon,.boss.hit .icon{animation:hit .35s ease-in-out}
+.projectile{
+  position:absolute;width:110px;height:110px;border-radius:50%;opacity:0;z-index:6
+}
+.player-shot{
+  left:305px;bottom:270px;
+  background:radial-gradient(circle,#fff6ce 0 12%,#ff7fbd 28%,#b44cff 55%,transparent 72%);
+  box-shadow:0 0 28px rgba(180,76,255,.8)
+}
+.boss-shot{
+  right:305px;bottom:270px;
+  background:radial-gradient(circle,#fff0ca 0 12%,#ff8a3d 28%,#ff3f67 55%,transparent 72%);
+  box-shadow:0 0 28px rgba(255,90,80,.75)
+}
+.player-shot.fly{animation:playerFly .65s ease-out forwards}
+.boss-shot.fly{animation:bossFly .65s ease-out forwards}
+.damage{
+  position:absolute;bottom:350px;font-size:34px;font-weight:900;opacity:0;z-index:8;
+  text-shadow:0 0 14px rgba(255,154,60,.7)
+}
+.damage.left{left:260px;color:#ff8fc9}
+.damage.right{right:260px;color:#ff9a3c}
+.damage.show{animation:damagePop .95s ease-out forwards}
+.round{
+  position:absolute;left:50%;top:95px;transform:translateX(-50%);
+  padding:8px 18px;border-radius:999px;background:rgba(18,10,30,.88);
+  border:1px solid rgba(180,76,255,.45);color:#d8c4e4;font-size:13px;font-weight:900;letter-spacing:.08em
+}
+.victory{
+  position:absolute;inset:0;display:grid;place-items:center;background:rgba(10,6,20,.54);opacity:0;z-index:10
+}
+.victory.show{animation:victoryIn .8s ease-out forwards}
+.victory-box{
+  min-width:520px;padding:30px 46px;border-radius:24px;background:rgba(24,12,36,.95);
+  border:2px solid rgba(255,154,60,.72);
+  box-shadow:0 0 36px rgba(255,154,60,.45),0 0 62px rgba(180,76,255,.52);text-align:center
+}
+.victory-title{color:#ffb066;font-size:42px;font-weight:900;letter-spacing:.08em}
+.victory-sub{margin-top:10px;color:#d8c4e4;font-size:18px;font-weight:700}
+.result{
+  min-height:76px;margin-top:16px;text-align:center;color:#fff2dd;font-size:27px;font-weight:900
+}
+.result .hit{color:#ff9a3c;text-shadow:0 0 12px rgba(255,154,60,.6)}
+.result .message{display:block;margin-top:8px;color:#c78cff;font-size:19px}
+.flash{position:absolute;inset:0;pointer-events:none;opacity:0}
+.flash.active{animation:flash .8s ease-out}
+.footer{text-align:center;margin-top:8px;color:#a99ab7;font-size:12px}
+@keyframes playerAttack{0%{transform:translateX(0) rotate(0)}50%{transform:translateX(30px) rotate(-7deg) scale(1.06)}100%{transform:translateX(0)}}
+@keyframes bossAttack{0%{transform:translateX(0) rotate(0)}50%{transform:translateX(-30px) rotate(7deg) scale(1.06)}100%{transform:translateX(0)}}
+@keyframes hit{0%{transform:translateX(0)}30%{transform:translateX(15px) rotate(4deg)}65%{transform:translateX(-12px) rotate(-4deg)}100%{transform:translateX(0)}}
+@keyframes playerFly{0%{opacity:0;transform:translate(0,0) scale(.55)}15%{opacity:1}100%{opacity:0;transform:translate(485px,-35px) scale(1.25)}}
+@keyframes bossFly{0%{opacity:0;transform:translate(0,0) scale(.55)}15%{opacity:1}100%{opacity:0;transform:translate(-485px,-35px) scale(1.25)}}
+@keyframes damagePop{0%{opacity:0;transform:translateY(20px) scale(.6)}35%{opacity:1;transform:translateY(-10px) scale(1.15)}100%{opacity:0;transform:translateY(-70px) scale(.9)}}
+@keyframes victoryIn{from{opacity:0}to{opacity:1}}
+@keyframes flash{0%{opacity:0}25%{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.34),transparent 48%)}100%{opacity:0}}
+@media(max-height:760px){.panel{transform:scale(.78)}}
+</style>
+</head>
+<body>
+<div class="scene">
+<div class="glow"></div><div class="moon"></div><div class="web w1">🕸️</div><div class="web w2">🕸️</div>
+<div class="bat b1">🦇</div><div class="bat b2">🦇</div><div class="bat b3">🦇</div>
+
+<section class="panel">
+<div class="flash" id="flash"></div>
+<div class="title">Halloween Final Boss Battle</div>
+<div class="subtitle">One trigger starts the whole fight. Fate decides who survives.</div>
+
+<div class="battle">
+<div class="ground"></div><div class="fog"></div>
+
+<div class="health left">
+  <div class="health-labels"><span>WITCH HERO</span><span id="playerPct">100%</span></div>
+  <div class="track"><div class="bar player-bar" id="playerBar"></div></div>
+  <div class="hptext" id="playerHp">100 / 100 HP</div>
+</div>
+
+<div class="health right">
+  <div class="health-labels"><span>NIGHTMARE QUEEN</span><span id="bossPct">100%</span></div>
+  <div class="track"><div class="bar boss-bar" id="bossBar"></div></div>
+  <div class="hptext" id="bossHp">100 / 100 HP</div>
+</div>
+
+<div class="round" id="round">ROUND 1</div>
+
+<div class="fighter player" id="player">
+  <div class="icon">🧙‍♀️</div>
+  <div class="name">WITCH HERO</div>
+</div>
+
+<div class="fighter boss" id="boss">
+  <div class="icon">👹</div>
+  <div class="name">NIGHTMARE QUEEN</div>
+</div>
+
+<div class="projectile player-shot" id="playerShot"></div>
+<div class="projectile boss-shot" id="bossShot"></div>
+
+<div class="damage left" id="playerDamage">-20 HP</div>
+<div class="damage right" id="bossDamage">-20 HP</div>
+
+<div class="victory" id="victory">
+  <div class="victory-box">
+    <div class="victory-title" id="victoryTitle">VICTORY!</div>
+    <div class="victory-sub" id="victorySub">The battle is over.</div>
+  </div>
+</div>
+</div>
+
+<div class="result" id="result">The final battle is about to begin...</div>
+<div class="footer">StimTake Studio • Halloween Final Battle</div>
+</section>
+</div>
+
+<script>
+(()=>{
+const player=document.getElementById('player');
+const boss=document.getElementById('boss');
+const playerShot=document.getElementById('playerShot');
+const bossShot=document.getElementById('bossShot');
+const playerDamage=document.getElementById('playerDamage');
+const bossDamage=document.getElementById('bossDamage');
+const playerBar=document.getElementById('playerBar');
+const bossBar=document.getElementById('bossBar');
+const playerHpEl=document.getElementById('playerHp');
+const bossHpEl=document.getElementById('bossHp');
+const playerPct=document.getElementById('playerPct');
+const bossPct=document.getElementById('bossPct');
+const roundEl=document.getElementById('round');
+const victory=document.getElementById('victory');
+const victoryTitle=document.getElementById('victoryTitle');
+const victorySub=document.getElementById('victorySub');
+const result=document.getElementById('result');
+const flash=document.getElementById('flash');
+
+let running=false;
+let playerHp=100;
+let bossHp=100;
+let round=1;
+
+const playerMoves=['Moonlight Blast','Velvet Hex','Pumpkin Bomb','Crystal Strike','Witchfire'];
+const bossMoves=['Shadow Claw','Nightmare Flame','Haunted Roar','Dark Hex','Graveyard Smash'];
+
+function rand(min,max){return Math.floor(Math.random()*(max-min+1))+min}
+
+function update(){
+  const pp=Math.max(0,playerHp);
+  const bp=Math.max(0,bossHp);
+  playerBar.style.width=pp+'%';
+  bossBar.style.width=bp+'%';
+  playerHpEl.textContent=pp+' / 100 HP';
+  bossHpEl.textContent=bp+' / 100 HP';
+  playerPct.textContent=pp+'%';
+  bossPct.textContent=bp+'%';
+  roundEl.textContent='ROUND '+round;
+}
+
+function flashNow(){
+  flash.classList.remove('active');
+  void flash.offsetWidth;
+  flash.classList.add('active');
+}
+
+function showDamage(el,value){
+  el.textContent='-'+value+' HP';
+  el.classList.remove('show');
+  void el.offsetWidth;
+  el.classList.add('show');
+}
+
+function attackPlayer(){
+  return new Promise(resolve=>{
+    const move=playerMoves[Math.floor(Math.random()*playerMoves.length)];
+    const dmg=rand(12,28);
+
+    result.textContent='Witch Hero uses '+move+'!';
+    player.classList.remove('attack'); void player.offsetWidth; player.classList.add('attack');
+
+    setTimeout(()=>{
+      playerShot.classList.remove('fly'); void playerShot.offsetWidth; playerShot.classList.add('fly');
+    },120);
+
+    setTimeout(()=>{
+      boss.classList.remove('hit'); void boss.offsetWidth; boss.classList.add('hit');
+      bossHp=Math.max(0,bossHp-dmg);
+      update();
+      showDamage(bossDamage,dmg);
+      result.innerHTML='🧙‍♀️ <span class="hit">'+move+' hits for '+dmg+'!</span><span class="message">The Nightmare Queen reels from the attack.</span>';
+      flashNow();
+      setTimeout(resolve,700);
+    },760);
+  });
+}
+
+function attackBoss(){
+  return new Promise(resolve=>{
+    const move=bossMoves[Math.floor(Math.random()*bossMoves.length)];
+    const dmg=rand(10,26);
+
+    result.textContent='Nightmare Queen uses '+move+'!';
+    boss.classList.remove('attack'); void boss.offsetWidth; boss.classList.add('attack');
+
+    setTimeout(()=>{
+      bossShot.classList.remove('fly'); void bossShot.offsetWidth; bossShot.classList.add('fly');
+    },120);
+
+    setTimeout(()=>{
+      player.classList.remove('hit'); void player.offsetWidth; player.classList.add('hit');
+      playerHp=Math.max(0,playerHp-dmg);
+      update();
+      showDamage(playerDamage,dmg);
+      result.innerHTML='👹 <span class="hit">'+move+' hits for '+dmg+'!</span><span class="message">The Witch Hero fights to stay standing.</span>';
+      flashNow();
+      setTimeout(resolve,700);
+    },760);
+  });
+}
+
+function finish(){
+  const playerWon = bossHp<=0 && playerHp>0;
+  const bossWon = playerHp<=0 && bossHp>0;
+
+  if(playerWon){
+    victoryTitle.textContent='WITCH HERO WINS!';
+    victorySub.textContent='The Nightmare Queen has been defeated 👑';
+  }else if(bossWon){
+    victoryTitle.textContent='NIGHTMARE QUEEN WINS!';
+    victorySub.textContent='The haunted boss survives the final battle 👑';
+  }else{
+    // extremely rare simultaneous defeat fallback
+    const randomWinner=Math.random()<.5;
+    victoryTitle.textContent=randomWinner?'WITCH HERO WINS!':'NIGHTMARE QUEEN WINS!';
+    victorySub.textContent=randomWinner?'A last spark of magic decides the fight 👑':'A final shadow strike ends the battle 👑';
+  }
+
+  victory.classList.remove('show');
+  void victory.offsetWidth;
+  victory.classList.add('show');
+
+  window.parent?.postMessage?.({
+    type:'stimtake-final-boss-result',
+    playerHp,
+    bossHp,
+    winner:playerWon?'player':bossWon?'boss':'random'
+  },'*');
+
+  running=false;
+}
+
+async function startBattle(){
+  if(running)return false;
+  running=true;
+  playerHp=100;
+  bossHp=100;
+  round=1;
+  victory.classList.remove('show');
+  update();
+
+  result.textContent='The final battle begins...';
+  await new Promise(r=>setTimeout(r,700));
+
+  // Randomize who attacks first and continue until one fighter is defeated.
+  let turn=Math.random()<.5?'player':'boss';
+
+  while(playerHp>0 && bossHp>0){
+    round++;
+    update();
+
+    if(turn==='player'){
+      await attackPlayer();
+      if(bossHp<=0)break;
+      turn='boss';
+    }else{
+      await attackBoss();
+      if(playerHp<=0)break;
+      turn='player';
+    }
+
+    // Small chance of a bonus extra strike to keep the fight unpredictable.
+    if(Math.random()<0.18 && playerHp>0 && bossHp>0){
+      if(turn==='player'){
+        await attackPlayer();
+        if(bossHp<=0)break;
+      }else{
+        await attackBoss();
+        if(playerHp<=0)break;
+      }
+    }
+  }
+
+  finish();
+  return true;
+}
+
+window.StimTakeFinalBossBattle={start:startBattle};
+
+window.addEventListener('message',e=>{
+  const d=e.data||{};
+  if(d.type==='stimtake-final-boss-start')startBattle();
+});
+
+setTimeout(()=>startBattle(),900);
+})();
+</script>
+</body>
+</html>

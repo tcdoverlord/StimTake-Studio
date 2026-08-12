@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StimTake Trick-or-Treat Bag</title>
+<style>
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  overflow:hidden;
+  background:transparent;
+  font-family:"Segoe UI",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+.scene{
+  position:relative;
+  width:100%;
+  height:100%;
+  display:grid;
+  place-items:center;
+  pointer-events:none;
+}
+.glow{
+  position:absolute;
+  width:820px;
+  height:820px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(180,76,255,.22),rgba(255,126,38,.10) 46%,transparent 72%);
+  filter:blur(18px);
+}
+.moon{
+  position:absolute;
+  top:5%;
+  right:8%;
+  width:115px;
+  height:115px;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#fff7df,#ffd98b 58%,#c98e3e);
+  box-shadow:0 0 30px rgba(255,217,139,.45);
+}
+.moon:after{
+  content:"";
+  position:absolute;
+  width:100px;
+  height:100px;
+  left:30px;
+  top:-10px;
+  border-radius:50%;
+  background:rgba(8,5,14,.97);
+}
+.bat{position:absolute;font-size:40px;filter:drop-shadow(0 0 5px rgba(180,76,255,.45))}
+.b1{top:12%;left:10%;transform:rotate(-12deg)}
+.b2{top:20%;right:20%;transform:scale(.8) rotate(10deg)}
+.web{position:absolute;font-size:110px;opacity:.18}
+.w1{top:-10px;left:-6px}
+.w2{bottom:-10px;right:-6px;transform:rotate(180deg)}
+
+.panel{
+  position:relative;
+  width:min(920px,92vw);
+  padding:28px 32px 36px;
+  border-radius:28px;
+  border:2px solid rgba(180,76,255,.72);
+  background:linear-gradient(180deg,rgba(27,13,43,.94),rgba(11,7,22,.95));
+  box-shadow:0 0 32px rgba(180,76,255,.55),0 0 64px rgba(255,126,38,.16);
+}
+.title{
+  text-align:center;
+  color:#fff2dd;
+  font-size:36px;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  text-shadow:0 0 14px rgba(180,76,255,.9);
+}
+.subtitle{
+  text-align:center;
+  color:#d6c3e1;
+  margin-top:6px;
+  font-size:15px;
+}
+.bag-area{
+  position:relative;
+  width:620px;
+  height:470px;
+  margin:24px auto 0;
+}
+.bag{
+  position:absolute;
+  left:165px;
+  top:105px;
+  width:290px;
+  height:290px;
+  border-radius:36px 36px 70px 70px;
+  background:linear-gradient(180deg,#ff9a3c,#d75e16 72%);
+  border:5px solid #ffbd77;
+  box-shadow:0 0 28px rgba(255,126,38,.46), inset 0 0 30px rgba(110,35,0,.18);
+  transform-origin:center bottom;
+  z-index:3;
+}
+.bag:before{
+  content:"";
+  position:absolute;
+  left:48px;
+  top:-92px;
+  width:186px;
+  height:120px;
+  border:18px solid #8b3bd3;
+  border-bottom:0;
+  border-radius:100px 100px 0 0;
+  opacity:.9;
+}
+.bag-face{
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  font-size:96px;
+  filter:drop-shadow(0 5px 5px rgba(0,0,0,.25));
+}
+.bag.shake{
+  animation:shake .16s linear infinite;
+}
+.bag.open{
+  animation:bagPop .5s ease-out;
+}
+.candy{
+  position:absolute;
+  left:50%;
+  top:245px;
+  width:70px;
+  height:70px;
+  margin-left:-35px;
+  display:grid;
+  place-items:center;
+  font-size:52px;
+  opacity:0;
+  z-index:5;
+}
+.candy.fly{
+  animation:candyFly 1.15s ease-out forwards;
+}
+.c1{--x:-210px;--y:-180px}
+.c2{--x:-110px;--y:-235px}
+.c3{--x:0px;--y:-255px}
+.c4{--x:120px;--y:-230px}
+.c5{--x:210px;--y:-175px}
+.c6{--x:-170px;--y:-90px}
+.c7{--x:180px;--y:-85px}
+
+.reveal{
+  position:absolute;
+  left:50%;
+  top:235px;
+  width:360px;
+  min-height:110px;
+  margin-left:-180px;
+  padding:18px 22px;
+  border-radius:18px;
+  background:rgba(18,10,30,.94);
+  border:2px solid rgba(180,76,255,.65);
+  box-shadow:0 0 28px rgba(180,76,255,.55);
+  text-align:center;
+  opacity:0;
+  transform:scale(.8);
+  z-index:8;
+}
+.reveal.show{
+  animation:reveal .55s ease-out forwards;
+}
+.reveal-title{
+  color:#ff9a3c;
+  font-size:30px;
+  font-weight:900;
+  text-transform:uppercase;
+  text-shadow:0 0 12px rgba(255,154,60,.55);
+}
+.reveal-message{
+  margin-top:8px;
+  color:#d8c5e4;
+  font-size:18px;
+  font-weight:700;
+}
+.result{
+  min-height:70px;
+  margin-top:14px;
+  text-align:center;
+  color:#fff2dd;
+  font-size:28px;
+  font-weight:900;
+}
+.result .pick{
+  color:#ff9a3c;
+  text-shadow:0 0 12px rgba(255,154,60,.6);
+}
+.result .message{
+  display:block;
+  margin-top:8px;
+  color:#c78cff;
+  font-size:20px;
+}
+.flash{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:0;
+}
+.flash.active{animation:flash .9s ease-out}
+.footer{
+  text-align:center;
+  margin-top:10px;
+  color:#a99ab7;
+  font-size:12px;
+}
+@keyframes shake{
+  0%{transform:rotate(-4deg) translateX(-3px)}
+  25%{transform:rotate(4deg) translateX(3px)}
+  50%{transform:rotate(-3deg) translateY(2px)}
+  75%{transform:rotate(3deg) translateY(-2px)}
+  100%{transform:rotate(0deg)}
+}
+@keyframes bagPop{
+  0%{transform:scale(1)}
+  55%{transform:scale(1.08)}
+  100%{transform:scale(1)}
+}
+@keyframes candyFly{
+  0%{opacity:0;transform:translate(0,0) scale(.5) rotate(0deg)}
+  20%{opacity:1}
+  100%{opacity:1;transform:translate(var(--x),var(--y)) scale(1) rotate(380deg)}
+}
+@keyframes reveal{
+  from{opacity:0;transform:scale(.72)}
+  to{opacity:1;transform:scale(1)}
+}
+@keyframes flash{
+  0%{opacity:0}
+  25%{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.35),transparent 48%)}
+  100%{opacity:0}
+}
+@media(max-height:760px){.panel{transform:scale(.82)}}
+</style>
+</head>
+<body>
+<div class="scene">
+  <div class="glow"></div>
+  <div class="moon"></div>
+  <div class="bat b1">🦇</div>
+  <div class="bat b2">🦇</div>
+  <div class="web w1">🕸️</div>
+  <div class="web w2">🕸️</div>
+
+  <section class="panel">
+    <div class="flash" id="flash"></div>
+
+    <div class="title">Trick-or-Treat Bag</div>
+    <div class="subtitle">Shake the bag and let Halloween choose.</div>
+
+    <div class="bag-area">
+      <div class="bag" id="bag">
+        <div class="bag-face">🎃</div>
+      </div>
+
+      <div class="candy c1">🍬</div>
+      <div class="candy c2">🍭</div>
+      <div class="candy c3">🍫</div>
+      <div class="candy c4">🍬</div>
+      <div class="candy c5">🍭</div>
+      <div class="candy c6">✨</div>
+      <div class="candy c7">🎃</div>
+
+      <div class="reveal" id="reveal">
+        <div class="reveal-title" id="revealTitle">TREAT</div>
+        <div class="reveal-message" id="revealMessage">A sweet surprise appears.</div>
+      </div>
+    </div>
+
+    <div class="result" id="result">The bag is waiting...</div>
+    <div class="footer">StimTake Studio • Halloween Trick-or-Treat Bag Placeholder</div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const bag = document.getElementById('bag');
+  const reveal = document.getElementById('reveal');
+  const revealTitle = document.getElementById('revealTitle');
+  const revealMessage = document.getElementById('revealMessage');
+  const result = document.getElementById('result');
+  const flash = document.getElementById('flash');
+  const candies = [...document.querySelectorAll('.candy')];
+
+  let outcomes = [
+    {title:'TREAT',message:'A sweet little surprise'},
+    {title:'TRICK',message:'A spooky twist appears'},
+    {title:'BONUS',message:'The bag gives something extra'},
+    {title:'LUCKY',message:'Halloween luck is on your side'},
+    {title:'DARE',message:'The bag picked something bold'},
+    {title:'MYSTERY',message:'A secret surprise is waiting'},
+    {title:'DOUBLE TREAT',message:'Twice the Halloween fun'},
+    {title:'WITCHY BONUS',message:'A little magic joins the show'}
+  ];
+
+  let running = false;
+
+  function setOutcomes(next){
+    if(!Array.isArray(next) || !next.length) return;
+    outcomes = next.map((o,i)=>({
+      title:String(o.title || ('OPTION ' + (i+1))),
+      message:String(o.message || 'A Halloween surprise')
+    })).slice(0,12);
+  }
+
+  function reset(){
+    bag.classList.remove('shake','open');
+    reveal.classList.remove('show');
+    candies.forEach(c=>c.classList.remove('fly'));
+  }
+
+  function openBag(options = {}){
+    if(running) return false;
+    running = true;
+
+    if(Array.isArray(options.outcomes)) setOutcomes(options.outcomes);
+
+    reset();
+    result.textContent = 'The bag is shaking...';
+    bag.classList.add('shake');
+
+    const forced = Number.isInteger(options.index) ? options.index : null;
+    const selected = forced !== null
+      ? Math.max(0,Math.min(outcomes.length-1,forced))
+      : Math.floor(Math.random()*outcomes.length);
+
+    setTimeout(()=>{
+      bag.classList.remove('shake');
+      bag.classList.add('open');
+
+      candies.forEach((c,i)=>{
+        setTimeout(()=>{
+          c.classList.remove('fly');
+          void c.offsetWidth;
+          c.classList.add('fly');
+        },i*70);
+      });
+    },1500);
+
+    setTimeout(()=>{
+      const outcome = outcomes[selected];
+
+      revealTitle.textContent = outcome.title;
+      revealMessage.textContent = outcome.message;
+
+      reveal.classList.remove('show');
+      void reveal.offsetWidth;
+      reveal.classList.add('show');
+
+      result.innerHTML =
+        `🍬 <span class="pick">${outcome.title}</span>` +
+        `<span class="message">${outcome.message}</span>`;
+
+      flash.classList.remove('active');
+      void flash.offsetWidth;
+      flash.classList.add('active');
+
+      running = false;
+
+      window.parent?.postMessage?.({
+        type:'stimtake-trick-or-treat-result',
+        index:selected,
+        outcome
+      },'*');
+    },2900);
+
+    return true;
+  }
+
+  window.StimTakeTrickOrTreat = {
+    open: openBag,
+    setOutcomes
+  };
+
+  window.addEventListener('message',(event)=>{
+    const data = event.data || {};
+    if(data.type === 'stimtake-trick-or-treat-open'){
+      openBag({
+        index:Number.isInteger(data.index) ? data.index : undefined,
+        outcomes:Array.isArray(data.outcomes) ? data.outcomes : undefined
+      });
+    }
+  });
+
+  setTimeout(()=>openBag(),800);
+})();
+</script>
+</body>
+</html>

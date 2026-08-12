@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StimTake Witch's Potion</title>
+<style>
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  overflow:hidden;
+  background:transparent;
+  font-family:"Segoe UI",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+.scene{
+  position:relative;
+  width:100%;
+  height:100%;
+  display:grid;
+  place-items:center;
+  pointer-events:none;
+}
+.glow{
+  position:absolute;
+  width:800px;
+  height:800px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(180,76,255,.24),rgba(86,230,138,.08) 46%,transparent 72%);
+  filter:blur(18px);
+}
+.moon{
+  position:absolute;
+  top:5%;
+  right:8%;
+  width:115px;
+  height:115px;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#fff7df,#ffd98b 58%,#c98e3e);
+  box-shadow:0 0 30px rgba(255,217,139,.45);
+}
+.moon:after{
+  content:"";
+  position:absolute;
+  width:100px;
+  height:100px;
+  left:30px;
+  top:-10px;
+  border-radius:50%;
+  background:rgba(8,5,14,.97);
+}
+.bat{position:absolute;font-size:40px;filter:drop-shadow(0 0 5px rgba(180,76,255,.45))}
+.b1{top:12%;left:10%;transform:rotate(-12deg)}
+.b2{top:20%;right:20%;transform:scale(.8) rotate(10deg)}
+.web{position:absolute;font-size:110px;opacity:.18}
+.web1{top:-10px;left:-6px}
+.web2{bottom:-10px;right:-6px;transform:rotate(180deg)}
+
+.panel{
+  position:relative;
+  width:min(940px,92vw);
+  padding:28px 32px 36px;
+  border-radius:28px;
+  border:2px solid rgba(180,76,255,.72);
+  background:linear-gradient(180deg,rgba(27,13,43,.94),rgba(11,7,22,.95));
+  box-shadow:0 0 32px rgba(180,76,255,.55),0 0 64px rgba(86,230,138,.14);
+}
+.title{
+  text-align:center;
+  color:#fff2dd;
+  font-size:36px;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  text-shadow:0 0 14px rgba(180,76,255,.9);
+}
+.subtitle{
+  text-align:center;
+  color:#d6c3e1;
+  margin-top:6px;
+  font-size:15px;
+}
+.cauldron-wrap{
+  position:relative;
+  width:620px;
+  height:480px;
+  margin:22px auto 0;
+}
+.cauldron{
+  position:absolute;
+  left:145px;
+  bottom:18px;
+  width:330px;
+  height:220px;
+  border-radius:42% 42% 50% 50% / 34% 34% 66% 66%;
+  background:linear-gradient(180deg,#25152e,#0d0812 72%);
+  border:5px solid #4d3159;
+  box-shadow:0 18px 22px rgba(0,0,0,.45),0 0 26px rgba(180,76,255,.35);
+  z-index:3;
+}
+.cauldron:before{
+  content:"";
+  position:absolute;
+  left:22px;
+  right:22px;
+  top:-26px;
+  height:58px;
+  border-radius:50%;
+  background:radial-gradient(ellipse,#62f29a 0%,#25b96d 45%,#0c6c3c 72%,#082c20 100%);
+  border:4px solid #4d3159;
+  box-shadow:0 0 28px rgba(86,230,138,.65);
+  animation:bubbleGlow 1.2s ease-in-out infinite alternate;
+}
+.cauldron:after{
+  content:"";
+  position:absolute;
+  left:78px;
+  right:78px;
+  bottom:-34px;
+  height:42px;
+  border-radius:50%;
+  background:#0b0710;
+  filter:blur(2px);
+}
+.handle{
+  position:absolute;
+  left:105px;
+  bottom:160px;
+  width:410px;
+  height:220px;
+  border:12px solid rgba(78,50,91,.65);
+  border-bottom:0;
+  border-radius:50% 50% 0 0;
+  z-index:1;
+}
+.bubble{
+  position:absolute;
+  bottom:200px;
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  background:rgba(100,255,162,.8);
+  box-shadow:0 0 12px rgba(100,255,162,.9);
+  animation:floatBubble 2.2s ease-in infinite;
+  z-index:2;
+}
+.bu1{left:250px;animation-delay:.1s}
+.bu2{left:310px;width:16px;height:16px;animation-delay:.7s}
+.bu3{left:370px;width:28px;height:28px;animation-delay:1.2s}
+.bu4{left:415px;width:14px;height:14px;animation-delay:1.7s}
+
+.ingredient{
+  position:absolute;
+  top:-80px;
+  width:90px;
+  height:90px;
+  display:grid;
+  place-items:center;
+  font-size:56px;
+  opacity:0;
+  filter:drop-shadow(0 4px 6px rgba(0,0,0,.45));
+  z-index:5;
+}
+.ingredient.drop{
+  animation:dropIngredient 1.2s cubic-bezier(.25,.8,.3,1) forwards;
+}
+.i1{left:80px}
+.i2{left:210px}
+.i3{left:340px}
+.i4{left:470px}
+
+.smoke{
+  position:absolute;
+  left:160px;
+  bottom:170px;
+  width:300px;
+  height:220px;
+  opacity:0;
+  filter:blur(18px);
+  background:
+    radial-gradient(circle at 30% 60%,rgba(180,76,255,.25),transparent 38%),
+    radial-gradient(circle at 65% 40%,rgba(86,230,138,.22),transparent 36%),
+    radial-gradient(circle at 50% 75%,rgba(255,79,184,.15),transparent 42%);
+  z-index:4;
+}
+.smoke.active{
+  animation:smokeRise 2.3s ease-out forwards;
+}
+
+.result{
+  min-height:78px;
+  margin-top:8px;
+  text-align:center;
+  color:#fff2dd;
+  font-size:28px;
+  font-weight:900;
+}
+.result .potion{
+  color:#62f29a;
+  text-shadow:0 0 12px rgba(98,242,154,.65);
+}
+.result .effect{
+  display:block;
+  margin-top:8px;
+  color:#c78cff;
+  font-size:20px;
+}
+.flash{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:0;
+}
+.flash.active{animation:flash .9s ease-out}
+.footer{
+  text-align:center;
+  margin-top:10px;
+  color:#a99ab7;
+  font-size:12px;
+}
+@keyframes dropIngredient{
+  0%{opacity:0;transform:translateY(0) rotate(-15deg) scale(.8)}
+  15%{opacity:1}
+  85%{opacity:1;transform:translateY(310px) rotate(18deg) scale(1)}
+  100%{opacity:0;transform:translateY(345px) rotate(24deg) scale(.7)}
+}
+@keyframes smokeRise{
+  0%{opacity:0;transform:translateY(20px) scale(.7)}
+  40%{opacity:.9}
+  100%{opacity:0;transform:translateY(-150px) scale(1.35)}
+}
+@keyframes floatBubble{
+  0%{opacity:0;transform:translateY(0) scale(.7)}
+  20%{opacity:1}
+  100%{opacity:0;transform:translateY(-170px) scale(1.15)}
+}
+@keyframes bubbleGlow{
+  from{filter:brightness(.9)}
+  to{filter:brightness(1.3)}
+}
+@keyframes flash{
+  0%{opacity:0}
+  25%{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.34),transparent 48%)}
+  100%{opacity:0}
+}
+@media(max-height:760px){.panel{transform:scale(.82)}}
+</style>
+</head>
+<body>
+<div class="scene">
+  <div class="glow"></div>
+  <div class="moon"></div>
+  <div class="bat b1">🦇</div>
+  <div class="bat b2">🦇</div>
+  <div class="web web1">🕸️</div>
+  <div class="web web2">🕸️</div>
+
+  <section class="panel">
+    <div class="flash" id="flash"></div>
+
+    <div class="title">Witch's Potion</div>
+    <div class="subtitle">Four enchanted ingredients. One mysterious result.</div>
+
+    <div class="cauldron-wrap">
+      <div class="handle"></div>
+      <div class="bubble bu1"></div>
+      <div class="bubble bu2"></div>
+      <div class="bubble bu3"></div>
+      <div class="bubble bu4"></div>
+
+      <div class="ingredient i1" id="i1">🌹</div>
+      <div class="ingredient i2" id="i2">🍭</div>
+      <div class="ingredient i3" id="i3">🦇</div>
+      <div class="ingredient i4" id="i4">✨</div>
+
+      <div class="smoke" id="smoke"></div>
+      <div class="cauldron"></div>
+    </div>
+
+    <div class="result" id="result">The cauldron is waiting...</div>
+    <div class="footer">StimTake Studio • Halloween Witch's Potion Placeholder</div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const result = document.getElementById('result');
+  const flash = document.getElementById('flash');
+  const smoke = document.getElementById('smoke');
+  const ingredientEls = [
+    document.getElementById('i1'),
+    document.getElementById('i2'),
+    document.getElementById('i3'),
+    document.getElementById('i4')
+  ];
+
+  let ingredients = ['🌹','🍭','🦇','✨'];
+
+  let potions = [
+    {name:'Moonlight Mischief',effect:'A playful Halloween surprise'},
+    {name:'Velvet Hex',effect:'Turn up the confidence'},
+    {name:'Sweet Spell',effect:'A treat is coming your way'},
+    {name:'Midnight Spark',effect:'Time for a little extra energy'},
+    {name:'Lucky Witch',effect:'The room has good fortune'},
+    {name:'Purple Flame',effect:'Bring on a bold moment'},
+    {name:'Black Cat Charm',effect:'A lucky twist has appeared'},
+    {name:'Pumpkin Potion',effect:'Something cute and spooky awaits'}
+  ];
+
+  let running = false;
+
+  function setIngredients(next){
+    if(!Array.isArray(next) || !next.length) return;
+    ingredients = next.slice(0,4);
+    while(ingredients.length < 4) ingredients.push('✨');
+    ingredientEls.forEach((el,i)=>el.textContent=ingredients[i]);
+  }
+
+  function setPotions(next){
+    if(!Array.isArray(next) || !next.length) return;
+    potions = next.map((p,i)=>({
+      name:String(p.name || ('Potion ' + (i+1))),
+      effect:String(p.effect || 'A mysterious effect')
+    })).slice(0,12);
+  }
+
+  function brew(options = {}){
+    if(running) return false;
+    running = true;
+
+    if(Array.isArray(options.ingredients)) setIngredients(options.ingredients);
+    if(Array.isArray(options.potions)) setPotions(options.potions);
+
+    result.textContent = 'The ingredients are falling...';
+    smoke.classList.remove('active');
+    ingredientEls.forEach(el=>el.classList.remove('drop'));
+
+    const forced = Number.isInteger(options.index) ? options.index : null;
+    const selected = forced !== null
+      ? Math.max(0,Math.min(potions.length-1,forced))
+      : Math.floor(Math.random()*potions.length);
+
+    ingredientEls.forEach((el,i)=>{
+      setTimeout(()=>{
+        el.classList.remove('drop');
+        void el.offsetWidth;
+        el.classList.add('drop');
+      },i*420);
+    });
+
+    setTimeout(()=>{
+      smoke.classList.remove('active');
+      void smoke.offsetWidth;
+      smoke.classList.add('active');
+      result.textContent = 'The potion is bubbling...';
+    },1700);
+
+    setTimeout(()=>{
+      const potion = potions[selected];
+
+      result.innerHTML =
+        `🧪 <span class="potion">${potion.name}</span>` +
+        `<span class="effect">${potion.effect}</span>`;
+
+      flash.classList.remove('active');
+      void flash.offsetWidth;
+      flash.classList.add('active');
+
+      running = false;
+
+      window.parent?.postMessage?.({
+        type:'stimtake-potion-result',
+        index:selected,
+        potion
+      },'*');
+    },3300);
+
+    return true;
+  }
+
+  setIngredients(ingredients);
+
+  window.StimTakePotion = {
+    brew,
+    setIngredients,
+    setPotions
+  };
+
+  window.addEventListener('message',(event)=>{
+    const data = event.data || {};
+    if(data.type === 'stimtake-potion-brew'){
+      brew({
+        index:Number.isInteger(data.index) ? data.index : undefined,
+        ingredients:Array.isArray(data.ingredients) ? data.ingredients : undefined,
+        potions:Array.isArray(data.potions) ? data.potions : undefined
+      });
+    }
+  });
+
+  setTimeout(()=>brew(),800);
+})();
+</script>
+</body>
+</html>

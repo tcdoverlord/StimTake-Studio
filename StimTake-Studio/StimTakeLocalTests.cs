@@ -105,19 +105,43 @@ namespace CreatorCamOverlayKit
             string pricingPath = Path.Combine(testRoot, "pricing.tsv");
             Dictionary<string, ShowPackPrice> prices = ShowPackPricing.Read(pricingPath, oneValidation);
             ShowPackAction first = oneValidation.Actions[0];
-            prices[first.Id].Tokens = 25;
+            prices[first.Id].MinTokens = 20;
+            prices[first.Id].MaxTokens = 29;
             prices[first.Id].Enabled = true;
             ShowPackPricing.Write(pricingPath, oneValidation, prices);
             Dictionary<string, ShowPackPrice> reloaded = ShowPackPricing.Read(pricingPath, oneValidation);
-            Assert(reloaded[first.Id].Tokens == 25 && reloaded[first.Id].Enabled, "model action pricing persists separately");
-            Assert(ShowPackPricing.Matches(oneValidation, reloaded, 25).Count == 1, "matching amount selects one enabled action");
-            Assert(ShowPackPricing.Matches(oneValidation, reloaded, 24).Count == 0, "nonmatching amount selects no action");
+            Assert(reloaded[first.Id].MinTokens == 20 && reloaded[first.Id].MaxTokens == 29 && reloaded[first.Id].Enabled,
+                "model action token range persists separately");
+            Assert(ShowPackPricing.Matches(oneValidation, reloaded, 20).Count == 1, "range minimum matches enabled action");
+            Assert(ShowPackPricing.Matches(oneValidation, reloaded, 25).Count == 1, "amount inside range matches enabled action");
+            Assert(ShowPackPricing.Matches(oneValidation, reloaded, 29).Count == 1, "range maximum matches enabled action");
+            Assert(ShowPackPricing.Matches(oneValidation, reloaded, 19).Count == 0, "amount below range triggers no action");
+            Assert(ShowPackPricing.Matches(oneValidation, reloaded, 30).Count == 0, "amount above range triggers no action");
+            reloaded[first.Id].Enabled = false;
+            Assert(ShowPackPricing.Matches(oneValidation, reloaded, 25).Count == 0, "disabled action does not trigger");
+
+            string twoRanges = Path.Combine(testRoot, "two-ranges");
+            WritePack(twoRanges, "two-ranges", 2);
+            ShowPackValidation twoValidation = ShowPackValidator.ValidateDirectory(twoRanges);
+            Dictionary<string, ShowPackPrice> overlapping = ShowPackPricing.Read(Path.Combine(testRoot, "two-ranges.tsv"), twoValidation);
+            overlapping[twoValidation.Actions[0].Id].MinTokens = 1;
+            overlapping[twoValidation.Actions[0].Id].MaxTokens = 10;
+            overlapping[twoValidation.Actions[0].Id].Enabled = true;
+            overlapping[twoValidation.Actions[1].Id].MinTokens = 10;
+            overlapping[twoValidation.Actions[1].Id].MaxTokens = 20;
+            overlapping[twoValidation.Actions[1].Id].Enabled = true;
+            string overlapError;
+            Assert(!ShowPackPricing.ValidateNoOverlap(twoValidation, overlapping, out overlapError) && overlapError.Length > 0,
+                "overlapping enabled action ranges are rejected");
+            overlapping[twoValidation.Actions[1].Id].MinTokens = 12;
+            Assert(ShowPackPricing.ValidateNoOverlap(twoValidation, overlapping, out overlapError),
+                "gaps between enabled action ranges are allowed");
 
             string changed = Path.Combine(testRoot, "changed-action-id");
             WritePack(changed, "one-action", 1, "replacement-action-01");
             ShowPackValidation changedValidation = ShowPackValidator.ValidateDirectory(changed);
             Dictionary<string, ShowPackPrice> changedPrices = ShowPackPricing.Read(pricingPath, changedValidation);
-            Assert(changedPrices["replacement-action-01"].Tokens == 5 && !changedPrices["replacement-action-01"].Enabled,
+            Assert(changedPrices["replacement-action-01"].MinTokens == 1 && changedPrices["replacement-action-01"].MaxTokens == 4 && !changedPrices["replacement-action-01"].Enabled,
                 "changed action ID does not inherit unrelated old pricing");
         }
 
@@ -130,10 +154,17 @@ namespace CreatorCamOverlayKit
             Program.ControlDeckForm deck = null;
             int triggers = 0;
             int stops = 0;
+            int showEvents = 0;
+            string showPayload = "";
             server.EventPublished += delegate(string type, string payload)
             {
                 if (type == "action-trigger") Interlocked.Increment(ref triggers);
                 if (type == "module-action" && payload.Contains("\"action\":\"stop\"")) Interlocked.Increment(ref stops);
+                if (type == "show-action-triggered")
+                {
+                    Interlocked.Increment(ref showEvents);
+                    showPayload = payload;
+                }
             };
             try
             {
@@ -150,6 +181,8 @@ namespace CreatorCamOverlayKit
                     Thread.Sleep(20);
                 }
                 Assert(triggers == 1, "installed action publishes exactly one action-trigger event");
+                Assert(showEvents == 1 && showPayload.Contains("\"url\":\"/external-modules/action-slot-01/overlay.html\"") && showPayload.Contains("\"duration\":1"),
+                    "OBS action event contains one managed HTML URL and duration");
                 Assert(stops == 1, "Show Pack duration publishes one automatic stop event");
             }
             finally
@@ -201,16 +234,27 @@ namespace CreatorCamOverlayKit
                 Request(port, PlatformEvent("real-2", "obsidian_stallion", "navel72", 67), out status);
                 Program.StudioRuntimeSnapshot repeated = server.GetStudioRuntimeSnapshot();
                 Assert(status == 204 && repeated.SessionTips == 2 && repeated.SessionTokens == 134, "same user and amount with a new event_id remains a separate tip");
-                Assert(acceptedEvents == 2, "only two accepted platform events were published");
+                Request(port, PlatformEvent("real-3", "obsidian_stallion", "higeva3943", 280), out status);
+                Program.StudioRuntimeSnapshot ranked = server.GetStudioRuntimeSnapshot();
+                Assert(status == 204 && ranked.SessionSupport["higeva3943"] > ranked.SessionSupport["navel72"],
+                    "session supporter totals identify the highest Top Tipper and VIP");
+                Assert(acceptedEvents == 3, "only three accepted platform events were published");
 
                 Request(port, "{\"source\":\"chaturbate-browser\",\"type\":\"tip\",\"room\":\"obsidian_stallion\",\"username\":\"navel72\",\"amount\":67}", out status);
-                Assert(status == 422 && server.GetStudioRuntimeSnapshot().SessionTips == 2, "missing event_id is rejected without state changes");
+                Assert(status == 422 && server.GetStudioRuntimeSnapshot().SessionTips == 3, "missing event_id is rejected without state changes");
 
                 string tippers = File.ReadAllText(Path.Combine(runtime, "CreatorCamOverlayKit", "tippers.tsv"), Encoding.UTF8);
                 Assert(tippers.Contains("navel72\tSupporter\tBronze\t134"), "lifetime supporter total is authoritative and not doubled");
+                Assert(tippers.Contains("higeva3943\tSupporter\tBronze\t280"), "VIP supporter total is persisted");
                 Assert(tippers.Contains("Manual Fan\tVIP\tGold\t50"), "accepted tips preserve unrelated manually managed supporter rows");
                 string statusJson = RequestPath(port, "/api/studio-status", out status);
-                Assert(status == 200 && statusJson.Contains("\"session_tips\":2") && statusJson.Contains("\"duplicates\":1"), "Studio status endpoint reports runtime diagnostics");
+                Assert(status == 200 && statusJson.Contains("\"session_tips\":3") && statusJson.Contains("\"duplicates\":1") &&
+                    statusJson.Contains("\"supporters\":{") && statusJson.Contains("\"navel72\":134") && statusJson.Contains("\"higeva3943\":280"),
+                    "Studio status endpoint reports diagnostics and authoritative Top Tipper/VIP data");
+                string indexHtml = RequestPath(port, "/index.html", out status);
+                Assert(status == 200 && indexHtml.Contains("TOP TIPPERS") && indexHtml.Contains("id=\"vip\"") && indexHtml.Contains("id=\"last-tipper\"") &&
+                    indexHtml.Contains("id=\"action-layer\"") && !indexHtml.Contains("creator-cam-stage"),
+                    "OBS index is the transparent supporter summary plus temporary HTML action layer");
             }
             finally
             {
@@ -225,16 +269,16 @@ namespace CreatorCamOverlayKit
             try
             {
                 int status;
-                Assert(restarted.GetStudioRuntimeSnapshot().SessionTips == 2, "session state persists across restart");
+                Assert(restarted.GetStudioRuntimeSnapshot().SessionTips == 3, "session state persists across restart");
                 Request(port, PlatformEvent("real-1", "obsidian_stallion", "navel72", 67), out status);
-                Assert(status == 204 && restarted.GetStudioRuntimeSnapshot().SessionTips == 2 && restartedAccepted == 0,
+                Assert(status == 204 && restarted.GetStudioRuntimeSnapshot().SessionTips == 3 && restartedAccepted == 0,
                     "processed event_id remains suppressed after restart");
 
                 restarted.ResetStudioSession();
                 Assert(restarted.GetStudioRuntimeSnapshot().SessionTips == 0, "Start New Session resets session values");
                 Request(port, PlatformEvent("real-2", "obsidian_stallion", "navel72", 67), out status);
                 Assert(restarted.GetStudioRuntimeSnapshot().SessionTips == 0, "Start New Session does not clear processed event IDs");
-                Request(port, PlatformEvent("real-3", "obsidian_stallion", "navel72", 5), out status);
+                Request(port, PlatformEvent("real-4", "obsidian_stallion", "navel72", 5), out status);
                 Assert(restarted.GetStudioRuntimeSnapshot().SessionTips == 1 && restarted.GetStudioRuntimeSnapshot().SessionTokens == 5,
                     "new event after session reset starts the new session");
                 string tippers = File.ReadAllText(Path.Combine(runtime, "CreatorCamOverlayKit", "tippers.tsv"), Encoding.UTF8);

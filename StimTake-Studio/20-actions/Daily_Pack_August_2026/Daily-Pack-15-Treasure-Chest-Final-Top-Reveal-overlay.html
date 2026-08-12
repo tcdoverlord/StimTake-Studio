@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StimTake Daily Treasure Chest - Final Reveal</title>
+<style>
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:transparent;font-family:"Segoe UI",Arial,sans-serif}
+*{box-sizing:border-box}
+.scene{position:relative;width:100%;height:100%;display:grid;place-items:center;pointer-events:none}
+.glow{position:absolute;width:920px;height:820px;border-radius:50%;background:radial-gradient(circle,rgba(170,92,255,.24),rgba(255,105,180,.10) 48%,transparent 72%);filter:blur(18px)}
+.panel{position:relative;width:min(980px,94vw);padding:28px 34px 34px;border-radius:28px;border:2px solid rgba(175,96,255,.72);background:linear-gradient(180deg,rgba(26,19,42,.95),rgba(11,9,20,.96));box-shadow:0 0 34px rgba(175,96,255,.5),0 0 70px rgba(255,105,180,.14)}
+.title{text-align:center;color:#fff5fb;font-size:38px;font-weight:1000;letter-spacing:.06em;text-transform:uppercase;text-shadow:0 0 15px rgba(175,96,255,.85)}
+.subtitle{text-align:center;color:#d8cce2;margin-top:5px;font-size:15px}
+.arena{position:relative;width:850px;height:500px;margin:18px auto 0}
+.front-stage{position:absolute;left:50%;top:78px;width:420px;height:310px;margin-left:-210px;transition:opacity .5s ease,transform .6s ease}
+.front-stage.fade{opacity:0;transform:scale(.85) translateY(20px)}
+.chest{position:absolute;left:65px;top:80px;width:290px;height:175px}
+.base{position:absolute;left:0;bottom:0;width:290px;height:125px;border-radius:10px 10px 24px 24px;background:linear-gradient(145deg,#8d4c22,#5a2a16);border:7px solid #d79a3d;box-shadow:0 18px 24px rgba(0,0,0,.35),0 0 24px rgba(255,174,70,.22)}
+.base:before,.base:after{content:"";position:absolute;top:0;bottom:0;width:18px;background:#d79a3d}
+.base:before{left:42px}.base:after{right:42px}
+.lid{position:absolute;left:0;top:0;width:290px;height:90px;border-radius:145px 145px 10px 10px;background:linear-gradient(145deg,#a85c28,#673018);border:7px solid #e1a348;transform-origin:center bottom;transition:transform .75s ease,top .75s ease;z-index:4}
+.lid:after{content:"";position:absolute;left:0;right:0;bottom:13px;height:16px;background:#d79a3d}
+.lock{position:absolute;left:50%;top:93px;width:50px;height:62px;margin-left:-25px;border-radius:8px;background:linear-gradient(#ffd66c,#c88424);border:4px solid #ffe6a0;z-index:7;display:grid;place-items:center;font-size:26px;transition:opacity .3s ease}
+.chest.open .lid{transform:rotateX(-118deg) translateY(-18px);top:-24px}
+.chest.open .lock{opacity:0}
+.chest.shake{animation:shake .18s ease-in-out infinite alternate}
+
+.beam{position:absolute;left:50%;top:25px;width:360px;height:300px;margin-left:-180px;background:radial-gradient(ellipse at 50% 85%,rgba(255,216,105,.48),rgba(255,128,190,.16) 45%,transparent 72%);opacity:0;transform:scale(.7);z-index:1}
+.beam.show{animation:beam 1.2s ease-out forwards}
+
+/* Guaranteed top-view reveal: separate scene, not a fragile 3D rotation */
+.top-stage{position:absolute;left:50%;top:22px;width:560px;height:390px;margin-left:-280px;opacity:0;transform:translateY(25px) scale(.78);transition:opacity .7s ease,transform .8s cubic-bezier(.2,.75,.2,1);z-index:8}
+.top-stage.show{opacity:1;transform:translateY(0) scale(1)}
+.top-lid{position:absolute;left:125px;top:10px;width:310px;height:105px;border-radius:155px 155px 24px 24px;background:linear-gradient(145deg,#9f5727,#5b2b18);border:8px solid #e0a044;box-shadow:0 10px 24px rgba(0,0,0,.35);transform:perspective(700px) rotateX(68deg)}
+.top-box{position:absolute;left:90px;top:105px;width:380px;height:245px;clip-path:polygon(10% 0,90% 0,100% 25%,92% 100%,8% 100%,0 25%);background:linear-gradient(145deg,#6f351c,#3e1d12);border:8px solid #d79a3d;box-shadow:0 20px 30px rgba(0,0,0,.4),0 0 30px rgba(255,177,72,.22)}
+.top-inner{position:absolute;left:128px;top:138px;width:304px;height:165px;border-radius:42% 42% 36% 36%;background:radial-gradient(ellipse at center,#ffe8a6 0 15%,#f4b74e 30%,#7a3a20 66%,#2a130d 100%);box-shadow:inset 0 0 40px rgba(0,0,0,.55),0 0 35px rgba(255,197,95,.35);display:grid;place-items:center;text-align:center}
+.prize-icon{font-size:64px;filter:drop-shadow(0 0 14px rgba(255,255,255,.75))}
+.prize-title{margin-top:5px;color:#fff7e7;font-size:24px;font-weight:1000;text-shadow:0 0 12px rgba(80,30,20,.8)}
+.prize-message{margin-top:6px;color:#4a2c26;font-size:14px;font-weight:900;max-width:230px}
+.spark-ring{position:absolute;left:50%;top:195px;width:330px;height:165px;margin-left:-165px;border-radius:50%;border:5px solid rgba(255,241,178,.8);opacity:0}
+.top-stage.show .spark-ring{animation:ring 1.2s ease-out 1}
+
+.confetti{position:absolute;left:50%;top:210px;z-index:12}
+.confetti i{position:absolute;width:10px;height:18px;opacity:0}
+.confetti.active i{animation:confetti 1.25s ease-out forwards}
+.confetti i:nth-child(1){background:#ff7eb6;--x:-230px;--y:-180px}
+.confetti i:nth-child(2){background:#8f6cff;--x:-140px;--y:-225px;animation-delay:.05s}
+.confetti i:nth-child(3){background:#55c9ff;--x:-55px;--y:-205px;animation-delay:.1s}
+.confetti i:nth-child(4){background:#ffd65c;--x:50px;--y:-240px;animation-delay:.15s}
+.confetti i:nth-child(5){background:#66ddb2;--x:145px;--y:-190px;animation-delay:.2s}
+.confetti i:nth-child(6){background:#ff9d3c;--x:230px;--y:-150px;animation-delay:.25s}
+.confetti i:nth-child(7){background:#fff;--x:-190px;--y:-80px;animation-delay:.3s}
+.confetti i:nth-child(8){background:#ff7eb6;--x:190px;--y:-70px;animation-delay:.35s}
+
+.result{min-height:82px;text-align:center;color:#fff5fb;font-size:28px;font-weight:900}
+.result .headline{color:#ff9d3c;text-shadow:0 0 12px rgba(255,157,60,.55)}
+.result .message{display:block;margin-top:8px;color:#c98cff;font-size:20px}
+.flash{position:absolute;inset:0;pointer-events:none;opacity:0}.flash.active{animation:flash .9s ease-out}
+.footer{text-align:center;margin-top:8px;color:#9f93aa;font-size:12px}
+@keyframes shake{from{transform:translateX(-7px) rotate(-2deg)}to{transform:translateX(7px) rotate(2deg)}}
+@keyframes beam{0%{opacity:0;transform:scale(.6)}35%{opacity:1}100%{opacity:.68;transform:scale(1.15)}}
+@keyframes ring{0%{opacity:.9;transform:scale(.4)}100%{opacity:0;transform:scale(1.35)}}
+@keyframes confetti{0%{opacity:0;transform:translate(0,0) rotate(0)}20%{opacity:1}100%{opacity:0;transform:translate(var(--x),var(--y)) rotate(620deg)}}
+@keyframes flash{0%{opacity:0}25%{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.34),transparent 48%)}100%{opacity:0}}
+@media(max-height:760px){.panel{transform:scale(.83)}}
+</style>
+</head>
+<body>
+<div class="scene"><div class="glow"></div>
+<section class="panel">
+<div class="flash" id="flash"></div>
+<div class="title">💰 Treasure Chest</div>
+<div class="subtitle">The chest opens, then the camera reveals the winning treasure from above.</div>
+
+<div class="arena">
+  <div class="front-stage" id="frontStage">
+    <div class="beam" id="beam"></div>
+    <div class="chest" id="chest">
+      <div class="lid"></div>
+      <div class="base"></div>
+      <div class="lock">🔐</div>
+    </div>
+  </div>
+
+  <div class="top-stage" id="topStage">
+    <div class="top-lid"></div>
+    <div class="top-box"></div>
+    <div class="top-inner">
+      <div>
+        <div class="prize-icon" id="prizeIcon">💎</div>
+        <div class="prize-title" id="prizeTitle">SECRET SURPRISE</div>
+        <div class="prize-message" id="prizeMessage">A mystery reward has been unlocked!</div>
+      </div>
+    </div>
+    <div class="spark-ring"></div>
+  </div>
+
+  <div class="confetti" id="confetti"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+</div>
+
+<div class="result" id="result">The treasure chest is locked...</div>
+<div class="footer">StimTake Studio • Daily Pack • Treasure Chest</div>
+</section></div>
+
+<script>
+(()=>{
+const chest=document.getElementById('chest');
+const beam=document.getElementById('beam');
+const frontStage=document.getElementById('frontStage');
+const topStage=document.getElementById('topStage');
+const confetti=document.getElementById('confetti');
+const prizeIcon=document.getElementById('prizeIcon');
+const prizeTitle=document.getElementById('prizeTitle');
+const prizeMessage=document.getElementById('prizeMessage');
+const result=document.getElementById('result');
+const flash=document.getElementById('flash');
+
+let running=false;
+let prizes=[
+ {icon:'💎',title:'Diamond Bonus',message:'A premium mystery bonus is unlocked!'},
+ {icon:'🎁',title:'Double Mystery',message:'Two surprise choices are unlocked!'},
+ {icon:'⭐',title:'Lucky Upgrade',message:'Your reward just got upgraded!'},
+ {icon:'👑',title:"Queen's Choice",message:'The model chooses the special reward!'},
+ {icon:'✨',title:'Secret Surprise',message:'A hidden surprise is yours!'}
+];
+
+function setPrizes(next){
+ if(!Array.isArray(next)||!next.length)return;
+ prizes=next.slice(0,5).map((p,i)=>({
+   icon:String(p.icon||'💎'),
+   title:String(p.title||('Treasure '+(i+1))),
+   message:String(p.message||'A surprise treasure is revealed.')
+ }));
+ while(prizes.length<5)prizes.push({icon:'💎',title:'Mystery Treasure',message:'A surprise treasure is revealed.'});
+}
+
+function reset(){
+ chest.classList.remove('open','shake');
+ beam.classList.remove('show');
+ frontStage.classList.remove('fade');
+ topStage.classList.remove('show');
+ confetti.classList.remove('active');
+ frontStage.style.opacity='1';
+}
+
+function openChest(options={}){
+ if(running)return false;
+ running=true;
+ if(Array.isArray(options.prizes))setPrizes(options.prizes);
+ reset();
+
+ const forced=Number.isInteger(options.index)?Math.max(0,Math.min(4,options.index)):null;
+ const selected=forced!==null?forced:Math.floor(Math.random()*5);
+ const prize=prizes[selected];
+
+ result.textContent='The chest is shaking...';
+ chest.classList.add('shake');
+
+ setTimeout(()=>{
+   chest.classList.remove('shake');
+   chest.classList.add('open');
+   beam.classList.add('show');
+   result.textContent='The chest is opening...';
+ },1500);
+
+ setTimeout(()=>{
+   prizeIcon.textContent=prize.icon;
+   prizeTitle.textContent=prize.title;
+   prizeMessage.textContent=prize.message;
+
+   frontStage.classList.add('fade');
+
+   setTimeout(()=>{
+     topStage.classList.add('show');
+     confetti.classList.add('active');
+
+     result.innerHTML=`💰 <span class="headline">${prize.title}</span><span class="message">${prize.message}</span>`;
+
+     flash.classList.remove('active');
+     void flash.offsetWidth;
+     flash.classList.add('active');
+
+     window.parent?.postMessage?.({
+       type:'stimtake-daily-treasure-chest-result',
+       index:selected,
+       prize
+     },'*');
+
+     running=false;
+   },450);
+ },2450);
+
+ return true;
+}
+
+window.StimTakeDailyTreasureChest={open:openChest,setPrizes};
+
+window.addEventListener('message',e=>{
+ const d=e.data||{};
+ if(d.type==='stimtake-daily-treasure-chest'){
+   openChest({
+     index:Number.isInteger(d.index)?d.index:undefined,
+     prizes:Array.isArray(d.prizes)?d.prizes:undefined
+   });
+ }
+});
+
+setTimeout(()=>openChest(),800);
+})();
+</script>
+</body>
+</html>

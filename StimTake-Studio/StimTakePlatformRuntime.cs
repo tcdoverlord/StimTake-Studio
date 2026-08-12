@@ -372,11 +372,15 @@ namespace CreatorCamOverlayKit
             {
                 lock (platformGate)
                 {
+                    var support = new List<string>();
+                    foreach (KeyValuePair<string, long> pair in platformSession.SessionSupport)
+                        support.Add("\"" + ControlDeckForm.Json(pair.Key) + "\":" + Math.Max(0, pair.Value));
                     return "{\"backend\":\"RUNNING\",\"model\":\"" + ControlDeckForm.Json(ReadLockedModelName()) + "\",\"session_active\":" + platformSession.SessionActive.ToString().ToLowerInvariant() +
                         ",\"session_tips\":" + platformSession.SessionTips + ",\"session_tokens\":" + platformSession.SessionTokens +
                         ",\"last_username\":\"" + ControlDeckForm.Json(platformSession.LastUsername) + "\",\"last_amount\":" + platformSession.LastAmount +
                         ",\"last_room\":\"" + ControlDeckForm.Json(platformSession.LastRoom) + "\",\"last_event_id\":\"" + ControlDeckForm.Json(platformSession.LastEventId) +
-                        "\",\"accepted\":" + acceptedPlatformCount + ",\"duplicates\":" + duplicatePlatformCount + ",\"rejected\":" + rejectedPlatformCount + "}";
+                        "\",\"supporters\":{" + String.Join(",", support.ToArray()) + "}" +
+                        ",\"accepted\":" + acceptedPlatformCount + ",\"duplicates\":" + duplicatePlatformCount + ",\"rejected\":" + rejectedPlatformCount + "}";
                 }
             }
 

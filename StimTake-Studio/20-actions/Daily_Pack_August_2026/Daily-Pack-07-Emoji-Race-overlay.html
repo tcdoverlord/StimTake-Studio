@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StimTake Daily Emoji Race</title>
+<style>
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  overflow:hidden;
+  background:transparent;
+  font-family:"Segoe UI",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+.scene{
+  position:relative;
+  width:100%;
+  height:100%;
+  display:grid;
+  place-items:center;
+  pointer-events:none;
+}
+.glow{
+  position:absolute;
+  width:900px;
+  height:760px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(170,92,255,.22),rgba(255,105,180,.08) 48%,transparent 72%);
+  filter:blur(18px);
+}
+.sparkle{
+  position:absolute;
+  font-size:30px;
+  opacity:.6;
+  filter:drop-shadow(0 0 8px rgba(255,255,255,.2));
+}
+.s1{top:14%;left:14%}
+.s2{top:21%;right:16%}
+.s3{bottom:16%;left:18%}
+.s4{bottom:14%;right:19%}
+
+.panel{
+  position:relative;
+  width:min(1040px,95vw);
+  padding:30px 34px 36px;
+  border-radius:28px;
+  border:2px solid rgba(175,96,255,.70);
+  background:linear-gradient(180deg,rgba(26,19,42,.94),rgba(11,9,20,.95));
+  box-shadow:0 0 32px rgba(175,96,255,.48),0 0 64px rgba(255,105,180,.14);
+}
+.title{
+  text-align:center;
+  color:#fff5fb;
+  font-size:36px;
+  font-weight:900;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  text-shadow:0 0 14px rgba(175,96,255,.8);
+}
+.subtitle{
+  text-align:center;
+  color:#d8cce2;
+  margin-top:6px;
+  font-size:15px;
+}
+
+.race{
+  position:relative;
+  width:920px;
+  height:470px;
+  margin:28px auto 0;
+  border-radius:22px;
+  overflow:hidden;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.025),rgba(255,255,255,.01)),
+    repeating-linear-gradient(
+      180deg,
+      transparent 0 92px,
+      rgba(255,255,255,.035) 92px 94px
+    );
+  border:1px solid rgba(255,255,255,.07);
+}
+.start-line{
+  position:absolute;
+  top:0;
+  bottom:0;
+  left:82px;
+  width:6px;
+  background:repeating-linear-gradient(180deg,#8f5cff 0 16px,#24182f 16px 32px);
+  box-shadow:0 0 12px rgba(143,92,255,.35);
+}
+.finish-line{
+  position:absolute;
+  top:0;
+  bottom:0;
+  right:72px;
+  width:10px;
+  background:repeating-linear-gradient(180deg,#ff9d3c 0 18px,#24182f 18px 36px);
+  box-shadow:0 0 15px rgba(255,157,60,.55);
+}
+.finish-label{
+  position:absolute;
+  right:18px;
+  top:12px;
+  color:#ffb06a;
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.12em;
+  writing-mode:vertical-rl;
+}
+.lane{
+  position:absolute;
+  left:0;
+  right:0;
+  height:94px;
+}
+.l1{top:0}.l2{top:94px}.l3{top:188px}.l4{top:282px}.l5{top:376px}
+
+.runner{
+  position:absolute;
+  left:98px;
+  top:10px;
+  width:140px;
+  text-align:center;
+  transition:transform 4s cubic-bezier(.18,.74,.18,1);
+}
+.emoji{
+  font-size:60px;
+  filter:drop-shadow(0 5px 4px rgba(0,0,0,.35));
+  transform-origin:center;
+}
+.runner.racing .emoji{
+  animation:bounce .22s ease-in-out infinite alternate;
+}
+.runner.winner .emoji{
+  animation:winnerBounce .42s ease-in-out infinite alternate;
+  filter:drop-shadow(0 0 16px rgba(255,157,60,.75));
+}
+.name{
+  margin-top:-2px;
+  color:#fff5fb;
+  font-size:13px;
+  font-weight:900;
+  text-shadow:0 2px 4px rgba(0,0,0,.75);
+}
+.runner.winner .name{
+  color:#ffad61;
+  text-shadow:0 0 10px rgba(255,157,60,.5);
+}
+.crown{
+  position:absolute;
+  top:-18px;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:30px;
+  opacity:0;
+}
+.runner.winner .crown{opacity:1}
+
+.result{
+  min-height:72px;
+  margin-top:18px;
+  text-align:center;
+  color:#fff5fb;
+  font-size:28px;
+  font-weight:900;
+}
+.result .winner-name{
+  color:#ff9d3c;
+  text-shadow:0 0 12px rgba(255,157,60,.55);
+}
+.result .message{
+  display:block;
+  margin-top:8px;
+  color:#c98cff;
+  font-size:20px;
+}
+.flash{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:0;
+}
+.flash.active{animation:flash .9s ease-out}
+.footer{
+  text-align:center;
+  margin-top:10px;
+  color:#9f93aa;
+  font-size:12px;
+}
+@keyframes bounce{
+  from{transform:translateY(-4px) rotate(-4deg)}
+  to{transform:translateY(4px) rotate(4deg)}
+}
+@keyframes winnerBounce{
+  from{transform:translateY(0) scale(1)}
+  to{transform:translateY(-8px) scale(1.08)}
+}
+@keyframes flash{
+  0%{opacity:0}
+  25%{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.32),transparent 48%)}
+  100%{opacity:0}
+}
+@media(max-height:760px){.panel{transform:scale(.82)}}
+</style>
+</head>
+<body>
+<div class="scene">
+  <div class="glow"></div>
+  <div class="sparkle s1">✨</div>
+  <div class="sparkle s2">💖</div>
+  <div class="sparkle s3">⭐</div>
+  <div class="sparkle s4">✨</div>
+
+  <section class="panel">
+    <div class="flash" id="flash"></div>
+
+    <div class="title">Emoji Race</div>
+    <div class="subtitle">Five cute racers. One crosses the finish line first.</div>
+
+    <div class="race">
+      <div class="start-line"></div>
+      <div class="finish-line"></div>
+      <div class="finish-label">FINISH</div>
+
+      <div class="lane l1">
+        <div class="runner" data-index="0">
+          <div class="crown">👑</div>
+          <div class="emoji">🐰</div>
+          <div class="name">Bunny</div>
+        </div>
+      </div>
+
+      <div class="lane l2">
+        <div class="runner" data-index="1">
+          <div class="crown">👑</div>
+          <div class="emoji">🦊</div>
+          <div class="name">Foxy</div>
+        </div>
+      </div>
+
+      <div class="lane l3">
+        <div class="runner" data-index="2">
+          <div class="crown">👑</div>
+          <div class="emoji">🐼</div>
+          <div class="name">Panda</div>
+        </div>
+      </div>
+
+      <div class="lane l4">
+        <div class="runner" data-index="3">
+          <div class="crown">👑</div>
+          <div class="emoji">🐱</div>
+          <div class="name">Kitty</div>
+        </div>
+      </div>
+
+      <div class="lane l5">
+        <div class="runner" data-index="4">
+          <div class="crown">👑</div>
+          <div class="emoji">🦄</div>
+          <div class="name">Sparkle</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="result" id="result">The racers are getting ready...</div>
+    <div class="footer">StimTake Studio • Daily Pack • Emoji Race</div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const runners = [...document.querySelectorAll('.runner')];
+  const result = document.getElementById('result');
+  const flash = document.getElementById('flash');
+
+  let entries = [
+    {emoji:'🐰',name:'Bunny'},
+    {emoji:'🦊',name:'Foxy'},
+    {emoji:'🐼',name:'Panda'},
+    {emoji:'🐱',name:'Kitty'},
+    {emoji:'🦄',name:'Sparkle'}
+  ];
+
+  let running = false;
+
+  function setEntries(next){
+    if(!Array.isArray(next) || !next.length) return;
+
+    entries = next.slice(0,5).map((e,i)=>({
+      emoji:String(e.emoji || '⭐'),
+      name:String(e.name || ('Racer ' + (i+1)))
+    }));
+
+    while(entries.length < 5){
+      entries.push({
+        emoji:'⭐',
+        name:'Racer ' + (entries.length + 1)
+      });
+    }
+
+    runners.forEach((runner,i)=>{
+      runner.querySelector('.emoji').textContent = entries[i].emoji;
+      runner.querySelector('.name').textContent = entries[i].name;
+    });
+  }
+
+  function reset(){
+    runners.forEach(r=>{
+      r.classList.remove('racing','winner');
+      r.style.transition='none';
+      r.style.transform='translateX(0px)';
+      void r.offsetWidth;
+      r.style.transition='transform 4s cubic-bezier(.18,.74,.18,1)';
+    });
+  }
+
+  function race(options = {}){
+    if(running) return false;
+    running = true;
+
+    if(Array.isArray(options.entries)) setEntries(options.entries);
+
+    reset();
+    result.textContent = 'The race is on...';
+
+    const forced = Number.isInteger(options.index) ? options.index : null;
+    const winner = forced !== null
+      ? Math.max(0,Math.min(4,forced))
+      : Math.floor(Math.random()*5);
+
+    const distances = runners.map((_,i)=>{
+      if(i === winner) return 700;
+      return 520 + Math.floor(Math.random()*135);
+    });
+
+    runners.forEach((runner,i)=>{
+      runner.classList.add('racing');
+      setTimeout(()=>{
+        runner.style.transform = `translateX(${distances[i]}px)`;
+      },120 + i*70);
+    });
+
+    setTimeout(()=>{
+      runners.forEach(r=>r.classList.remove('racing'));
+      runners[winner].classList.add('winner');
+
+      const picked = entries[winner];
+
+      result.innerHTML =
+        `${picked.emoji} <span class="winner-name">${picked.name}</span>` +
+        `<span class="message">wins the Emoji Race!</span>`;
+
+      flash.classList.remove('active');
+      void flash.offsetWidth;
+      flash.classList.add('active');
+
+      running = false;
+
+      window.parent?.postMessage?.({
+        type:'stimtake-daily-emoji-race-result',
+        index:winner,
+        entry:picked
+      },'*');
+    },4300);
+
+    return true;
+  }
+
+  setEntries(entries);
+
+  window.StimTakeDailyEmojiRace = {
+    race,
+    setEntries
+  };
+
+  window.addEventListener('message',(event)=>{
+    const data = event.data || {};
+    if(data.type === 'stimtake-daily-emoji-race'){
+      race({
+        index:Number.isInteger(data.index) ? data.index : undefined,
+        entries:Array.isArray(data.entries) ? data.entries : undefined
+      });
+    }
+  });
+
+  setTimeout(()=>race(),800);
+})();
+</script>
+</body>
+</html>

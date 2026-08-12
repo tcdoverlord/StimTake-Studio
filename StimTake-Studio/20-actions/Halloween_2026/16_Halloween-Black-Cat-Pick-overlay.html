@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StimTake Halloween Black Cat Pick</title>
+<style>
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  overflow:hidden;
+  background:transparent;
+  font-family:"Segoe UI",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+.scene{
+  position:relative;
+  width:100%;
+  height:100%;
+  display:grid;
+  place-items:center;
+  pointer-events:none;
+}
+.glow{
+  position:absolute;
+  width:840px;
+  height:820px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(180,76,255,.23),rgba(255,79,184,.08) 46%,transparent 72%);
+  filter:blur(18px);
+}
+.moon{
+  position:absolute;
+  top:5%;
+  right:8%;
+  width:118px;
+  height:118px;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#fff7df,#ffd98b 58%,#c98e3e);
+  box-shadow:0 0 30px rgba(255,217,139,.45);
+}
+.moon:after{
+  content:"";
+  position:absolute;
+  width:102px;
+  height:102px;
+  left:31px;
+  top:-10px;
+  border-radius:50%;
+  background:rgba(8,5,14,.97);
+}
+.web{position:absolute;font-size:110px;opacity:.18}
+.w1{top:-10px;left:-6px}
+.w2{bottom:-10px;right:-6px;transform:rotate(180deg)}
+.bat{position:absolute;font-size:40px;filter:drop-shadow(0 0 5px rgba(180,76,255,.45))}
+.b1{top:12%;left:10%;transform:rotate(-12deg)}
+.b2{top:20%;right:20%;transform:scale(.8) rotate(10deg)}
+
+.panel{
+  position:relative;
+  width:min(980px,94vw);
+  padding:28px 32px 36px;
+  border-radius:28px;
+  border:2px solid rgba(180,76,255,.72);
+  background:linear-gradient(180deg,rgba(27,13,43,.94),rgba(11,7,22,.95));
+  box-shadow:0 0 32px rgba(180,76,255,.55),0 0 64px rgba(255,79,184,.16);
+}
+.title{
+  text-align:center;
+  color:#fff2dd;
+  font-size:36px;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  text-shadow:0 0 14px rgba(180,76,255,.9);
+}
+.subtitle{
+  text-align:center;
+  color:#d6c3e1;
+  margin-top:6px;
+  font-size:15px;
+}
+.cat-row{
+  display:flex;
+  justify-content:center;
+  gap:26px;
+  margin:42px auto 0;
+  min-height:360px;
+  align-items:flex-end;
+}
+.cat-wrap{
+  position:relative;
+  width:145px;
+  text-align:center;
+  transition:transform .45s ease,opacity .35s ease,filter .35s ease;
+}
+.cat{
+  position:relative;
+  width:135px;
+  height:220px;
+  margin:0 auto;
+}
+.head{
+  position:absolute;
+  left:26px;
+  top:20px;
+  width:84px;
+  height:84px;
+  border-radius:48% 48% 44% 44%;
+  background:linear-gradient(145deg,#1f1626,#0a0810);
+  border:3px solid #4e365c;
+  box-shadow:0 0 16px rgba(180,76,255,.22);
+}
+.ear{
+  position:absolute;
+  top:-24px;
+  width:36px;
+  height:46px;
+  background:#121019;
+  border:3px solid #4e365c;
+  transform:rotate(45deg);
+  border-radius:8px 4px 0 4px;
+}
+.ear.left{left:4px}
+.ear.right{right:4px;transform:rotate(45deg) scaleX(-1)}
+.eye{
+  position:absolute;
+  top:33px;
+  width:16px;
+  height:20px;
+  border-radius:50%;
+  background:#d6ff74;
+  box-shadow:0 0 10px rgba(214,255,116,.7);
+}
+.eye.left{left:18px}
+.eye.right{right:18px}
+.nose{
+  position:absolute;
+  left:50%;
+  top:57px;
+  width:10px;
+  height:8px;
+  margin-left:-5px;
+  border-radius:50%;
+  background:#ff8fc9;
+}
+.body{
+  position:absolute;
+  left:33px;
+  top:92px;
+  width:70px;
+  height:108px;
+  border-radius:44% 44% 34% 34%;
+  background:linear-gradient(145deg,#1b1522,#08070c);
+  border:3px solid #44334f;
+}
+.tail{
+  position:absolute;
+  right:4px;
+  top:122px;
+  width:62px;
+  height:88px;
+  border:13px solid #0c0a10;
+  border-left:0;
+  border-bottom:0;
+  border-radius:0 70px 0 0;
+  transform:rotate(18deg);
+}
+.charm{
+  position:absolute;
+  left:50%;
+  top:114px;
+  transform:translateX(-50%);
+  font-size:26px;
+  z-index:4;
+}
+.cat-name{
+  margin-top:8px;
+  color:#efe6f6;
+  font-size:13px;
+  font-weight:900;
+  letter-spacing:.04em;
+}
+.choice{
+  margin-top:6px;
+  color:#bfa5d0;
+  font-size:12px;
+  min-height:30px;
+}
+.cat-wrap.shuffle .cat{
+  animation:catShuffle .28s ease-in-out infinite alternate;
+}
+.cat-wrap.dim{
+  opacity:.2;
+  filter:saturate(.4);
+}
+.cat-wrap.winner{
+  transform:translateY(-26px) scale(1.12);
+  filter:drop-shadow(0 0 18px rgba(255,154,60,.7));
+}
+.cat-wrap.winner .cat-name{
+  color:#ffad61;
+  text-shadow:0 0 10px rgba(255,154,60,.5);
+}
+.cat-wrap.winner .head{
+  box-shadow:0 0 24px rgba(199,140,255,.65);
+}
+.crown{
+  position:absolute;
+  top:-35px;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:34px;
+  opacity:0;
+}
+.cat-wrap.winner .crown{opacity:1}
+
+.result{
+  min-height:74px;
+  margin-top:18px;
+  text-align:center;
+  color:#fff2dd;
+  font-size:28px;
+  font-weight:900;
+}
+.result .pick{
+  color:#ff9a3c;
+  text-shadow:0 0 12px rgba(255,154,60,.6);
+}
+.result .message{
+  display:block;
+  margin-top:8px;
+  color:#c78cff;
+  font-size:20px;
+}
+.flash{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:0;
+}
+.flash.active{animation:flash .9s ease-out}
+.footer{
+  text-align:center;
+  margin-top:10px;
+  color:#a99ab7;
+  font-size:12px;
+}
+@keyframes catShuffle{
+  from{transform:translate(-6px,-3px) rotate(-2deg)}
+  to{transform:translate(6px,3px) rotate(2deg)}
+}
+@keyframes flash{
+  0%{opacity:0}
+  25%{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.34),transparent 48%)}
+  100%{opacity:0}
+}
+@media(max-height:760px){.panel{transform:scale(.82)}}
+</style>
+</head>
+<body>
+<div class="scene">
+  <div class="glow"></div>
+  <div class="moon"></div>
+  <div class="web w1">🕸️</div>
+  <div class="web w2">🕸️</div>
+  <div class="bat b1">🦇</div>
+  <div class="bat b2">🦇</div>
+
+  <section class="panel">
+    <div class="flash" id="flash"></div>
+
+    <div class="title">Black Cat Pick</div>
+    <div class="subtitle">Five enchanted kitties. One chooses the Halloween surprise.</div>
+
+    <div class="cat-row">
+      <div class="cat-wrap" data-index="0">
+        <div class="crown">👑</div>
+        <div class="cat">
+          <div class="head">
+            <div class="ear left"></div><div class="ear right"></div>
+            <div class="eye left"></div><div class="eye right"></div>
+            <div class="nose"></div>
+          </div>
+          <div class="body"></div><div class="tail"></div><div class="charm">🌙</div>
+        </div>
+        <div class="cat-name">Luna</div>
+        <div class="choice">Moonlight Treat</div>
+      </div>
+
+      <div class="cat-wrap" data-index="1">
+        <div class="crown">👑</div>
+        <div class="cat">
+          <div class="head">
+            <div class="ear left"></div><div class="ear right"></div>
+            <div class="eye left"></div><div class="eye right"></div>
+            <div class="nose"></div>
+          </div>
+          <div class="body"></div><div class="tail"></div><div class="charm">🖤</div>
+        </div>
+        <div class="cat-name">Velvet</div>
+        <div class="choice">Velvet Hex</div>
+      </div>
+
+      <div class="cat-wrap" data-index="2">
+        <div class="crown">👑</div>
+        <div class="cat">
+          <div class="head">
+            <div class="ear left"></div><div class="ear right"></div>
+            <div class="eye left"></div><div class="eye right"></div>
+            <div class="nose"></div>
+          </div>
+          <div class="body"></div><div class="tail"></div><div class="charm">✨</div>
+        </div>
+        <div class="cat-name">Hexie</div>
+        <div class="choice">Lucky Spark</div>
+      </div>
+
+      <div class="cat-wrap" data-index="3">
+        <div class="crown">👑</div>
+        <div class="cat">
+          <div class="head">
+            <div class="ear left"></div><div class="ear right"></div>
+            <div class="eye left"></div><div class="eye right"></div>
+            <div class="nose"></div>
+          </div>
+          <div class="body"></div><div class="tail"></div><div class="charm">🎃</div>
+        </div>
+        <div class="cat-name">Pumpkin</div>
+        <div class="choice">Pumpkin Surprise</div>
+      </div>
+
+      <div class="cat-wrap" data-index="4">
+        <div class="crown">👑</div>
+        <div class="cat">
+          <div class="head">
+            <div class="ear left"></div><div class="ear right"></div>
+            <div class="eye left"></div><div class="eye right"></div>
+            <div class="nose"></div>
+          </div>
+          <div class="body"></div><div class="tail"></div><div class="charm">🔮</div>
+        </div>
+        <div class="cat-name">Mystic</div>
+        <div class="choice">Mystery Charm</div>
+      </div>
+    </div>
+
+    <div class="result" id="result">The cats are hiding their choices...</div>
+    <div class="footer">StimTake Studio • Halloween Black Cat Pick Placeholder</div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const cats = [...document.querySelectorAll('.cat-wrap')];
+  const result = document.getElementById('result');
+  const flash = document.getElementById('flash');
+
+  let entries = [
+    {name:'Luna',choice:'Moonlight Treat'},
+    {name:'Velvet',choice:'Velvet Hex'},
+    {name:'Hexie',choice:'Lucky Spark'},
+    {name:'Pumpkin',choice:'Pumpkin Surprise'},
+    {name:'Mystic',choice:'Mystery Charm'}
+  ];
+
+  let messages = [
+    'picked a sweet Halloween surprise',
+    'chose a playful little twist',
+    'brings some lucky witchy energy',
+    'unlocks a mysterious moment',
+    'has chosen the room’s next surprise'
+  ];
+
+  let running = false;
+
+  function setEntries(next){
+    if(!Array.isArray(next) || !next.length) return;
+
+    entries = next.slice(0,5).map((e,i)=>({
+      name:String(e.name || ('Kitty ' + (i+1))),
+      choice:String(e.choice || ('Surprise ' + (i+1)))
+    }));
+
+    while(entries.length < 5){
+      entries.push({
+        name:'Kitty ' + (entries.length + 1),
+        choice:'Surprise ' + (entries.length + 1)
+      });
+    }
+
+    cats.forEach((cat,i)=>{
+      cat.querySelector('.cat-name').textContent = entries[i].name;
+      cat.querySelector('.choice').textContent = entries[i].choice;
+    });
+  }
+
+  function reset(){
+    cats.forEach(c=>c.classList.remove('shuffle','winner','dim'));
+  }
+
+  function pick(options = {}){
+    if(running) return false;
+    running = true;
+
+    if(Array.isArray(options.entries)) setEntries(options.entries);
+
+    reset();
+    result.textContent = 'The cats are mixing up their secrets...';
+    cats.forEach(c=>c.classList.add('shuffle'));
+
+    const forced = Number.isInteger(options.index) ? options.index : null;
+    const selected = forced !== null
+      ? Math.max(0,Math.min(4,forced))
+      : Math.floor(Math.random()*5);
+
+    setTimeout(()=>{
+      cats.forEach((c,i)=>{
+        c.classList.remove('shuffle');
+        if(i === selected){
+          c.classList.add('winner');
+        }else{
+          c.classList.add('dim');
+        }
+      });
+
+      const entry = entries[selected];
+      const message = messages[Math.floor(Math.random()*messages.length)];
+
+      result.innerHTML =
+        `🐈‍⬛ <span class="pick">${entry.name}: ${entry.choice}</span>` +
+        `<span class="message">${message}</span>`;
+
+      flash.classList.remove('active');
+      void flash.offsetWidth;
+      flash.classList.add('active');
+
+      running = false;
+
+      window.parent?.postMessage?.({
+        type:'stimtake-black-cat-pick-result',
+        index:selected,
+        entry,
+        message
+      },'*');
+    },2200);
+
+    return true;
+  }
+
+  setEntries(entries);
+
+  window.StimTakeBlackCatPick = {
+    pick,
+    setEntries
+  };
+
+  window.addEventListener('message',(event)=>{
+    const data = event.data || {};
+    if(data.type === 'stimtake-black-cat-pick'){
+      pick({
+        index:Number.isInteger(data.index) ? data.index : undefined,
+        entries:Array.isArray(data.entries) ? data.entries : undefined
+      });
+    }
+  });
+
+  setTimeout(()=>pick(),800);
+})();
+</script>
+</body>
+</html>

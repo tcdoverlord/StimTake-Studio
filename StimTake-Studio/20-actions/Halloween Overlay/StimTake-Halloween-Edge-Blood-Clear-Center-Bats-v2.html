@@ -1,0 +1,851 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StimTake Halloween Show Blood Header</title>
+<style>
+:root{
+  --orange:#ff8a22;
+  --orange2:#ff9f38;
+  --gold:#ffd36a;
+  --purple:#9b5cff;
+  --blood:#7d0015;
+  --blood2:#b20d2a;
+}
+*{box-sizing:border-box}
+html,body{
+  margin:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:transparent;
+  font-family:Arial,Helvetica,sans-serif;
+}
+#stage{
+  position:absolute;
+  inset:0;
+  width:1920px;
+  height:1080px;
+  pointer-events:none;
+}
+#badge{
+  z-index:10;
+  position:absolute;
+  left:50%;
+  top:18px;
+  transform:translateX(-50%);
+  width:620px;
+  height:108px;
+  overflow:visible;
+  background:
+    radial-gradient(circle at 50% 100%,rgba(155,92,255,.12),transparent 48%),
+    linear-gradient(180deg,rgba(18,15,24,.84),rgba(7,6,10,.70));
+  border-radius:22px;
+  box-shadow:
+    0 10px 28px rgba(0,0,0,.28),
+    inset 0 0 24px rgba(155,92,255,.05);
+}
+.copy{
+  position:absolute;
+  left:135px;
+  right:135px;
+  top:16px;
+  text-align:center;
+  z-index:5;
+}
+.small{
+  color:var(--gold);
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:3px;
+  text-transform:uppercase;
+}
+.main{
+  margin-top:2px;
+  color:var(--orange2);
+  font-size:32px;
+  line-height:.95;
+  font-weight:1000;
+  letter-spacing:1.8px;
+  text-transform:uppercase;
+  text-shadow:
+    0 0 7px rgba(255,122,0,.8),
+    0 0 17px rgba(255,122,0,.32);
+}
+.main span{display:block}
+.moon{
+  position:absolute;
+  left:28px;
+  top:18px;
+  width:72px;
+  height:72px;
+  border-radius:50%;
+  background:radial-gradient(circle at 37% 34%,#fff4c4 0 8%,#ffd36a 24%,#ff9f38 65%,#ff7a00 100%);
+  box-shadow:0 0 18px rgba(255,157,56,.55);
+}
+.moon:after{
+  content:"";
+  position:absolute;
+  left:27px;
+  top:-7px;
+  width:66px;
+  height:66px;
+  border-radius:50%;
+  background:rgba(8,6,13,.97);
+}
+.candle{
+  position:absolute;
+  left:112px;
+  bottom:12px;
+  width:12px;
+  height:34px;
+  border-radius:3px;
+  background:linear-gradient(90deg,#d8b780,#fff0c4,#c69a5b);
+}
+.flame{
+  position:absolute;
+  left:50%;
+  top:-18px;
+  width:12px;
+  height:20px;
+  transform:translateX(-50%);
+  border-radius:55% 45% 55% 45%;
+  background:radial-gradient(circle at 50% 70%,#fff8ba 0 20%,#ffd36a 22% 46%,#ff7a00 48% 78%,transparent 80%);
+  filter:drop-shadow(0 0 7px #ff7a00);
+}
+.pumpkins{
+  position:absolute;
+  right:24px;
+  top:28px;
+  font-size:48px;
+  letter-spacing:-10px;
+  filter:drop-shadow(0 0 8px rgba(255,122,0,.5));
+}
+
+/* vampire blood */
+.blood-line{
+  position:absolute;
+  left:40px;
+  right:40px;
+  top:0;
+  height:8px;
+  background:linear-gradient(90deg,
+    transparent 0%,
+    rgba(125,0,21,.0) 4%,
+    rgba(125,0,21,.65) 15%,
+    rgba(178,13,42,.9) 50%,
+    rgba(125,0,21,.65) 85%,
+    transparent 100%);
+  filter:drop-shadow(0 2px 3px rgba(80,0,10,.5));
+  opacity:.95;
+}
+.drip{
+  position:absolute;
+  top:0;
+  width:12px;
+  background:linear-gradient(180deg,var(--blood2),var(--blood));
+  border-radius:0 0 8px 8px;
+  box-shadow:0 2px 4px rgba(70,0,12,.45);
+}
+.d1{left:150px;height:28px}
+.d2{left:265px;height:18px;width:9px}
+.d3{left:420px;height:34px;width:11px}
+.d4{left:500px;height:22px;width:8px}
+.drip:after{
+  content:"";
+  position:absolute;
+  left:50%;
+  bottom:-7px;
+  width:10px;
+  height:10px;
+  transform:translateX(-50%);
+  border-radius:50%;
+  background:var(--blood);
+}
+.bite{
+  position:absolute;
+  left:50%;
+  bottom:7px;
+  transform:translateX(-50%);
+  color:#b10f2f;
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  opacity:.86;
+}
+
+.bat{
+  position:absolute;
+  z-index:4;
+  color:#0a0a10;
+  font-size:20px;
+  filter:drop-shadow(0 0 4px rgba(155,92,255,.75));
+  opacity:0;
+  transform-origin:center;
+}
+.bat.one{
+  left:-30px;
+  top:18px;
+  animation:flyOne 7.5s linear infinite;
+}
+.bat.two{
+  left:-50px;
+  top:58px;
+  font-size:16px;
+  animation:flyTwo 10s linear 2s infinite;
+}
+.bat.three{
+  left:-40px;
+  top:40px;
+  font-size:13px;
+  animation:flyThree 8.5s linear 4.4s infinite;
+}
+
+@keyframes flyOne{
+  0%{transform:translate(-30px,0) scale(.75) rotate(-8deg);opacity:0}
+  10%{opacity:.95}
+  45%{transform:translate(185px,25px) scale(1.05) rotate(8deg)}
+  90%{opacity:.95}
+  100%{transform:translate(650px,-8px) scale(.78) rotate(-6deg);opacity:0}
+}
+@keyframes flyTwo{
+  0%{transform:translate(-40px,0) scale(.55) rotate(10deg);opacity:0}
+  12%{opacity:.7}
+  50%{transform:translate(280px,-35px) scale(.85) rotate(-8deg)}
+  88%{opacity:.7}
+  100%{transform:translate(670px,-5px) scale(.60) rotate(12deg);opacity:0}
+}
+@keyframes flyThree{
+  0%{transform:translate(-35px,0) scale(.45);opacity:0}
+  12%{opacity:.6}
+  48%{transform:translate(240px,28px) scale(.72)}
+  88%{opacity:.6}
+  100%{transform:translate(650px,-18px) scale(.5);opacity:0}
+}
+
+
+/* FULL-SCREEN VAMPIRE BLOOD RAIN */
+#blood-screen{
+  position:absolute;
+  inset:0;
+  width:1920px;
+  height:1080px;
+  overflow:hidden;
+  z-index:2;
+  pointer-events:none;
+}
+
+.blood-trail{
+  position:absolute;
+  top:-140px;
+  width:14px;
+  height:0;
+  border-radius:0 0 10px 10px;
+  background:
+    linear-gradient(90deg,
+      rgba(70,0,10,.92) 0%,
+      rgba(140,0,24,.98) 34%,
+      rgba(185,10,40,.98) 52%,
+      rgba(105,0,18,.96) 100%);
+  box-shadow:
+    0 0 6px rgba(125,0,21,.35),
+    inset 2px 0 3px rgba(255,70,90,.12);
+  transform-origin:top center;
+  animation:longDrip 7s ease-in-out infinite;
+}
+
+.blood-trail::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  bottom:-12px;
+  width:18px;
+  height:24px;
+  transform:translateX(-50%);
+  border-radius:55% 45% 60% 40%;
+  background:radial-gradient(circle at 40% 30%,#b90c32 0 18%,#7b0017 72%);
+  box-shadow:0 4px 8px rgba(60,0,10,.45);
+}
+
+.blood-trail::before{
+  content:"";
+  position:absolute;
+  left:3px;
+  top:12%;
+  width:5px;
+  height:68%;
+  border-radius:999px;
+  background:linear-gradient(180deg,rgba(255,100,110,.18),transparent 65%);
+  opacity:.55;
+}
+
+.bt1{left:85px;animation-delay:.0s;--h:820px;--d:8.2s}
+.bt2{left:240px;animation-delay:1.4s;--h:1040px;--d:10.5s;width:10px}
+.bt3{left:430px;animation-delay:3.0s;--h:760px;--d:7.6s;width:12px}
+.bt4{left:650px;animation-delay:.8s;--h:980px;--d:9.2s;width:16px}
+.bt5{left:920px;animation-delay:2.1s;--h:1080px;--d:11.0s;width:11px}
+.bt6{left:1180px;animation-delay:4.0s;--h:860px;--d:8.6s;width:15px}
+.bt7{left:1410px;animation-delay:1.8s;--h:1030px;--d:10.1s;width:10px}
+.bt8{left:1660px;animation-delay:3.7s;--h:910px;--d:9.0s;width:13px}
+.bt9{left:1810px;animation-delay:5.0s;--h:740px;--d:7.4s;width:9px}
+
+.blood-drop{
+  position:absolute;
+  top:-30px;
+  width:13px;
+  height:18px;
+  border-radius:55% 45% 60% 40%;
+  background:radial-gradient(circle at 40% 30%,#c00e34 0 18%,#740014 72%);
+  box-shadow:0 2px 5px rgba(50,0,8,.45);
+  opacity:0;
+  animation:fallDrop 5.8s linear infinite;
+}
+.bd1{left:155px;animation-delay:.8s}
+.bd2{left:365px;animation-delay:2.4s;width:9px;height:13px}
+.bd3{left:770px;animation-delay:1.6s;width:11px;height:15px}
+.bd4{left:1080px;animation-delay:3.2s}
+.bd5{left:1330px;animation-delay:.2s;width:10px;height:14px}
+.bd6{left:1540px;animation-delay:4.4s;width:12px;height:17px}
+.bd7{left:1740px;animation-delay:2.8s;width:8px;height:12px}
+
+/* Blood mist near the top for depth */
+.blood-mist{
+  position:absolute;
+  left:0;
+  right:0;
+  top:-15px;
+  height:180px;
+  background:
+    radial-gradient(ellipse at 18% 0%,rgba(110,0,20,.18),transparent 55%),
+    radial-gradient(ellipse at 48% 0%,rgba(165,0,28,.14),transparent 50%),
+    radial-gradient(ellipse at 82% 0%,rgba(105,0,18,.16),transparent 55%);
+  filter:blur(10px);
+  opacity:.8;
+}
+
+@keyframes longDrip{
+  0%{
+    height:0;
+    opacity:0;
+  }
+  8%{
+    opacity:.95;
+  }
+  45%{
+    height:calc(var(--h) * .72);
+  }
+  70%{
+    height:var(--h);
+    opacity:1;
+  }
+  92%{
+    height:var(--h);
+    opacity:.82;
+  }
+  100%{
+    height:0;
+    opacity:0;
+  }
+}
+
+@keyframes fallDrop{
+  0%{transform:translateY(-20px) scale(.7);opacity:0}
+  8%{opacity:.9}
+  86%{opacity:.95}
+  100%{transform:translateY(1120px) scale(1.05);opacity:0}
+}
+
+
+/* ANIMATED VAMPIRE BITE EVENT
+   Appears about once per minute at a random edge-safe position,
+   bites the "glass", cracks it, then fades away. */
+#bite-event{
+  position:absolute;
+  width:280px;
+  height:280px;
+  z-index:8;
+  pointer-events:none;
+  opacity:0;
+  transform:scale(.7) rotate(-4deg);
+  filter:drop-shadow(0 0 10px rgba(90,0,15,.35));
+}
+#bite-event.show{
+  animation:biteEvent 5.4s ease-in-out forwards;
+}
+
+.teeth{
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:160px;
+  height:112px;
+  transform:translate(-50%,-50%) scale(.75);
+  opacity:0;
+}
+#bite-event.show .teeth{
+  animation:teethSnap 1.15s cubic-bezier(.15,.8,.2,1) forwards;
+}
+
+.mouth{
+  position:absolute;
+  left:18px;
+  right:18px;
+  top:22px;
+  bottom:22px;
+  border-radius:48% 48% 52% 52%;
+  background:
+    radial-gradient(ellipse at 50% 62%,rgba(15,0,4,.96) 0 44%,rgba(70,0,14,.92) 46% 64%,transparent 66%);
+  box-shadow:inset 0 0 22px rgba(120,0,24,.42);
+}
+
+.tooth{
+  position:absolute;
+  width:26px;
+  height:54px;
+  top:7px;
+  background:linear-gradient(180deg,#fffef4,#e8e3cf 68%,#c4bea6);
+  clip-path:polygon(0 0,100% 0,52% 100%);
+  filter:drop-shadow(0 3px 2px rgba(0,0,0,.28));
+  transform-origin:50% 0;
+}
+.t1{left:35px;transform:rotate(-8deg)}
+.t2{right:35px;transform:rotate(8deg)}
+
+.tooth.small{
+  width:18px;
+  height:35px;
+  top:22px;
+  opacity:.85;
+}
+.t3{left:70px;transform:rotate(-2deg)}
+.t4{right:70px;transform:rotate(2deg)}
+
+.blood-puncture{
+  position:absolute;
+  width:20px;
+  height:24px;
+  border-radius:50%;
+  background:radial-gradient(circle at 38% 32%,#d2163d 0 20%,#830019 58%,#3b0008 100%);
+  box-shadow:0 0 10px rgba(130,0,25,.5);
+  opacity:0;
+}
+.bp1{left:92px;top:152px}
+.bp2{right:92px;top:152px}
+#bite-event.show .blood-puncture{
+  animation:puncture 1s ease-out 1.05s forwards;
+}
+
+.bite-drip{
+  position:absolute;
+  top:169px;
+  width:8px;
+  height:0;
+  border-radius:0 0 8px 8px;
+  background:linear-gradient(#b70f31,#620010);
+  opacity:0;
+}
+.bite-drip.d1{left:98px}
+#bite-event.show .bite-drip{
+  animation:biteDrip 2.2s ease-in 1.15s forwards;
+}
+
+/* Glass crack layer */
+.crack{
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:0;
+  height:2px;
+  transform-origin:0 50%;
+  background:linear-gradient(90deg,rgba(255,255,255,.88),rgba(200,218,235,.52),transparent);
+  box-shadow:0 0 3px rgba(255,255,255,.22);
+  opacity:0;
+}
+#bite-event.show .crack{
+  animation:crackGrow .75s ease-out 1.05s forwards;
+}
+.c1{--len:118px;transform:rotate(-18deg)}
+.c2{--len:102px;transform:rotate(20deg)}
+.c3{--len:92px;transform:rotate(61deg)}
+.c4{--len:112px;transform:rotate(108deg)}
+.c5{--len:98px;transform:rotate(150deg)}
+.c6{--len:86px;transform:rotate(198deg)}
+.c7{--len:96px;transform:rotate(242deg)}
+.c8{--len:82px;transform:rotate(304deg)}
+
+.crack::after{
+  content:"";
+  position:absolute;
+  left:58%;
+  top:-1px;
+  width:36px;
+  height:1px;
+  background:rgba(255,255,255,.42);
+  transform:rotate(24deg);
+  transform-origin:left center;
+}
+
+.shard{
+  position:absolute;
+  width:12px;
+  height:12px;
+  border:1px solid rgba(255,255,255,.44);
+  background:rgba(255,255,255,.05);
+  opacity:0;
+}
+#bite-event.show .shard{
+  animation:shardPop 1s ease-out 1.15s forwards;
+}
+.sh1{left:64px;top:78px;transform:rotate(17deg)}
+.sh2{right:58px;top:90px;transform:rotate(-22deg)}
+.sh3{left:92px;bottom:62px;transform:rotate(33deg)}
+.sh4{right:78px;bottom:70px;transform:rotate(-12deg)}
+
+@keyframes biteEvent{
+  0%{opacity:0;transform:scale(.65) rotate(-5deg)}
+  8%{opacity:1;transform:scale(.92) rotate(2deg)}
+  22%{opacity:1;transform:scale(1.04) rotate(-1deg)}
+  74%{opacity:1;transform:scale(1) rotate(0)}
+  100%{opacity:0;transform:scale(.94) rotate(1deg)}
+}
+@keyframes teethSnap{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.5)}
+  35%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}
+  58%{opacity:1;transform:translate(-50%,-50%) scale(.94)}
+  100%{opacity:1;transform:translate(-50%,-50%) scale(1)}
+}
+@keyframes puncture{
+  0%{opacity:0;transform:scale(.2)}
+  55%{opacity:1;transform:scale(1.25)}
+  100%{opacity:1;transform:scale(1)}
+}
+@keyframes biteDrip{
+  0%{height:0;opacity:0}
+  20%{opacity:.95}
+  100%{height:92px;opacity:.9}
+}
+@keyframes crackGrow{
+  0%{width:0;opacity:0}
+  20%{opacity:1}
+  100%{width:var(--len);opacity:.9}
+}
+@keyframes shardPop{
+  0%{opacity:0;transform:translate(0,0) scale(.2)}
+  45%{opacity:.75}
+  100%{opacity:0;transform:translate(var(--sx,14px),var(--sy,10px)) scale(1.15)}
+}
+50%{transform:scale(1.02);opacity:1}
+}
+8%{opacity:.9}
+  86%{opacity:.95}
+  100%{transform:translateY(1120px) scale(1.05);opacity:0}
+}
+
+
+
+/* CORRECTED BLOOD BEHAVIOR
+   CENTER IS KEPT CLEAR.
+   Blood is hidden ~60 seconds, visible ~12 seconds, then repeats. */
+#blood-screen{
+  position:absolute;
+  inset:0;
+  width:1920px;
+  height:1080px;
+  overflow:hidden;
+  z-index:2;
+  pointer-events:none;
+  opacity:0;
+  animation:bloodEdgeCycle 72s ease-in-out infinite;
+}
+
+/* Left/right mist only — nothing across center */
+.blood-mist{
+  position:absolute;
+  top:-18px;
+  width:390px;
+  height:190px;
+  filter:blur(10px);
+  opacity:.72;
+}
+.left-mist{
+  left:0;
+  background:radial-gradient(ellipse at 10% 0%,rgba(155,0,28,.22),rgba(95,0,18,.11) 42%,transparent 72%);
+}
+.right-mist{
+  right:0;
+  background:radial-gradient(ellipse at 90% 0%,rgba(155,0,28,.22),rgba(95,0,18,.11) 42%,transparent 72%);
+}
+
+/* LEFT edge: 0–420px */
+.edge-l1{left:70px;--h:700px;animation-delay:.0s;width:14px}
+.edge-l2{left:165px;--h:900px;animation-delay:1.2s;width:10px}
+.edge-l3{left:285px;--h:620px;animation-delay:2.6s;width:12px}
+.edge-l4{left:395px;--h:780px;animation-delay:4.0s;width:9px}
+
+.edge-ld1{left:120px;animation-delay:.7s}
+.edge-ld2{left:245px;animation-delay:2.1s;width:9px;height:13px}
+.edge-ld3{left:365px;animation-delay:3.6s;width:11px;height:15px}
+
+/* RIGHT edge: 1500–1920px */
+.edge-r1{right:70px;--h:690px;animation-delay:.6s;width:13px}
+.edge-r2{right:165px;--h:880px;animation-delay:1.8s;width:10px}
+.edge-r3{right:285px;--h:640px;animation-delay:3.0s;width:12px}
+.edge-r4{right:395px;--h:760px;animation-delay:4.5s;width:9px}
+
+.edge-rd1{right:120px;animation-delay:1.0s}
+.edge-rd2{right:245px;animation-delay:2.8s;width:9px;height:13px}
+.edge-rd3{right:365px;animation-delay:4.2s;width:11px;height:15px}
+
+/* One minute clear, then a short blood pass */
+@keyframes bloodEdgeCycle{
+  0%{opacity:0}
+  82.8%{opacity:0}   /* ~59.6 seconds */
+  84%{opacity:1}     /* fade in around 60 sec */
+  97.2%{opacity:1}   /* remain visible ~9.5 sec */
+  100%{opacity:0}    /* fade out before restart */
+}
+
+/* Keep bite event independent of blood fade */
+#bite-event{
+  z-index:8;
+}
+
+
+/* VISUAL TUNING FROM OBS SCREENSHOT:
+   - blood confined to narrow far-left / far-right edge bands
+   - shorter/thinner drips
+   - added subtle bats near top corners
+   - center model area remains clear */
+.edge-l1{left:24px !important;--h:420px !important;width:8px !important}
+.edge-l2{left:62px !important;--h:560px !important;width:7px !important}
+.edge-l3{left:108px !important;--h:370px !important;width:6px !important}
+.edge-l4{left:152px !important;--h:470px !important;width:7px !important}
+
+.edge-ld1{left:40px !important}
+.edge-ld2{left:88px !important}
+.edge-ld3{left:138px !important}
+
+.edge-r1{right:24px !important;--h:420px !important;width:8px !important}
+.edge-r2{right:62px !important;--h:560px !important;width:7px !important}
+.edge-r3{right:108px !important;--h:370px !important;width:6px !important}
+.edge-r4{right:152px !important;--h:470px !important;width:7px !important}
+
+.edge-rd1{right:40px !important}
+.edge-rd2{right:88px !important}
+.edge-rd3{right:138px !important}
+
+/* reduce the thickness/visual weight of the blood itself */
+.blood-trail{
+  box-shadow:0 0 3px rgba(125,0,21,.22), inset 1px 0 2px rgba(255,70,90,.08) !important;
+}
+.blood-trail::after{
+  width:12px !important;
+  height:18px !important;
+  bottom:-9px !important;
+}
+.left-mist,.right-mist{
+  width:190px !important;
+  opacity:.42 !important;
+}
+
+/* Extra ambient bats that stay near the upper edges instead of crossing the face */
+.corner-bat{
+  position:absolute;
+  z-index:7;
+  color:#08070d;
+  opacity:0;
+  filter:drop-shadow(0 0 5px rgba(155,92,255,.7));
+  transform-origin:center;
+}
+.cb1{left:18px;top:150px;font-size:26px;animation:cornerBatLeft 13s linear infinite}
+.cb2{left:55px;top:245px;font-size:18px;animation:cornerBatLeft2 16s linear 4s infinite}
+.cb3{right:22px;top:150px;font-size:24px;animation:cornerBatRight 14s linear 2s infinite}
+.cb4{right:64px;top:250px;font-size:17px;animation:cornerBatRight2 18s linear 6s infinite}
+
+@keyframes cornerBatLeft{
+  0%{opacity:0;transform:translate(-30px,20px) scale(.7) rotate(-8deg)}
+  10%{opacity:.75}
+  48%{opacity:.9;transform:translate(190px,-55px) scale(1) rotate(8deg)}
+  90%{opacity:.55}
+  100%{opacity:0;transform:translate(360px,-15px) scale(.75) rotate(-5deg)}
+}
+@keyframes cornerBatLeft2{
+  0%{opacity:0;transform:translate(-20px,0) scale(.6)}
+  12%{opacity:.6}
+  50%{transform:translate(160px,-80px) scale(.85)}
+  88%{opacity:.5}
+  100%{opacity:0;transform:translate(300px,-30px) scale(.6)}
+}
+@keyframes cornerBatRight{
+  0%{opacity:0;transform:translate(30px,20px) scale(.7) rotate(8deg)}
+  10%{opacity:.75}
+  48%{opacity:.9;transform:translate(-190px,-55px) scale(1) rotate(-8deg)}
+  90%{opacity:.55}
+  100%{opacity:0;transform:translate(-360px,-15px) scale(.75) rotate(5deg)}
+}
+@keyframes cornerBatRight2{
+  0%{opacity:0;transform:translate(20px,0) scale(.6)}
+  12%{opacity:.6}
+  50%{transform:translate(-160px,-80px) scale(.85)}
+  88%{opacity:.5}
+  100%{opacity:0;transform:translate(-300px,-30px) scale(.6)}
+}
+
+</style>
+</head>
+<body>
+<main id="stage">
+
+  <div class="corner-bat cb1">🦇</div>
+  <div class="corner-bat cb2">🦇</div>
+  <div class="corner-bat cb3">🦇</div>
+  <div class="corner-bat cb4">🦇</div>
+
+
+  
+  <div id="blood-screen" aria-hidden="true">
+    <div class="blood-mist left-mist"></div>
+    <div class="blood-mist right-mist"></div>
+
+    <!-- LEFT EDGE BLOOD -->
+    <span class="blood-trail edge-l1"></span>
+    <span class="blood-trail edge-l2"></span>
+    <span class="blood-trail edge-l3"></span>
+    <span class="blood-trail edge-l4"></span>
+
+    <span class="blood-drop edge-ld1"></span>
+    <span class="blood-drop edge-ld2"></span>
+    <span class="blood-drop edge-ld3"></span>
+
+    <!-- RIGHT EDGE BLOOD -->
+    <span class="blood-trail edge-r1"></span>
+    <span class="blood-trail edge-r2"></span>
+    <span class="blood-trail edge-r3"></span>
+    <span class="blood-trail edge-r4"></span>
+
+    <span class="blood-drop edge-rd1"></span>
+    <span class="blood-drop edge-rd2"></span>
+    <span class="blood-drop edge-rd3"></span>
+  </div>
+
+
+    <span class="blood-trail bt1"></span>
+    <span class="blood-trail bt2"></span>
+    <span class="blood-trail bt3"></span>
+    <span class="blood-trail bt4"></span>
+    <span class="blood-trail bt5"></span>
+    <span class="blood-trail bt6"></span>
+    <span class="blood-trail bt7"></span>
+    <span class="blood-trail bt8"></span>
+    <span class="blood-trail bt9"></span>
+
+    <span class="blood-drop bd1"></span>
+    <span class="blood-drop bd2"></span>
+    <span class="blood-drop bd3"></span>
+    <span class="blood-drop bd4"></span>
+    <span class="blood-drop bd5"></span>
+    <span class="blood-drop bd6"></span>
+    <span class="blood-drop bd7"></span>
+
+    
+        <span class="tooth t1"></span>
+        <span class="tooth t2"></span>
+        <span class="tooth small t3"></span>
+        <span class="tooth small t4"></span>
+      </div>
+
+  <div id="bite-event" aria-hidden="true">
+      <div class="teeth">
+        <div class="mouth"></div>
+
+      <span class="blood-puncture bp1"></span>
+      <span class="blood-puncture bp2"></span>
+      <span class="bite-drip d1"></span>
+
+      <span class="crack c1"></span>
+      <span class="crack c2"></span>
+      <span class="crack c3"></span>
+      <span class="crack c4"></span>
+      <span class="crack c5"></span>
+      <span class="crack c6"></span>
+      <span class="crack c7"></span>
+      <span class="crack c8"></span>
+
+      <span class="shard sh1" style="--sx:-18px;--sy:-10px"></span>
+      <span class="shard sh2" style="--sx:20px;--sy:-14px"></span>
+      <span class="shard sh3" style="--sx:-16px;--sy:18px"></span>
+      <span class="shard sh4" style="--sx:18px;--sy:16px"></span>
+    </div>
+
+  </div>
+
+  <section id="badge">
+    <div class="blood-line"></div>
+    <div class="bat one">🦇</div>
+    <div class="bat two">🦇</div>
+    <div class="bat three">🦇</div>
+    <div class="drip d1"></div>
+    <div class="drip d2"></div>
+    <div class="drip d3"></div>
+    <div class="drip d4"></div>
+
+    <div class="moon"></div>
+    <div class="candle"><div class="flame"></div></div>
+
+    <div class="copy">
+      <div class="small">Welcome To The</div>
+      <div class="main"><span>Halloween</span><span>Show</span></div>
+    </div>
+
+    <div class="pumpkins">🎃🎃</div>
+    <div class="bite">After Dark</div>
+  </section>
+</main>
+
+<script>
+(()=>{
+  const bite = document.getElementById('bite-event');
+
+  // Edge-safe positions only, so the model/camera center stays as clear as possible.
+  const safePositions = [
+    {x:70, y:185},
+    {x:120, y:510},
+    {x:1540, y:185},
+    {x:1510, y:510},
+    {x:190, y:760},
+    {x:1450, y:760}
+  ];
+
+  let last = -1;
+
+  function triggerBite(){
+    let index;
+    do{
+      index = Math.floor(Math.random()*safePositions.length);
+    }while(index === last && safePositions.length > 1);
+
+    last = index;
+    const p = safePositions[index];
+
+    bite.style.left = p.x + 'px';
+    bite.style.top = p.y + 'px';
+
+    bite.classList.remove('show');
+    void bite.offsetWidth;
+    bite.classList.add('show');
+  }
+
+  // First preview quickly for OBS testing.
+  setTimeout(triggerBite, 2500);
+
+  // Then a new bite every minute.
+  setInterval(triggerBite, 60000);
+
+  window.StimTakeHalloweenBite = { trigger: triggerBite };
+})();
+</script>
+
+</body>
+</html>

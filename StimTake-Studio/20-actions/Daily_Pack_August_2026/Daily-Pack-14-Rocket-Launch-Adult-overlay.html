@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StimTake Daily Rocket Launch</title>
+<style>
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:transparent;font-family:"Segoe UI",Arial,sans-serif}
+*{box-sizing:border-box}
+.scene{position:relative;width:100%;height:100%;display:grid;place-items:center;pointer-events:none}
+.glow{position:absolute;width:900px;height:800px;border-radius:50%;background:radial-gradient(circle,rgba(174,86,255,.24),rgba(255,82,161,.10) 48%,transparent 72%);filter:blur(18px)}
+.panel{position:relative;width:min(980px,94vw);padding:28px 34px 34px;border-radius:28px;border:2px solid rgba(175,96,255,.72);background:linear-gradient(180deg,rgba(25,18,41,.95),rgba(10,8,19,.96));box-shadow:0 0 34px rgba(175,96,255,.48),0 0 70px rgba(255,82,161,.14)}
+.title{text-align:center;color:#fff5fb;font-size:38px;font-weight:1000;letter-spacing:.06em;text-transform:uppercase;text-shadow:0 0 15px rgba(175,96,255,.85)}
+.subtitle{text-align:center;color:#d8cce2;margin-top:5px;font-size:15px}
+.arena{position:relative;width:850px;height:510px;margin:20px auto 0}
+.meter{position:absolute;left:355px;top:35px;width:170px;height:420px;border-radius:30px;background:rgba(15,11,25,.86);border:3px solid rgba(255,255,255,.14);box-shadow:0 0 25px rgba(144,83,255,.3);overflow:hidden}
+.track{position:absolute;left:62px;top:30px;width:46px;height:350px;border-radius:999px;background:linear-gradient(to top,#6b3bca,#b14fff,#ff5ca8,#ff9c51);box-shadow:inset 0 0 12px rgba(0,0,0,.3),0 0 20px rgba(175,96,255,.35)}
+.zone{position:absolute;right:12px;color:#fff;font-size:12px;font-weight:900;text-shadow:0 1px 4px #000}
+.z1{bottom:30px}.z2{bottom:105px}.z3{bottom:180px}.z4{bottom:255px}.z5{bottom:330px}
+.rocket{position:absolute;left:405px;top:390px;width:72px;height:110px;z-index:10;transition:top 2.6s cubic-bezier(.15,.72,.15,1)}
+.rocket-body{position:absolute;left:17px;top:4px;width:38px;height:72px;border-radius:50% 50% 30% 30%;background:linear-gradient(90deg,#eee8ff,#fff,#d8c9ff);box-shadow:0 0 14px rgba(255,255,255,.3)}
+.rocket-body:before{content:"";position:absolute;top:-17px;left:7px;border-left:12px solid transparent;border-right:12px solid transparent;border-bottom:24px solid #ff5ca8}
+.window{position:absolute;left:9px;top:20px;width:20px;height:20px;border-radius:50%;background:#6ad7ff;border:3px solid #67458e}
+.fin1,.fin2{position:absolute;top:56px;width:18px;height:30px;background:#8f5cff}.fin1{left:3px;clip-path:polygon(100% 0,100% 100%,0 100%)}.fin2{right:3px;clip-path:polygon(0 0,100% 100%,0 100%)}
+.flame{position:absolute;left:26px;top:74px;width:20px;height:36px;background:linear-gradient(#fff3a8,#ff9c51,#ff4f9b);clip-path:polygon(50% 100%,0 0,100% 0);animation:flame .15s infinite alternate}
+.side{position:absolute;left:20px;top:80px;width:285px;padding:18px 20px;border-radius:20px;background:rgba(19,14,29,.84);border:1px solid rgba(175,96,255,.35)}
+.side h3{margin:0 0 12px;text-align:center;color:#ff91c7;font-size:18px}
+.reward{margin:9px 0;color:#eee5f5;font-size:14px;font-weight:800}.reward b{display:inline-block;width:45px;color:#ffae5e;text-align:right;margin-right:9px}
+.multiplier{position:absolute;right:35px;top:125px;width:245px;text-align:center}
+.multi{font-size:72px;font-weight:1000;color:#ff9d3c;text-shadow:0 0 20px rgba(255,157,60,.6)}
+.status{color:#fff5fb;font-size:19px;font-weight:900}
+.result{min-height:80px;text-align:center;color:#fff5fb;font-size:28px;font-weight:900}
+.result .headline{color:#ff9d3c;text-shadow:0 0 12px rgba(255,157,60,.55)}
+.result .message{display:block;margin-top:8px;color:#c98cff;font-size:20px}
+.stars{position:absolute;inset:0;overflow:hidden}.star{position:absolute;color:#fff;opacity:.35;animation:twinkle 1.2s infinite alternate}
+.flash{position:absolute;inset:0;pointer-events:none;opacity:0}.flash.active{animation:flash .9s ease-out}
+.footer{text-align:center;margin-top:8px;color:#9f93aa;font-size:12px}
+@keyframes flame{from{transform:scaleY(.8)}to{transform:scaleY(1.25)}}
+@keyframes twinkle{from{opacity:.15;transform:scale(.8)}to{opacity:.7;transform:scale(1.2)}}
+@keyframes flash{0%{opacity:0}25%{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.34),transparent 48%)}100%{opacity:0}}
+@media(max-height:760px){.panel{transform:scale(.83)}}
+</style>
+</head>
+<body>
+<div class="scene"><div class="glow"></div>
+<section class="panel">
+<div class="flash" id="flash"></div>
+<div class="title">🚀 Rocket Launch</div>
+<div class="subtitle">Launch the rocket. Higher altitude means a hotter reward.</div>
+
+<div class="arena">
+<div class="stars">
+<span class="star" style="left:8%;top:12%">✦</span><span class="star" style="left:24%;top:66%">✦</span>
+<span class="star" style="left:68%;top:12%">✦</span><span class="star" style="left:89%;top:55%">✦</span>
+<span class="star" style="left:76%;top:78%">✦</span><span class="star" style="left:13%;top:38%">✦</span>
+</div>
+
+<div class="side">
+<h3>🔥 Launch Rewards</h3>
+<div class="reward"><b>1X</b> 💋 Flirty Pose</div>
+<div class="reward"><b>2X</b> 💃 Slow Dance</div>
+<div class="reward"><b>3X</b> 👗 Remove One Clothing Item</div>
+<div class="reward"><b>4X</b> 💖 Viewer Chooses a Tease</div>
+<div class="reward"><b>5X</b> 👑 Model's Hot Jackpot Choice</div>
+</div>
+
+<div class="meter">
+<div class="track"></div>
+<div class="zone z1">1X</div><div class="zone z2">2X</div><div class="zone z3">3X</div><div class="zone z4">4X</div><div class="zone z5">5X</div>
+</div>
+
+<div class="rocket" id="rocket">
+<div class="rocket-body"><div class="window"></div></div><div class="fin1"></div><div class="fin2"></div><div class="flame"></div>
+</div>
+
+<div class="multiplier">
+<div class="multi" id="multi">1X</div>
+<div class="status" id="status">READY TO LAUNCH</div>
+</div>
+</div>
+
+<div class="result" id="result">Fueling the rocket...</div>
+<div class="footer">StimTake Studio • Daily Pack • Rocket Launch</div>
+</section></div>
+
+<script>
+(()=>{
+const rocket=document.getElementById('rocket'),multi=document.getElementById('multi'),
+status=document.getElementById('status'),result=document.getElementById('result'),flash=document.getElementById('flash');
+let running=false;
+let rewards=[
+ {x:1,title:'Flirty Pose',message:'A playful pose is unlocked.'},
+ {x:2,title:'Slow Dance',message:'Time for a smooth slow dance.'},
+ {x:3,title:'Remove One Clothing Item',message:'One clothing item comes off.'},
+ {x:4,title:'Viewer Chooses a Tease',message:'The winning viewer gets the tease choice.'},
+ {x:5,title:"Model's Hot Jackpot Choice",message:'Jackpot! The model chooses the big reward.'}
+];
+const tops=[350,275,200,125,50];
+
+function setRewards(next){
+ if(!Array.isArray(next)||next.length<5)return;
+ rewards=next.slice(0,5).map((r,i)=>({
+   x:i+1,title:String(r.title||rewards[i].title),message:String(r.message||rewards[i].message)
+ }));
+}
+function launch(options={}){
+ if(running)return false;
+ running=true;
+ if(Array.isArray(options.rewards))setRewards(options.rewards);
+ const forced=Number.isInteger(options.level)?Math.max(0,Math.min(4,options.level)):null;
+ const selected=forced!==null?forced:Math.floor(Math.random()*5);
+ const reward=rewards[selected];
+
+ rocket.style.transition='none';rocket.style.top='390px';void rocket.offsetWidth;
+ rocket.style.transition='top 2.6s cubic-bezier(.15,.72,.15,1)';
+ status.textContent='BLAST OFF!';
+ result.textContent='Rocket climbing...';
+
+ let count=1;
+ const counter=setInterval(()=>{multi.textContent=count+'X';if(count<5)count++;else count=1},280);
+
+ setTimeout(()=>rocket.style.top=tops[selected]+'px',100);
+
+ setTimeout(()=>{
+   clearInterval(counter);
+   multi.textContent=reward.x+'X';
+   status.textContent=reward.x===5?'JACKPOT ALTITUDE!':'ALTITUDE LOCKED!';
+   result.innerHTML=`🚀 <span class="headline">${reward.x}X — ${reward.title}</span><span class="message">${reward.message}</span>`;
+   flash.classList.remove('active');void flash.offsetWidth;flash.classList.add('active');
+   running=false;
+   window.parent?.postMessage?.({type:'stimtake-daily-rocket-launch-result',level:selected,multiplier:reward.x,reward},'*');
+ },2850);
+ return true;
+}
+window.StimTakeDailyRocketLaunch={launch,setRewards};
+window.addEventListener('message',e=>{
+ const d=e.data||{};
+ if(d.type==='stimtake-daily-rocket-launch')launch({level:Number.isInteger(d.level)?d.level:undefined,rewards:Array.isArray(d.rewards)?d.rewards:undefined});
+});
+setTimeout(()=>launch(),800);
+})();
+</script>
+</body>
+</html>

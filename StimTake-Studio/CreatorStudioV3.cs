@@ -1304,7 +1304,8 @@ namespace CreatorCamOverlayKit
                     launchTimer.Stop();
                     launchTimer.Dispose();
                     server.Publish("action-trigger", "{\"slot\":" + action.Slot + ",\"definition\":" + definition + "}");
-                    server.Publish("show-action-triggered", "{\"slot\":" + action.Slot + ",\"id\":\"" + Json(action.Id) + "\",\"name\":\"" + Json(action.Name) + "\"}");
+                    server.Publish("show-action-triggered", "{\"slot\":" + action.Slot + ",\"id\":\"" + Json(action.Id) + "\",\"name\":\"" + Json(action.Name) +
+                        "\",\"url\":\"/external-modules/" + Json(id) + "/overlay.html\",\"duration\":" + Math.Max(1, Math.Min(3600, action.DurationSeconds)) + "}");
 
                     var stopTimer = new System.Windows.Forms.Timer { Interval = Math.Max(1, Math.Min(3600, action.DurationSeconds)) * 1000 };
                     stopTimer.Tick += delegate

@@ -155,20 +155,24 @@ $designerProcess = $null
 $previousRoot = $env:STIMTAKE_RUNTIME_ROOT
 try {
     New-Item -ItemType Directory -Path (Join-Path $testRoot 'CreatorCamOverlayKit') -Force | Out-Null
-    Set-Content -LiteralPath (Join-Path $testRoot 'CreatorCamOverlayKit\chaturbate-model-address-v1.txt') -Value 'https://chaturbate.com/obsidian_stallion/' -Encoding utf8NoBOM
+    [IO.File]::WriteAllText(
+        (Join-Path $testRoot 'CreatorCamOverlayKit\chaturbate-model-address-v1.txt'),
+        'https://chaturbate.com/obsidian_stallion/',
+        [Text.UTF8Encoding]::new($false))
     $env:STIMTAKE_RUNTIME_ROOT = $testRoot
 
     $studioProcess = Start-Process -FilePath $StudioExe -PassThru
     $studioWindow = Wait-MainWindow $studioProcess.Id
     if ($studioWindow.Current.Name -ne 'StimTake Studio 6.0') { throw 'Unexpected Studio window title.' }
-    Invoke-WebRequest -Uri 'http://127.0.0.1:8787/api/studio-status' -UseBasicParsing | Out-Null
-    Invoke-Button $studioWindow 'Backstage'
-    $backstage = Wait-ProcessWindow $studioProcess.Id '*Control Deck*'
-    Close-Window $backstage
-    Start-Sleep -Milliseconds 300
-    if ($studioProcess.HasExited) { throw 'Closing Backstage exited Studio.' }
-    Invoke-WebRequest -Uri 'http://127.0.0.1:8787/api/studio-status' -UseBasicParsing | Out-Null
-    Write-Output 'PASS: Studio launched with one port-8787 backend; Backstage opened and closed without stopping it.'
+    if ($null -ne (Find-Button $studioWindow 'Backstage')) { throw 'Backstage is exposed in the normal Studio UI.' }
+    $statusResponse = Invoke-WebRequest -Uri 'http://127.0.0.1:8787/api/studio-status' -UseBasicParsing
+    $statusJson = $statusResponse.Content | ConvertFrom-Json
+    if ($statusJson.backend -ne 'RUNNING' -or $statusJson.model -ne 'obsidian_stallion') { throw 'Studio status endpoint did not report the expected backend/model.' }
+    $indexResponse = Invoke-WebRequest -Uri 'http://127.0.0.1:8787/index.html' -UseBasicParsing
+    if ($indexResponse.Content -notmatch 'TOP TIPPERS' -or $indexResponse.Content -notmatch 'action-layer' -or $indexResponse.Content -match 'creator-cam-stage') {
+        throw 'OBS index does not contain the simplified transparent supporter/action layout.'
+    }
+    Write-Output 'PASS: Studio launched with one port-8787 backend, no Backstage UI, status endpoint, and simplified OBS page.'
 
     Close-Window $studioWindow
     if (!$studioProcess.WaitForExit(10000)) {

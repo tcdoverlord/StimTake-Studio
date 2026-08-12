@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StimTake Daily Final Showdown</title>
+<style>
+html,body{
+  width:100%;height:100%;margin:0;overflow:hidden;background:transparent;
+  font-family:"Segoe UI",Arial,sans-serif
+}
+*{box-sizing:border-box}
+.scene{
+  position:relative;width:100%;height:100%;display:grid;place-items:center;pointer-events:none
+}
+.glow{
+  position:absolute;width:980px;height:840px;border-radius:50%;
+  background:radial-gradient(circle,rgba(170,92,255,.26),rgba(255,105,180,.11) 48%,transparent 72%);
+  filter:blur(18px)
+}
+.panel{
+  position:relative;width:min(1120px,96vw);padding:28px 34px 34px;border-radius:30px;
+  border:2px solid rgba(175,96,255,.74);
+  background:linear-gradient(180deg,rgba(26,19,42,.95),rgba(11,9,20,.96));
+  box-shadow:0 0 36px rgba(175,96,255,.52),0 0 74px rgba(255,105,180,.16)
+}
+.title{
+  text-align:center;color:#fff5fb;font-size:38px;font-weight:1000;letter-spacing:.07em;
+  text-transform:uppercase;text-shadow:0 0 16px rgba(175,96,255,.9)
+}
+.subtitle{text-align:center;color:#d8cce2;margin-top:6px;font-size:15px}
+.arena{
+  position:relative;width:980px;height:560px;margin:22px auto 0;border-radius:24px;overflow:hidden;
+  background:
+    radial-gradient(circle at 50% 110%,rgba(175,96,255,.12),transparent 45%),
+    linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01));
+  border:1px solid rgba(255,255,255,.06)
+}
+.floor{
+  position:absolute;left:-5%;right:-5%;bottom:-10px;height:165px;
+  background:
+    radial-gradient(ellipse at 25% 55%,rgba(92,55,108,.95),transparent 44%),
+    radial-gradient(ellipse at 55% 50%,rgba(55,38,66,.95),transparent 45%),
+    radial-gradient(ellipse at 85% 60%,rgba(82,48,94,.95),transparent 44%)
+}
+.health{
+  position:absolute;top:28px;width:380px
+}
+.health.left{left:45px}.health.right{right:45px}
+.health-labels{
+  display:flex;justify-content:space-between;color:#efe6f6;font-size:12px;font-weight:900;letter-spacing:.05em
+}
+.track{
+  margin-top:7px;height:30px;border-radius:999px;background:#140b1e;border:3px solid #51305f;
+  overflow:hidden;box-shadow:inset 0 0 18px rgba(0,0,0,.5),0 0 15px rgba(180,76,255,.25)
+}
+.bar{height:100%;width:100%;transition:width .55s ease}
+.hero-bar{background:linear-gradient(90deg,#ff78c6,#d96fff,#8f4cff)}
+.rival-bar{background:linear-gradient(90deg,#55c9ff,#5d86ff,#8f4cff)}
+.hptext{
+  position:absolute;top:27px;left:0;right:0;text-align:center;color:#fff;font-size:13px;font-weight:900;
+  text-shadow:0 2px 3px rgba(0,0,0,.75)
+}
+.round{
+  position:absolute;left:50%;top:34px;transform:translateX(-50%);
+  padding:8px 18px;border-radius:999px;background:rgba(18,10,30,.88);
+  border:1px solid rgba(175,96,255,.45);color:#d8c4e4;font-size:13px;font-weight:900;letter-spacing:.08em
+}
+.fighter{
+  position:absolute;bottom:88px;width:320px;text-align:center
+}
+.hero{left:90px}.rival{right:90px}
+.icon{
+  font-size:190px;filter:drop-shadow(0 9px 8px rgba(0,0,0,.5));transform-origin:center
+}
+.name{
+  margin-top:-12px;font-size:20px;font-weight:900;letter-spacing:.05em
+}
+.hero .name{color:#ff9ad3}.rival .name{color:#8fcfff}
+.hero.attack .icon{animation:heroAttack .5s ease-out}
+.rival.attack .icon{animation:rivalAttack .5s ease-out}
+.hero.hit .icon,.rival.hit .icon{animation:hit .35s ease-in-out}
+.projectile{
+  position:absolute;width:100px;height:100px;border-radius:50%;opacity:0;z-index:6
+}
+.hero-shot{
+  left:295px;bottom:285px;
+  background:radial-gradient(circle,#fff6ce 0 12%,#ff7fbd 28%,#b44cff 55%,transparent 72%);
+  box-shadow:0 0 28px rgba(180,76,255,.8)
+}
+.rival-shot{
+  right:295px;bottom:285px;
+  background:radial-gradient(circle,#eafcff 0 12%,#55c9ff 28%,#5d86ff 55%,transparent 72%);
+  box-shadow:0 0 28px rgba(85,201,255,.75)
+}
+.hero-shot.fly{animation:heroFly .65s ease-out forwards}
+.rival-shot.fly{animation:rivalFly .65s ease-out forwards}
+.damage{
+  position:absolute;bottom:365px;font-size:34px;font-weight:900;opacity:0;z-index:8;
+  text-shadow:0 0 14px rgba(255,157,60,.7)
+}
+.damage.left{left:245px;color:#ff8fc9}
+.damage.right{right:245px;color:#72d4ff}
+.damage.show{animation:damagePop .95s ease-out forwards}
+.special{
+  position:absolute;left:50%;top:120px;transform:translateX(-50%);
+  color:#ffb15e;font-size:20px;font-weight:1000;opacity:0;letter-spacing:.05em;text-shadow:0 0 12px rgba(255,157,60,.5)
+}
+.special.show{animation:specialPop .7s ease-out forwards}
+.victory{
+  position:absolute;inset:0;display:grid;place-items:center;background:rgba(10,6,20,.56);opacity:0;z-index:10
+}
+.victory.show{animation:victoryIn .8s ease-out forwards}
+.victory-box{
+  min-width:540px;padding:30px 46px;border-radius:24px;background:rgba(24,12,36,.96);
+  border:2px solid rgba(255,157,60,.72);
+  box-shadow:0 0 36px rgba(255,157,60,.45),0 0 62px rgba(175,96,255,.52);text-align:center
+}
+.victory-title{color:#ffb066;font-size:42px;font-weight:1000;letter-spacing:.08em}
+.victory-sub{margin-top:10px;color:#d8c4e4;font-size:18px;font-weight:700}
+.prize{
+  margin-top:16px;color:#ff8fc9;font-size:24px;font-weight:1000
+}
+.result{
+  min-height:76px;margin-top:16px;text-align:center;color:#fff5fb;font-size:27px;font-weight:900
+}
+.result .hit{color:#ff9d3c;text-shadow:0 0 12px rgba(255,157,60,.6)}
+.result .message{display:block;margin-top:8px;color:#c98cff;font-size:19px}
+.flash{position:absolute;inset:0;pointer-events:none;opacity:0}.flash.active{animation:flash .8s ease-out}
+.footer{text-align:center;margin-top:8px;color:#9f93aa;font-size:12px}
+@keyframes heroAttack{0%{transform:translateX(0) rotate(0)}50%{transform:translateX(30px) rotate(-7deg) scale(1.06)}100%{transform:translateX(0)}}
+@keyframes rivalAttack{0%{transform:translateX(0) rotate(0)}50%{transform:translateX(-30px) rotate(7deg) scale(1.06)}100%{transform:translateX(0)}}
+@keyframes hit{0%{transform:translateX(0)}30%{transform:translateX(15px) rotate(4deg)}65%{transform:translateX(-12px) rotate(-4deg)}100%{transform:translateX(0)}}
+@keyframes heroFly{0%{opacity:0;transform:translate(0,0) scale(.55)}15%{opacity:1}100%{opacity:0;transform:translate(405px,-30px) scale(1.2)}}
+@keyframes rivalFly{0%{opacity:0;transform:translate(0,0) scale(.55)}15%{opacity:1}100%{opacity:0;transform:translate(-405px,-30px) scale(1.2)}}
+@keyframes damagePop{0%{opacity:0;transform:translateY(20px) scale(.6)}35%{opacity:1;transform:translateY(-10px) scale(1.15)}100%{opacity:0;transform:translateY(-70px) scale(.9)}}
+@keyframes specialPop{0%{opacity:0;transform:translateX(-50%) scale(.7)}50%{opacity:1;transform:translateX(-50%) scale(1.15)}100%{opacity:0;transform:translateX(-50%) scale(1)}}
+@keyframes victoryIn{from{opacity:0}to{opacity:1}}
+@keyframes flash{0%{opacity:0}25%{opacity:1;background:radial-gradient(circle,rgba(255,255,255,.34),transparent 48%)}100%{opacity:0}}
+@media(max-height:760px){.panel{transform:scale(.79)}}
+</style>
+</head>
+<body>
+<div class="scene"><div class="glow"></div>
+<section class="panel">
+<div class="flash" id="flash"></div>
+<div class="title">👑 Final Showdown</div>
+<div class="subtitle">One trigger starts the whole battle. One cute champion wins.</div>
+
+<div class="arena">
+  <div class="floor"></div>
+
+  <div class="health left">
+    <div class="health-labels"><span>HEART QUEEN</span><span id="heroPct">100%</span></div>
+    <div class="track"><div class="bar hero-bar" id="heroBar"></div></div>
+    <div class="hptext" id="heroHp">100 / 100 HP</div>
+  </div>
+
+  <div class="health right">
+    <div class="health-labels"><span>STAR RIVAL</span><span id="rivalPct">100%</span></div>
+    <div class="track"><div class="bar rival-bar" id="rivalBar"></div></div>
+    <div class="hptext" id="rivalHp">100 / 100 HP</div>
+  </div>
+
+  <div class="round" id="round">ROUND 1</div>
+  <div class="special" id="special">SPECIAL MOVE!</div>
+
+  <div class="fighter hero" id="hero">
+    <div class="icon">👸</div>
+    <div class="name">HEART QUEEN</div>
+  </div>
+
+  <div class="fighter rival" id="rival">
+    <div class="icon">🦄</div>
+    <div class="name">STAR RIVAL</div>
+  </div>
+
+  <div class="projectile hero-shot" id="heroShot"></div>
+  <div class="projectile rival-shot" id="rivalShot"></div>
+
+  <div class="damage left" id="heroDamage">-20 HP</div>
+  <div class="damage right" id="rivalDamage">-20 HP</div>
+
+  <div class="victory" id="victory">
+    <div class="victory-box">
+      <div class="victory-title" id="victoryTitle">VICTORY!</div>
+      <div class="victory-sub" id="victorySub">The showdown is over.</div>
+      <div class="prize" id="victoryPrize">Winner's Choice</div>
+    </div>
+  </div>
+</div>
+
+<div class="result" id="result">The fighters are getting ready...</div>
+<div class="footer">StimTake Studio • Daily Pack • Final Showdown</div>
+</section>
+</div>
+
+<script>
+(()=>{
+const hero=document.getElementById('hero');
+const rival=document.getElementById('rival');
+const heroShot=document.getElementById('heroShot');
+const rivalShot=document.getElementById('rivalShot');
+const heroDamage=document.getElementById('heroDamage');
+const rivalDamage=document.getElementById('rivalDamage');
+const heroBar=document.getElementById('heroBar');
+const rivalBar=document.getElementById('rivalBar');
+const heroHpEl=document.getElementById('heroHp');
+const rivalHpEl=document.getElementById('rivalHp');
+const heroPct=document.getElementById('heroPct');
+const rivalPct=document.getElementById('rivalPct');
+const roundEl=document.getElementById('round');
+const special=document.getElementById('special');
+const victory=document.getElementById('victory');
+const victoryTitle=document.getElementById('victoryTitle');
+const victorySub=document.getElementById('victorySub');
+const victoryPrize=document.getElementById('victoryPrize');
+const result=document.getElementById('result');
+const flash=document.getElementById('flash');
+
+let running=false;
+let heroHp=100;
+let rivalHp=100;
+let round=1;
+
+const heroMoves=[
+  {name:'Heart Blast',min:12,max:24},
+  {name:'Royal Spark',min:14,max:26},
+  {name:'Pink Power',min:10,max:28},
+  {name:'Queen Strike',min:18,max:30}
+];
+
+const rivalMoves=[
+  {name:'Star Beam',min:11,max:24},
+  {name:'Rainbow Rush',min:13,max:27},
+  {name:'Magic Kick',min:10,max:29},
+  {name:'Cosmic Burst',min:17,max:30}
+];
+
+let prizes=[
+  "Winner's Choice",
+  "60-Second Tease Dance",
+  "Viewer Picks the Next Pose",
+  "Double Mystery Reward",
+  "After-Dark Showdown Jackpot"
+];
+
+function rand(min,max){return Math.floor(Math.random()*(max-min+1))+min}
+
+function update(){
+  heroHp=Math.max(0,heroHp);
+  rivalHp=Math.max(0,rivalHp);
+  heroBar.style.width=heroHp+'%';
+  rivalBar.style.width=rivalHp+'%';
+  heroHpEl.textContent=heroHp+' / 100 HP';
+  rivalHpEl.textContent=rivalHp+' / 100 HP';
+  heroPct.textContent=heroHp+'%';
+  rivalPct.textContent=rivalHp+'%';
+  roundEl.textContent='ROUND '+round;
+}
+
+function flashNow(){
+  flash.classList.remove('active');
+  void flash.offsetWidth;
+  flash.classList.add('active');
+}
+
+function showDamage(el,value){
+  el.textContent='-'+value+' HP';
+  el.classList.remove('show');
+  void el.offsetWidth;
+  el.classList.add('show');
+}
+
+function showSpecial(text){
+  special.textContent=text;
+  special.classList.remove('show');
+  void special.offsetWidth;
+  special.classList.add('show');
+}
+
+function attackHero(){
+  return new Promise(resolve=>{
+    const move=heroMoves[Math.floor(Math.random()*heroMoves.length)];
+    let dmg=rand(move.min,move.max);
+    if(Math.random()<0.16){
+      dmg+=10;
+      showSpecial('💖 CRITICAL HEART HIT!');
+    }
+
+    result.textContent='Heart Queen uses '+move+'!';
+    hero.classList.remove('attack');void hero.offsetWidth;hero.classList.add('attack');
+
+    setTimeout(()=>{
+      heroShot.classList.remove('fly');void heroShot.offsetWidth;heroShot.classList.add('fly');
+    },120);
+
+    setTimeout(()=>{
+      rival.classList.remove('hit');void rival.offsetWidth;rival.classList.add('hit');
+      rivalHp=Math.max(0,rivalHp-dmg);
+      update();
+      showDamage(rivalDamage,dmg);
+      result.innerHTML=`👸 <span class="hit">${move} hits for ${dmg}!</span><span class="message">Star Rival takes the hit.</span>`;
+      flashNow();
+      setTimeout(resolve,650);
+    },720);
+  });
+}
+
+function attackRival(){
+  return new Promise(resolve=>{
+    const move=rivalMoves[Math.floor(Math.random()*rivalMoves.length)];
+    let dmg=rand(move.min,move.max);
+    if(Math.random()<0.16){
+      dmg+=10;
+      showSpecial('🌟 COSMIC CRITICAL!');
+    }
+
+    result.textContent='Star Rival uses '+move+'!';
+    rival.classList.remove('attack');void rival.offsetWidth;rival.classList.add('attack');
+
+    setTimeout(()=>{
+      rivalShot.classList.remove('fly');void rivalShot.offsetWidth;rivalShot.classList.add('fly');
+    },120);
+
+    setTimeout(()=>{
+      hero.classList.remove('hit');void hero.offsetWidth;hero.classList.add('hit');
+      heroHp=Math.max(0,heroHp-dmg);
+      update();
+      showDamage(heroDamage,dmg);
+      result.innerHTML=`🦄 <span class="hit">${move} hits for ${dmg}!</span><span class="message">Heart Queen fights to stay standing.</span>`;
+      flashNow();
+      setTimeout(resolve,650);
+    },720);
+  });
+}
+
+function finish(){
+  let winner;
+  if(heroHp<=0 && rivalHp<=0){
+    winner=Math.random()<.5?'hero':'rival';
+  }else{
+    winner=heroHp>0?'hero':'rival';
+  }
+
+  const prize=prizes[Math.floor(Math.random()*prizes.length)];
+
+  if(winner==='hero'){
+    victoryTitle.textContent='HEART QUEEN WINS!';
+    victorySub.textContent='The crown stays with the queen 👑';
+  }else{
+    victoryTitle.textContent='STAR RIVAL WINS!';
+    victorySub.textContent='The cosmic challenger takes the crown 🌟';
+  }
+
+  victoryPrize.textContent=prize;
+  victory.classList.remove('show');
+  void victory.offsetWidth;
+  victory.classList.add('show');
+
+  window.parent?.postMessage?.({
+    type:'stimtake-daily-final-showdown-result',
+    winner,
+    heroHp,
+    rivalHp,
+    prize
+  },'*');
+
+  running=false;
+}
+
+async function startBattle(options={}){
+  if(running)return false;
+  running=true;
+
+  if(Array.isArray(options.prizes)&&options.prizes.length){
+    prizes=options.prizes.map(String);
+  }
+
+  heroHp=100;
+  rivalHp=100;
+  round=1;
+  victory.classList.remove('show');
+  update();
+
+  result.textContent='The final showdown begins!';
+  await new Promise(r=>setTimeout(r,700));
+
+  let turn=Math.random()<.5?'hero':'rival';
+
+  while(heroHp>0 && rivalHp>0){
+    round++;
+    update();
+
+    if(turn==='hero'){
+      await attackHero();
+      if(rivalHp<=0)break;
+      turn='rival';
+    }else{
+      await attackRival();
+      if(heroHp<=0)break;
+      turn='hero';
+    }
+
+    if(Math.random()<0.18 && heroHp>0 && rivalHp>0){
+      if(turn==='hero'){
+        await attackHero();
+        if(rivalHp<=0)break;
+      }else{
+        await attackRival();
+        if(heroHp<=0)break;
+      }
+    }
+  }
+
+  finish();
+  return true;
+}
+
+window.StimTakeDailyFinalShowdown={start:startBattle};
+
+window.addEventListener('message',e=>{
+  const d=e.data||{};
+  if(d.type==='stimtake-daily-final-showdown'){
+    startBattle({prizes:Array.isArray(d.prizes)?d.prizes:undefined});
+  }
+});
+
+setTimeout(()=>startBattle(),800);
+})();
+</script>
+</body>
+</html>
