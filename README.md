@@ -1,5 +1,11 @@
 # StimTake Studio 6.0
 
+<p align="center">
+  <img src="images/stimtake-studio-v6-hero.png"
+       alt="StimTake Studio V6 — Chaturbate model toolkit for OBS overlays, tip tracking, animated games, and Show Packs"
+       width="100%">
+</p>
+
 > **A creator-first live-show automation system for Chaturbate and OBS, built around two purposeful applications: a simple model-facing Studio for running shows, and a separate Designer for building actions, overlays, themes, and reusable Show Packs.**
 
 ---
