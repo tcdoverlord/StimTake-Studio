@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>StimTake Chrome Bridge V3</title>
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;width:410px;margin:0;padding:14px;background:#0b1018;color:#f3f3f3}h1{font-size:18px;margin:0}.accent{color:#ab67ff}.sub{color:#9ca3af;font-size:12px;margin:3px 0 12px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.card{background:#121923;border:1px solid #263244;padding:10px;border-radius:8px;margin:8px 0}.label{color:#9ca3af;font-size:10px;text-transform:uppercase;letter-spacing:.5px}.value{margin-top:3px;word-break:break-word;font-size:13px}.big{font-size:20px;font-weight:700}.good{color:#72e69b}.warn{color:#ffd37a}.bad{color:#ff8f8f}.muted{color:#9ca3af}pre{white-space:pre-wrap;word-break:break-word;font-size:11px;max-height:140px;overflow:auto;background:#0d131c;padding:8px;border-radius:6px}button{width:100%;padding:9px;margin-top:7px;cursor:pointer;border-radius:6px;border:1px solid #38465c;background:#161f2b;color:#eee}button.primary{background:#6f35c9;border-color:#8a50e6;font-weight:700}
+</style>
+</head>
+<body>
+<h1>StimTake Chrome Bridge <span class="accent">V3</span></h1>
+<div class="sub">Receiver-only Chaturbate → StimTake Studio 6.0</div>
+<div class="grid">
+  <div class="card"><div class="label">Studio 6.0</div><div id="studioStatus" class="value warn">CHECKING</div></div>
+  <div class="card"><div class="label">Locked model</div><div id="studioModel" class="value">None</div></div>
+</div>
+<div class="card"><div class="label">Room safety</div><div id="roomMatch" class="value warn">Waiting for room + Studio model...</div></div>
+<div class="card"><div class="label">Page observer</div><div id="observerStatus" class="value warn">WAITING</div><div id="observerMessage" class="value muted">Waiting for status...</div></div>
+<div class="grid">
+  <div class="card"><div class="label">Accepted tips</div><div id="sent" class="value big">0</div></div>
+  <div class="card"><div class="label">DOM duplicates blocked</div><div id="duplicates" class="value big">0</div></div>
+</div>
+<div class="grid">
+  <div class="card"><div class="label">Studio duplicates</div><div id="serverDuplicates" class="value">0</div></div>
+  <div class="card"><div class="label">Studio rejections</div><div id="serverRejected" class="value">0</div></div>
+</div>
+<div class="grid">
+  <div class="card"><div class="label">DOM mutations</div><div id="mutations" class="value">0</div></div>
+  <div class="card"><div class="label">Browser room</div><div id="room" class="value">None</div></div>
+</div>
+<div class="grid">
+  <div class="card"><div class="label">Last username</div><div id="lastUsername" class="value">None</div></div>
+  <div class="card"><div class="label">Last tokens</div><div id="lastAmount" class="value">None</div></div>
+</div>
+<div class="card"><div class="label">Last delivery result</div><div id="lastDeliveryResult" class="value">NONE</div><div class="label" style="margin-top:8px">Last raw tip row</div><pre id="lastRawTipRow">None</pre></div>
+<div class="card"><div class="label">Studio session</div><div id="studioSession" class="value">0 tips • 0 tokens</div></div>
+<div style="display:none"><div id="pageTitle"></div><div id="pageUrl"></div><div id="lastDelivery"></div><div id="lastTip"></div><div id="lastCandidate"></div><div id="candidates"></div></div>
+<div class="card"><div class="label">Last error / rejection reason</div><div id="lastError" class="value good">None</div></div>
+<button id="refresh" class="primary">REFRESH STUDIO STATUS</button>
+<button id="copyDiag">COPY DIAGNOSTICS</button>
+<button id="clear">CLEAR BRIDGE COUNTERS</button>
+<script src="popup.js"></script>
+</body>
+</html>

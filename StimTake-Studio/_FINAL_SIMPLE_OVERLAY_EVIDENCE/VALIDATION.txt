@@ -1,0 +1,31 @@
+StimTake Studio 6.0 Final Simple Overlay PoC
+Static validation date: 2026-08-11
+
+PASS: Simple overlay title present
+PASS: VIP present
+PASS: Last Tipper present
+PASS: Action iframe present
+PASS: Old camera frame absent
+PASS: Old room goal absent
+PASS: Old last supporter absent
+PASS: Transparent OBS background
+PASS: Session sorting logic
+PASS: Automatic VIP logic
+PASS: Last tipper rendering
+PASS: Temporary action playback
+PASS: Action auto-hide
+PASS: Placeholder Show Pack bundled
+PASS: V3 Bridge preserved
+PASS: Studio runtime preserved
+PASS: Range ShowPack runtime preserved
+PASS: Payload changed intentionally
+PASS: Simple overlay JS syntax
+PASS: V3 content syntax
+PASS: V3 background syntax
+PASS: V3 popup syntax
+PASS: V3 regression
+PASS: V3 integration
+
+Windows C# compile: NOT PERFORMED HERE
+Windows runtime: NOT PERFORMED HERE
+Real tip -> range -> HTML overlay -> OBS: NOT YET PROVEN

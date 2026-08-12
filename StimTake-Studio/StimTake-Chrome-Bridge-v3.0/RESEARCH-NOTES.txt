@@ -1,0 +1,21 @@
+STIMTAKE CHROME BRIDGE V2 - RESEARCH / DESIGN NOTES
+
+Confirmed during live testing:
+- Content script loads on a Chaturbate room.
+- Observer attaches to: div.msg-list-fvm.message-list
+- A visible tip can appear as:
+    username
+    tipped 25 tokens
+
+v2 therefore supports both combined text and split-node/sibling text.
+
+Chrome extension architecture:
+- Manifest V3
+- static content script for Chaturbate room pages
+- MutationObserver for rendered DOM changes
+- runtime messaging to the extension service worker
+- service-worker fetch to StimTake localhost
+- chrome.storage.local for diagnostics
+- chrome.action badge for delivered/error state
+
+No third-party tip-sending or token-purchasing code is included.

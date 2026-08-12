@@ -1,0 +1,12 @@
+StimTake Chrome Bridge V3
+Static validation date: 2026-08-11
+
+Static/local tests passed before packaging:
+- content.js syntax
+- background.js syntax
+- popup.js syntax
+- existing V2 parser/background/popup regression suite
+- V3 Studio 6.0 integration checks
+
+Real Chaturbate V3 tip: NOT YET TESTED.
+Full Studio V6 + OBS live path: NOT YET TESTED.

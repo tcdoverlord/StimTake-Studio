@@ -1,0 +1,6 @@
+StimTake Studio 6.0 Simple Proof-of-Concept
+
+Permanent OBS page: Top Tippers + VIP + Last Tipper only.
+Temporary action layer: one of 20 Show Pack HTML overlays.
+Chrome Bridge V3 remains the real-tip detector.
+Studio remains the source of truth and range matcher.

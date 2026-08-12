@@ -1,0 +1,33 @@
+StimTake Studio 6.0 Final PoC Candidate
+Static validation date: 2026-08-11
+
+PASS: ShowPack ranges added
+PASS: Legacy exact price migration preserved
+PASS: Range overlap validation present
+PASS: One overlay max per tip
+PASS: Model UI has VIP
+PASS: Session top tippers
+PASS: 20 action range UI
+PASS: No Backstage nav in model shell
+PASS: No Backstage tray menu
+PASS: V3 extension bundled
+PASS: V2 extension preserved
+PASS: Persistent runtime preserved
+PASS: Payload preserved
+PASS: Designer source preserved
+PASS: Studio brace balance
+PASS: ShowPack brace balance
+PASS: Launcher brace balance
+PASS: V3 syntax content.js
+PASS: V3 syntax background.js
+PASS: V3 syntax popup.js
+PASS: V3 test content.test.cjs
+PASS: V3 test v3.integration.test.cjs
+
+Windows C# compile: NOT PERFORMED HERE
+Windows UI runtime: NOT PERFORMED HERE
+Real Chaturbate tip: NOT PERFORMED HERE
+Actual OBS HTML overlay trigger: NOT PERFORMED HERE
+
+Required next proof:
+Build on Windows, load Bridge V3, confirm ONLINE/MATCHED/WATCHING, then receive one real tip.

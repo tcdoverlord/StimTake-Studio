@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Creator Cam Overlay Kit</title>
+  <link rel="stylesheet" href="styles/overlay.css">
+  <link rel="stylesheet" href="styles/theme.css">
+</head>
+<body>
+  <main id="overlay" aria-label="Creator Cam OBS overlay">
+    <div class="scene-background" data-module="background" aria-hidden="true"></div>
+
+    <section class="brand-rail panel" data-module="brand" data-zone="brand">
+      <span class="status-dot"></span>
+      <div><strong id="brand-name">YOUR STAGE NAME</strong><small id="brand-tagline">LIVE • GOOD VIBES • HAVE FUN</small></div>
+    </section>
+
+    <section class="camera-frame" data-module="camera" data-zone="camera" aria-label="Camera frame">
+      <span class="camera-label">LIVE CAMERA</span>
+      <i class="corner corner-tl"></i><i class="corner corner-tr"></i>
+      <i class="corner corner-bl"></i><i class="corner corner-br"></i>
+    </section>
+
+    <section class="goal panel" data-module="goal" data-zone="goal" aria-label="Token goal">
+      <div class="goal-copy"><span id="goal-label">ROOM GOAL</span><strong id="goal-value">350 / 1000</strong></div>
+      <div class="goal-track"><div id="goal-fill"></div></div>
+    </section>
+
+    <section class="supporters panel" data-module="supporters" data-zone="supporters">
+      <header>TOP TIPPERS</header>
+      <div id="supporter-list"></div>
+    </section>
+
+    <section class="last-tipper panel" data-module="last-tipper" data-zone="last-tipper" aria-label="Last tipper">
+      <small>LAST TIPPER</small>
+      <strong id="last-tipper-name" hidden></strong>
+      <span id="last-tipper-amount" hidden></span>
+    </section>
+
+    <section class="recent-supporter panel" data-module="recent" data-zone="recent" aria-label="Last supporter">
+      <small>LAST SUPPORTER</small>
+      <strong id="recent-supporter-name" hidden></strong>
+      <span id="recent-supporter-amount" hidden></span>
+    </section>
+
+    <section class="ticker panel" data-module="ticker" data-zone="ticker" aria-label="Tip menu ticker">
+      <span class="ticker-badge">LIVE NOW</span>
+      <div class="ticker-window"><div id="ticker-track"></div></div>
+    </section>
+
+    <section id="alert" class="alert panel" data-module="alert" data-zone="alert" aria-live="polite">
+      <div class="alert-bolt">♥</div>
+      <div><small id="alert-kicker">NEW TIP</small><h1 id="alert-title">Creator Cam is online</h1><p id="alert-message">Your room is ready.</p></div>
+    </section>
+
+    <section id="wheel-wrap" class="wheel-wrap panel" aria-live="polite">
+      <div class="wheel-pointer"></div>
+      <canvas id="wheel" width="620" height="620"></canvas>
+      <strong id="wheel-result">SPIN THE PRIZE WHEEL</strong>
+    </section>
+
+    <section id="dice-panel" class="dice-panel panel" aria-live="polite">
+      <small>DICE CHALLENGE</small>
+      <h2 id="dice-title">VIEWER ATTEMPT</h2>
+      <div id="dice-values"></div>
+      <strong id="dice-message">ROLLING...</strong>
+    </section>
+
+    <section id="game-overlay-zone" class="game-overlay-zone panel" data-module="game-zone" data-zone="game" aria-live="polite">
+      <header class="game-zone-header">
+        <small id="game-kicker">GAME OVERLAY ZONE</small>
+        <h2 id="game-title">READY</h2>
+      </header>
+      <strong id="game-username" class="game-username" hidden></strong>
+      <div id="game-dice-values" class="game-dice-values" hidden></div>
+      <div id="wheel-stage" class="game-wheel-stage" hidden></div>
+      <strong id="game-prize" class="game-prize" hidden></strong>
+      <strong id="game-result" class="game-result" hidden></strong>
+      <span id="game-detail" class="game-detail" hidden></span>
+    </section>
+
+    <section id="vip-badge" class="vip-badge panel" data-module="vip">
+      <span>VIP</span><strong id="vip-name">WAITING FOR VIP</strong>
+    </section>
+
+    <section id="dmca-watermark" class="dmca-watermark is-off" data-module="dmca" aria-label="Moving watermark">
+      <div id="dmca-watermark-track" class="dmca-watermark-track">
+        <div id="dmca-title" class="dmca-logo">OBSIDIAN</div>
+        <div id="dmca-username" class="dmca-username">STALLION</div>
+        <div class="dmca-line"></div>
+        <div id="dmca-tagline" class="dmca-tagline">LIVE • VERIFIED • HD</div>
+      </div>
+    </section>
+
+    <section id="module-stage" class="module-stage" data-module="module-stage" aria-label="Installed module display"></section>
+    <div id="safe-mode-indicator" aria-live="polite">STREAM SAFE MODE</div>
+  </main>
+  <script type="module" src="scripts/overlay.js"></script>
+</body>
+</html>

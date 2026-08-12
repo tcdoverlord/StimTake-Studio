@@ -1,0 +1,17 @@
+'use strict';
+const fs=require('fs'),path=require('path'),assert=require('assert');
+const manifest=JSON.parse(fs.readFileSync(path.join(__dirname,'manifest.json'),'utf8'));
+const content=fs.readFileSync(path.join(__dirname,'content.js'),'utf8');
+const background=fs.readFileSync(path.join(__dirname,'background.js'),'utf8');
+const popup=fs.readFileSync(path.join(__dirname,'popup.html'),'utf8');
+assert.strictEqual(manifest.version,'3.0.0');
+assert.strictEqual(manifest.manifest_version,3);
+assert(background.includes('http://127.0.0.1:8787/api/platform-event'));
+assert(background.includes('http://127.0.0.1:8787/api/studio-status'));
+assert(background.includes('roomMatch'));
+assert(background.includes('serverDuplicates'));
+assert(background.includes('serverRejected'));
+assert(content.includes('div.msg-list-fvm.message-list'));
+assert(content.includes("event_id: eventId"));
+assert(popup.includes('Room safety'));
+console.log('PASS: V3 Studio 6.0 integration checks');

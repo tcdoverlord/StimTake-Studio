@@ -1,0 +1,815 @@
+import { CONFIG } from "./config.js";
+import { listen } from "./bus.js";
+import { EventManager } from "./event-manager.js";
+import { SessionStore } from "./session-store.js";
+import { DiceEngine } from "./dice-engine.js";
+import { GameResultManager } from "./game-result-manager.js";
+import { ModuleLoader } from "./module-loader.js";
+import { ActionManager } from "./action-manager.js";
+import { TemplateManager } from "./template-manager.js";
+
+const $ = (selector) => document.querySelector(selector);
+const state = structuredClone(CONFIG);
+const eventManager = new EventManager();
+const session = new SessionStore();
+const CREW_STORAGE_KEY = "creator-cam-tippers-v1";
+const BRAND_STORAGE_KEY = "creator-cam-brand-v1";
+const WHEEL_STORAGE_KEY = "creator-cam-wheel-v1";
+const GOAL_STORAGE_KEY = "creator-cam-goal-v1";
+const TICKER_STORAGE_KEY = "creator-cam-ticker-v1";
+const BACKGROUND_STORAGE_KEY = "creator-cam-background-v1";
+const LAYOUT_STORAGE_KEY = "creator-cam-layout-v3";
+const STUDIO_STORAGE_KEY = "creator-cam-studio-v3";
+const MODULE_STYLE_STORAGE_KEY = "creator-cam-module-styles-v3";
+const TIP_RULE_STORAGE_KEY = "creator-cam-tip-rules-v3";
+const GAME_RESULT_STORAGE_KEY = "creator-cam-game-results-v3";
+const ACTION_STORAGE_KEY = "creator-cam-actions-v3";
+const TICKER_SETTINGS_KEY = "creator-cam-ticker-settings-v3";
+const DMCA_SETTINGS_KEY = "creator-cam-dmca-v3";
+const RECENT_SUPPORTER_STORAGE_KEY = "creator-cam-recent-supporter-v3";
+const SUPPORTER_VISIBILITY_STORAGE_KEY = "creator-cam-supporter-overlay-visibility-v1";
+const LAST_SERVER_EVENT_KEY = "creator-cam-last-server-event-v3";
+const SUPPORTER_RESTORE_PROTOCOL_KEY = "creator-cam-supporter-restore-protocol-v1";
+const MOVING_WATERMARK_STATE_URL = "/api/moving-watermark";
+const RECENT_SUPPORTER_STATE_URL = "/api/recent-supporter";
+let lastServerEvent = Number(localStorage.getItem(LAST_SERVER_EVENT_KEY)) || 0;
+const processedEvents = new Set();
+let movingWatermarkFingerprint = "";
+let manualRecentSupporterFingerprint = "";
+let manualRecentSupporter = null;
+let supporterOverlayVisibility = { lastTipper: true, lastSupporter: true, vipBadge: true };
+let safeMode = false;
+let diceEngine;
+let gameResults;
+let moduleLoader;
+let actionManager;
+let templateManager;
+let moduleLoaderStarted = false;
+
+function setup() {
+  if (!gameResults) {
+    gameResults = new GameResultManager({
+      zone: $("#game-overlay-zone"),
+      kicker: $("#game-kicker"),
+      title: $("#game-title"),
+      username: $("#game-username"),
+      prize: $("#game-prize"),
+      result: $("#game-result"),
+      detail: $("#game-detail"),
+      diceValues: $("#game-dice-values"),
+      wheelStage: $("#wheel-stage"),
+      onBeforeShow: protectGameZone
+    });
+  }
+  if (!diceEngine) {
+    diceEngine = new DiceEngine({
+      panel: $("#dice-panel"),
+      values: $("#dice-values"),
+      title: $("#dice-title"),
+      message: $("#dice-message"),
+      onResult: payload => eventManager.emit({ type: "dice-result", payload, at: Date.now() })
+    });
+  }
+  if (!moduleLoader) {
+    moduleLoader = new ModuleLoader({ stage: $("#module-stage") });
+  }
+  if (!templateManager) {
+    templateManager = new TemplateManager({ applyModuleStyle });
+  }
+  if (!actionManager) {
+    actionManager = new ActionManager({ emit: event => eventManager.emit(event), moduleLoader, getState: () => state });
+  }
+  if (!moduleLoaderStarted) {
+    moduleLoaderStarted = true;
+    moduleLoader.initialize().then(() => {
+      if (Array.isArray(state.enabledModules)) moduleLoader.configureEnabled(state.enabledModules);
+    });
+  }
+  try {
+    const savedCrew = JSON.parse(localStorage.getItem(CREW_STORAGE_KEY));
+    if (Array.isArray(savedCrew)) state.supporters = savedCrew;
+  } catch { /* Keep starter crew if saved data is invalid. */ }
+  try {
+    const savedBrand = JSON.parse(localStorage.getItem(BRAND_STORAGE_KEY));
+    if (savedBrand && savedBrand.name && savedBrand.tagline) {
+      state.brand = savedBrand;
+      state.themePreset = "custom";
+      if (savedBrand.color1) state.theme.glow = savedBrand.color1;
+      if (savedBrand.color2) state.theme.accent = savedBrand.color2;
+    }
+  } catch { /* Keep starter brand text if saved data is invalid. */ }
+  try {
+    const savedPrizes = JSON.parse(localStorage.getItem(WHEEL_STORAGE_KEY));
+    if (Array.isArray(savedPrizes) && savedPrizes.length >= 2) state.prizes = savedPrizes;
+  } catch { /* Keep starter wheel choices if saved data is invalid. */ }
+  try {
+    const savedGoal = JSON.parse(localStorage.getItem(GOAL_STORAGE_KEY));
+    if (savedGoal && Number(savedGoal.target) > 0) state.goal = savedGoal;
+  } catch { /* Keep starter goal if saved data is invalid. */ }
+  try {
+    const savedTicker = JSON.parse(localStorage.getItem(TICKER_STORAGE_KEY));
+    if (Array.isArray(savedTicker) && savedTicker.length) state.ticker = savedTicker;
+  } catch { /* Keep starter tip menu if saved data is invalid. */ }
+  try {
+    const savedBackground = localStorage.getItem(BACKGROUND_STORAGE_KEY);
+    if (savedBackground === "male" || savedBackground === "female") state.backgroundStyle = savedBackground;
+  } catch { /* Keep the starter backdrop if saved data is invalid. */ }
+  try {
+    const requestedBackground = new URLSearchParams(window.location.search).get("background");
+    if (requestedBackground === "male" || requestedBackground === "female") state.backgroundStyle = requestedBackground;
+  } catch { /* The native Control Deck remains the primary selector. */ }
+  try {
+    const savedLayout = localStorage.getItem(LAYOUT_STORAGE_KEY);
+    if (["full", "creator", "minimal", "chat"].includes(savedLayout)) state.layout = savedLayout;
+    const studio = JSON.parse(localStorage.getItem(STUDIO_STORAGE_KEY));
+    if (studio && typeof studio === "object") {
+      if (studio.alertSettings) state.alertSettings = { ...state.alertSettings, ...studio.alertSettings };
+      if (studio.themePreset) state.themePreset = studio.themePreset;
+      if (Number(studio.leaderboardMax)) state.leaderboardMax = Number(studio.leaderboardMax);
+    }
+    const rules = JSON.parse(localStorage.getItem(TIP_RULE_STORAGE_KEY));
+    if (Array.isArray(rules) && rules.length) state.tipRules = rules;
+    const gameSettings = JSON.parse(localStorage.getItem(GAME_RESULT_STORAGE_KEY));
+    if (gameSettings && typeof gameSettings === "object") state.gameResultSettings = { ...state.gameResultSettings, ...gameSettings };
+    const actions = JSON.parse(localStorage.getItem(ACTION_STORAGE_KEY));
+    if (Array.isArray(actions) && actions.length) state.actions = actions;
+    const tickerSettings = JSON.parse(localStorage.getItem(TICKER_SETTINGS_KEY));
+    if (tickerSettings && typeof tickerSettings === "object") state.tickerSettings = { ...state.tickerSettings, ...tickerSettings };
+    const dmcaSettings = JSON.parse(localStorage.getItem(DMCA_SETTINGS_KEY));
+    if (dmcaSettings && typeof dmcaSettings === "object") state.dmcaSettings = { ...state.dmcaSettings, ...dmcaSettings };
+    const savedRecentSupporter = JSON.parse(localStorage.getItem(RECENT_SUPPORTER_STORAGE_KEY));
+    if (savedRecentSupporter && typeof savedRecentSupporter === "object") manualRecentSupporter = normalizeManualRecentSupporter(savedRecentSupporter);
+    const savedSupporterVisibility = JSON.parse(localStorage.getItem(SUPPORTER_VISIBILITY_STORAGE_KEY));
+    if (savedSupporterVisibility && typeof savedSupporterVisibility === "object") {
+      supporterOverlayVisibility.lastTipper = savedSupporterVisibility.lastTipper !== false;
+      supporterOverlayVisibility.lastSupporter = savedSupporterVisibility.lastSupporter !== false;
+      supporterOverlayVisibility.vipBadge = savedSupporterVisibility.vipBadge !== false;
+    }
+    const moduleStyles = JSON.parse(localStorage.getItem(MODULE_STYLE_STORAGE_KEY));
+    state.moduleStyles = moduleStyles && typeof moduleStyles === "object" ? moduleStyles : {};
+  } catch { state.moduleStyles = {}; }
+  applyBackgroundStyle(state.backgroundStyle);
+  applyLayout(state.layout);
+  applyThemePreset(state.themePreset);
+  applyAlertSettings(state.alertSettings);
+  applyGameResultSettings(state.gameResultSettings);
+  applyTickerSettings(state.tickerSettings);
+  applyDmcaSettings(state.dmcaSettings);
+  actionManager.configure(state.actions);
+  document.documentElement.style.setProperty("--accent", state.theme.accent);
+  document.documentElement.style.setProperty("--glow", state.theme.glow);
+  $("#brand-name").textContent = state.brand.name;
+  $("#brand-tagline").textContent = state.brand.tagline;
+  document.documentElement.style.setProperty("--brand-color-1", state.brand.color1 || state.theme.glow);
+  document.documentElement.style.setProperty("--brand-color-2", state.brand.color2 || state.theme.accent);
+  applyBrandGradient();
+  $("#goal-label").textContent = state.goal.label;
+  $("#ticker-track").innerHTML = [...state.ticker, ...state.ticker].map(text => `<span>${text}</span>`).join("");
+  renderSupporters(); renderLastTipper(); renderRecentSupporter(); applySupporterOverlayVisibility(supporterOverlayVisibility); updateGoal(state.goal.current);
+  Object.entries(state.modules).forEach(([name, visible]) => toggle(name, visible));
+  Object.entries(state.moduleStyles || {}).forEach(([name, style]) => applyModuleStyle(name, style, false));
+  fitAllText();
+  setTimeout(() => showAlert("ROOM READY", "Creator Cam is online", "Your overlay is ready."), 700);
+}
+
+function renderSupporters() {
+  const ranked = session.topSupporters(Math.max(1, Math.min(10, Number(state.leaderboardMax) || 5)));
+  const display = ranked.length
+    ? ranked.map(profile => ({
+        name: profile.username,
+        role: profile.sessionSupport > 0
+          ? `${profile.sessionSupport} SESSION • ${profile.lifetimeSupport} LIFETIME`
+          : `${profile.lifetimeSupport} LIFETIME • ${profile.label || "Supporter"}`,
+        level: profile.level || "bronze"
+      }))
+    : state.supporters.slice(-Math.max(1, Math.min(10, Number(state.leaderboardMax) || 5))).reverse();
+  if (!display.length) {
+    $("#supporter-list").innerHTML = `<div class="supporter-empty">Waiting for supporters...</div>`;
+    $("#vip-name").textContent = "WAITING FOR VIP";
+    return;
+  }
+  $("#supporter-list").innerHTML = display.map((member, i) => {
+    const item = typeof member === "string" ? { name: member, role: "Supporter", level: "bronze" } : member;
+    return `<div class="crew-member" data-level="${escapeHtml(item.level || "bronze")}"><span>0${i + 1}</span><div><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(item.role || "Supporter")}</small></div></div>`;
+  }).join("");
+  document.querySelectorAll(".supporters strong").forEach(node => fitText(node, 14, 9));
+  document.querySelectorAll(".supporters small").forEach(node => fitText(node, 9, 7));
+  const vip = ranked.find(profile => profile.level === "vip") || ranked[0];
+  $("#vip-name").textContent = vip?.username || "WAITING FOR VIP";
+}
+
+function renderLastTipper() {
+  const recent = session.data.recent;
+  const nameNode = $("#last-tipper-name");
+  const amountNode = $("#last-tipper-amount");
+  if (!nameNode || !amountNode) return;
+  if (!recent?.username) {
+    nameNode.textContent = "";
+    amountNode.textContent = "";
+    nameNode.hidden = true;
+    amountNode.hidden = true;
+    return;
+  }
+  const amount = Math.max(0, Number(recent.amount) || 0);
+  nameNode.textContent = String(recent.username);
+  amountNode.textContent = `${amount} TOKENS • MOST RECENT TIP`;
+  nameNode.hidden = false;
+  amountNode.hidden = false;
+  fitText("#last-tipper-name", 16, 10);
+}
+
+function renderRecentSupporter() {
+  const recent = manualRecentSupporter;
+  const nameNode = $("#recent-supporter-name");
+  const amountNode = $("#recent-supporter-amount");
+  if (!recent?.username) {
+    nameNode.textContent = "";
+    amountNode.textContent = "";
+    nameNode.hidden = true;
+    amountNode.hidden = true;
+    return;
+  }
+  const amount = Math.max(0, Number(recent.amount) || 0);
+  const message = String(recent.message || "MOST RECENT").trim();
+  nameNode.textContent = String(recent.username);
+  amountNode.textContent = [String(amount) + " TOKENS", message].filter(Boolean).join(" • ");
+  nameNode.hidden = false;
+  amountNode.hidden = false;
+  fitText("#recent-supporter-name", 16, 10);
+}
+
+function applySupporterOverlayVisibility(payload = {}) {
+  supporterOverlayVisibility = {
+    lastTipper: payload.lastTipper !== false,
+    lastSupporter: payload.lastSupporter !== false,
+    vipBadge: payload.vipBadge !== false
+  };
+  localStorage.setItem(SUPPORTER_VISIBILITY_STORAGE_KEY, JSON.stringify(supporterOverlayVisibility));
+  const lastTipper = document.querySelector('[data-module="last-tipper"]');
+  const lastSupporter = document.querySelector('[data-module="recent"]');
+  const vipBadge = document.querySelector('[data-module="vip"]');
+  if (lastTipper) lastTipper.classList.toggle("is-off", !supporterOverlayVisibility.lastTipper);
+  if (lastSupporter) lastSupporter.classList.toggle("is-off", !supporterOverlayVisibility.lastSupporter);
+  if (vipBadge) vipBadge.classList.toggle("is-off", !supporterOverlayVisibility.vipBadge);
+}
+
+function normalizeManualRecentSupporter(payload = {}) {
+  const username = String(payload.username || payload.name || "").trim().replace(/[\r\n\t]/g, " ").slice(0, 64);
+  if (!username) return null;
+  return {
+    username,
+    amount: Math.max(0, Math.min(999999, Number(payload.amount) || 0)),
+    message: String(payload.message || "").trim().replace(/[\r\n\t]/g, " ").slice(0, 80),
+    manual: true,
+    at: Number(payload.at) || 0
+  };
+}
+
+function setManualRecentSupporter(payload, persist = true) {
+  const recent = normalizeManualRecentSupporter(payload);
+  if (!recent) return false;
+  manualRecentSupporter = recent;
+  if (persist) localStorage.setItem(RECENT_SUPPORTER_STORAGE_KEY, JSON.stringify(recent));
+  renderRecentSupporter();
+  return true;
+}
+
+function clearManualRecentSupporter(clearSessionRecent = false) {
+  manualRecentSupporter = null;
+  localStorage.removeItem(RECENT_SUPPORTER_STORAGE_KEY);
+  if (clearSessionRecent) session.clearRecent();
+  renderRecentSupporter();
+}
+
+async function refreshManualRecentSupporter() {
+  try {
+    const response = await fetch(`${RECENT_SUPPORTER_STATE_URL}?t=${Date.now()}`, { cache: "no-store" });
+    if (!response.ok) return;
+    const recent = await response.json();
+    const fingerprint = JSON.stringify(recent);
+    if (fingerprint === manualRecentSupporterFingerprint) return;
+    manualRecentSupporterFingerprint = fingerprint;
+    if (recent) setManualRecentSupporter(recent);
+    else clearManualRecentSupporter(false);
+  } catch { /* The next refresh will retry while the local app is running. */ }
+}
+
+function saveSupporters() { localStorage.setItem(CREW_STORAGE_KEY, JSON.stringify(state.supporters)); }
+
+function addOrUpdateSupporter(payload) {
+  const name = String(payload.name || "").trim(); if (!name) return;
+  const requestedLevel = String(payload.level || payload.tier || "").toLowerCase();
+  const member = { name, role: String(payload.role || payload.label || "Supporter").trim() || "Supporter", level: ["bronze", "silver", "gold", "vip"].includes(requestedLevel) ? requestedLevel : "bronze" };
+  const existing = state.supporters.findIndex(item => (typeof item === "string" ? item : item.name).toLowerCase() === name.toLowerCase());
+  if (existing >= 0) state.supporters[existing] = member; else state.supporters.push(member);
+  session.upsertFan({ ...member, lifetimeSupport: payload.lifetimeSupport ?? payload.totalSupport });
+  saveSupporters(); renderSupporters();
+}
+
+function removeSupporter(name) {
+  const target = String(name || "").trim().toLowerCase(); if (!target) return;
+  state.supporters = state.supporters.filter(item => (typeof item === "string" ? item : item.name).toLowerCase() !== target);
+  session.removeFan(target);
+  saveSupporters(); renderSupporters();
+}
+
+function escapeHtml(text) { const node = document.createElement("span"); node.textContent = text; return node.innerHTML; }
+
+function fitText(nodeOrSelector, maximum, minimum) {
+  const node = typeof nodeOrSelector === "string" ? $(nodeOrSelector) : nodeOrSelector;
+  if (!node) return;
+  let size = maximum;
+  node.style.fontSize = `${size}px`;
+  while (size > minimum && node.scrollWidth > node.clientWidth) node.style.fontSize = `${--size}px`;
+}
+
+function fitAllText() {
+  fitText("#brand-name", 28, 13);
+  fitText("#brand-tagline", 10, 7);
+  fitText("#goal-label", 13, 8);
+  document.querySelectorAll(".supporters strong").forEach(node => fitText(node, 14, 9));
+  document.querySelectorAll(".supporters small").forEach(node => fitText(node, 9, 7));
+}
+
+function applyBrandGradient() {
+  const name = $("#brand-name");
+  name.style.background = `linear-gradient(90deg, ${state.brand.color1 || state.theme.glow}, ${state.brand.color2 || state.theme.accent})`;
+  name.style.webkitBackgroundClip = "text";
+  name.style.backgroundClip = "text";
+  name.style.webkitTextFillColor = "transparent";
+}
+
+function updateGoal(value) {
+  state.goal.current = Math.max(0, Math.min(Number(value), state.goal.target));
+  const pct = state.goal.current / state.goal.target * 100;
+  $("#goal-fill").style.width = `${pct}%`;
+  $("#goal-value").textContent = `${state.goal.current} / ${state.goal.target}`;
+  fitText("#goal-label", 13, 8);
+}
+
+let alertTimer;
+function showAlert(kicker, title, message) {
+  clearTimeout(alertTimer); $("#alert-kicker").textContent = kicker; $("#alert-title").textContent = title; $("#alert-message").textContent = message;
+  $("#alert").classList.add("is-visible");
+  playAlertTone();
+  const compactAlert = $("#alert").classList.contains("template-positioned");
+  fitText("#alert-title", compactAlert ? 18 : 36, compactAlert ? 12 : 18);
+  alertTimer = setTimeout(() => $("#alert").classList.remove("is-visible"), state.alertSettings.duration);
+}
+
+function toggle(name, force) {
+  const cleanName = name === "dice" || name === "wheel" ? "game-zone" : name;
+  const node = document.querySelector(`[data-module="${cleanName}"]`); if (!node) return;
+  node.classList.toggle("is-off", force === undefined ? !node.classList.contains("is-off") : !force);
+}
+
+function applyBackgroundStyle(style) {
+  const clean = style === "male" ? "male" : "female";
+  state.backgroundStyle = clean;
+  document.documentElement.dataset.backgroundStyle = clean;
+  localStorage.setItem(BACKGROUND_STORAGE_KEY, clean);
+}
+
+function applyLayout(layout) {
+  const clean = ["full", "creator", "minimal", "chat"].includes(layout) ? layout : "creator";
+  state.layout = clean;
+  document.documentElement.dataset.layout = clean;
+  localStorage.setItem(LAYOUT_STORAGE_KEY, clean);
+  templateManager?.loadBuiltIn(clean).then(applied => { if (applied) requestAnimationFrame(protectGameZone); });
+}
+
+function applyThemePreset(preset) {
+  const requested = String(preset || "").toLowerCase().replaceAll(" ", "-").replaceAll("_", "-");
+  const clean = ["cyber", "cyber-blue", "neon", "minimal", "dark", "custom", "halloween", "christmas"].includes(requested) ? requested : "neon";
+  state.themePreset = clean;
+  document.documentElement.dataset.themePreset = clean;
+  const palettes = {
+    cyber: { accent: "#00e5ff", glow: "#7c4dff", steel: "#c4f7ff" },
+    "cyber-blue": { accent: "#00e5ff", glow: "#236dff", steel: "#c4f7ff" },
+    neon: { accent: "#8b5cf6", glow: "#ff69c9", steel: "#c8b8d8" },
+    minimal: { accent: "#e5e7eb", glow: "#ffffff", steel: "#b7bec8" },
+    dark: { accent: "#4b5563", glow: "#9ca3af", steel: "#d1d5db" },
+    halloween: { accent: "#ff7518", glow: "#a855f7", steel: "#ffe2a8" },
+    christmas: { accent: "#16a34a", glow: "#ef4444", steel: "#fff7d6" }
+  };
+  if (palettes[clean]) {
+    state.theme = { ...state.theme, ...palettes[clean] };
+    document.documentElement.style.setProperty("--accent", state.theme.accent);
+    document.documentElement.style.setProperty("--glow", state.theme.glow);
+    document.documentElement.style.setProperty("--steel", state.theme.steel);
+  }
+  if (moduleLoader?.catalog?.has("halloween-pack")) moduleLoader.setEnabled("halloween-pack", clean === "halloween");
+  localStorage.setItem(STUDIO_STORAGE_KEY, JSON.stringify({ themePreset: state.themePreset, alertSettings: state.alertSettings, leaderboardMax: state.leaderboardMax }));
+}
+
+function applyAlertSettings(settings = {}) {
+  state.alertSettings = {
+    duration: Math.max(1000, Math.min(30000, Number(settings.duration) || 6000)),
+    animation: ["fade", "slide", "zoom"].includes(settings.animation) ? settings.animation : "slide",
+    sound: Boolean(settings.sound)
+  };
+  document.documentElement.dataset.alertAnimation = state.alertSettings.animation;
+  localStorage.setItem(STUDIO_STORAGE_KEY, JSON.stringify({ themePreset: state.themePreset, alertSettings: state.alertSettings, leaderboardMax: state.leaderboardMax }));
+}
+
+function applyGameResultSettings(settings = {}) {
+  state.gameResultSettings = {
+    duration: Math.max(2000, Math.min(120000, Number(settings.duration) || 20000)),
+    fadeDuration: Math.max(250, Math.min(10000, Number(settings.fadeDuration) || 2000)),
+    animation: ["fade", "slide", "zoom"].includes(String(settings.animation).toLowerCase()) ? String(settings.animation).toLowerCase() : "slide",
+    showUsername: settings.showUsername !== false,
+    showPrize: settings.showPrize !== false,
+    showResult: settings.showResult !== false
+  };
+  gameResults?.configure(state.gameResultSettings);
+  localStorage.setItem(GAME_RESULT_STORAGE_KEY, JSON.stringify(state.gameResultSettings));
+}
+
+function applyTickerSettings(settings = {}) {
+  state.tickerSettings = {
+    animation: ["scroll", "fade", "slide"].includes(String(settings.animation).toLowerCase()) ? String(settings.animation).toLowerCase() : "scroll",
+    source: String(settings.source || "activity")
+  };
+  document.documentElement.dataset.tickerAnimation = state.tickerSettings.animation;
+  localStorage.setItem(TICKER_SETTINGS_KEY, JSON.stringify(state.tickerSettings));
+}
+
+function applyDmcaSettings(settings = {}) {
+  const titleNode = $("#dmca-title"), usernameNode = $("#dmca-username"), taglineNode = $("#dmca-tagline");
+  if (!titleNode || !usernameNode || !taglineNode) {
+    state.modules.dmca = false;
+    return;
+  }
+  const cleanText = (value, fallback, length) => String(value || fallback).trim().replace(/[\r\n\t]/g, " ").slice(0, length) || fallback;
+  const title = cleanText(settings.title || state.dmcaSettings?.title, "OBSIDIAN", 32);
+  const username = cleanText(settings.username || state.dmcaSettings?.username, "STALLION", 40);
+  const tagline = cleanText(settings.tagline || state.dmcaSettings?.tagline, "LIVE • VERIFIED • HD", 60);
+  const opacityValue = Number(settings.opacity);
+  const speedValue = Number(settings.speed);
+  state.dmcaSettings = {
+    title,
+    username,
+    tagline,
+    enabled: settings.enabled === undefined ? Boolean(state.dmcaSettings?.enabled) : Boolean(settings.enabled),
+    opacity: Math.max(0.1, Math.min(0.95, Number.isFinite(opacityValue) ? opacityValue : 0.82)),
+    speed: Math.max(18, Math.min(90, Number.isFinite(speedValue) ? speedValue : 36))
+  };
+  state.modules.dmca = state.dmcaSettings.enabled;
+  titleNode.textContent = state.dmcaSettings.title;
+  usernameNode.textContent = state.dmcaSettings.username;
+  taglineNode.textContent = state.dmcaSettings.tagline;
+  document.documentElement.style.setProperty("--dmca-opacity", state.dmcaSettings.opacity);
+  document.documentElement.style.setProperty("--dmca-speed", `${state.dmcaSettings.speed}s`);
+  toggle("dmca", state.dmcaSettings.enabled);
+  localStorage.setItem(DMCA_SETTINGS_KEY, JSON.stringify(state.dmcaSettings));
+}
+
+async function refreshMovingWatermark() {
+  try {
+    const response = await fetch(`${MOVING_WATERMARK_STATE_URL}?t=${Date.now()}`, { cache: "no-store" });
+    if (!response.ok) return;
+    const settings = await response.json();
+    const fingerprint = JSON.stringify(settings);
+    if (fingerprint === movingWatermarkFingerprint) return;
+    movingWatermarkFingerprint = fingerprint;
+    applyDmcaSettings(settings);
+  } catch { /* The next refresh will retry while the local app is running. */ }
+}
+
+function applyModuleStyle(name, style = {}, save = true) {
+  const cleanName = name === "dice" || name === "wheel" ? "game-zone" : name;
+  const node = document.querySelector(`[data-module="${cleanName}"]`); if (!node) return;
+  const clean = {
+    x: Math.max(-1500, Math.min(1500, Number(style.x) || 0)),
+    y: Math.max(-900, Math.min(900, Number(style.y) || 0)),
+    scale: Math.max(.25, Math.min(3, Number(style.scale) || 1)),
+    opacity: Math.max(0, Math.min(1, Number(style.opacity) || 1)),
+    width: Math.max(0, Math.min(100, Number(style.width) || 0))
+  };
+  node.style.translate = `${clean.x}px ${clean.y}px`;
+  node.style.scale = clean.scale;
+  node.style.opacity = clean.opacity;
+  if (clean.width > 0) node.style.width = `${clean.width}%`; else node.style.removeProperty("width");
+  state.moduleStyles = state.moduleStyles || {};
+  state.moduleStyles[cleanName] = clean;
+  if (save) localStorage.setItem(MODULE_STYLE_STORAGE_KEY, JSON.stringify(state.moduleStyles));
+  if (cleanName === "game-zone" || cleanName === "camera") requestAnimationFrame(protectGameZone);
+}
+
+function protectGameZone() {
+  const camera = document.querySelector('[data-module="camera"]');
+  const zone = document.querySelector('[data-module="game-zone"]');
+  if (!camera || !zone) return;
+  const cameraBox = camera.getBoundingClientRect(), zoneBox = zone.getBoundingClientRect();
+  const overlaps = zoneBox.left < cameraBox.right && zoneBox.right > cameraBox.left && zoneBox.top < cameraBox.bottom && zoneBox.bottom > cameraBox.top;
+  if (!overlaps) return;
+  const gap = 12;
+  const roomRight = innerWidth - cameraBox.right - gap;
+  const roomLeft = cameraBox.left - gap;
+  const move = roomRight >= Math.min(zoneBox.width, roomLeft)
+    ? cameraBox.right + gap - zoneBox.left
+    : cameraBox.left - gap - zoneBox.right;
+  const saved = state.moduleStyles?.["game-zone"] || { x: 0, y: 0 };
+  zone.style.translate = `${Number(saved.x || 0) + move}px ${Number(saved.y || 0)}px`;
+}
+
+function setSafeMode(enabled) {
+  safeMode = Boolean(enabled);
+  document.documentElement.dataset.safe = String(safeMode);
+}
+
+function playAlertTone() {
+  if (!state.alertSettings.sound) return;
+  try {
+    const audio = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audio.createOscillator(), gain = audio.createGain();
+    oscillator.frequency.value = 660; gain.gain.value = .045;
+    oscillator.connect(gain); gain.connect(audio.destination); oscillator.start();
+    gain.gain.exponentialRampToValueAtTime(.0001, audio.currentTime + .22); oscillator.stop(audio.currentTime + .23);
+  } catch { /* OBS/browser audio permission may be disabled. */ }
+}
+
+function handleTip(payload = {}) {
+  const username = String(payload.username || payload.name || "Anonymous").trim() || "Anonymous";
+  const amount = Math.max(0, Number(payload.amount) || 0);
+  session.recordTip(username, amount);
+  state.currentViewer = username;
+  renderSupporters(); renderLastTipper(); renderRecentSupporter();
+  if (amount > 0) { updateGoal(state.goal.current + amount); session.recordGoal(); localStorage.setItem(GOAL_STORAGE_KEY, JSON.stringify(state.goal)); }
+  showAlert("NEW TIP", username, `${amount} tokens received`);
+  updateTickerActivity(`LAST TIP • ${username} • ${amount} TOKENS`);
+  const matches = (state.tipRules || []).filter(rule => amount >= Number(rule.amount || 0)).sort((a, b) => Number(b.amount) - Number(a.amount));
+  const rule = matches[0];
+  if (rule && String(rule.action).toLowerCase() !== "normal") {
+    setTimeout(() => showAlert(`${String(rule.action).toUpperCase()} UNLOCKED`, username, rule.reward || "Creator action unlocked"), 900);
+    updateTickerActivity(`UNLOCKED • ${rule.reward || rule.action}`);
+  }
+}
+
+function handleFollow(payload = {}) {
+  const username = String(payload.username || payload.name || "New Viewer").trim();
+  session.recordFollow(username);
+  updateTickerActivity(`NEW SUPPORTER • ${username}`);
+  renderRecentSupporter(); showAlert("NEW SUPPORTER", username, payload.message || "joined the room");
+}
+
+let wheelBusy = false;
+function spinWheel(payload = {}) {
+  if (wheelBusy) return;
+  const wrap = $("#wheel-wrap"), canvas = $("#wheel"), result = $("#wheel-result");
+  if (!wrap || !canvas || !result) return;
+  const ctx = canvas.getContext("2d"), prizes = state.prizes;
+  if (!ctx || !Array.isArray(prizes) || prizes.length < 2) return;
+  wheelBusy = true;
+  const username = String(payload.username || "").trim();
+  const wheelName = payload.name || "MAIN";
+  wrap.classList.remove("is-off");
+  wrap.classList.add("is-visible");
+  result.textContent = `SPINNING ${String(wheelName).toUpperCase()}...`;
+  gameResults.showWheelStart({ username, name: wheelName });
+  canvas.style.transform = "rotate(0deg)";
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const slice = Math.PI * 2 / prizes.length;
+  const labelSize = prizes.length > 14 ? 12 : prizes.length > 8 ? 16 : 20;
+  prizes.forEach((prize, i) => {
+    ctx.beginPath();
+    ctx.moveTo(310, 310);
+    ctx.arc(310, 310, 285, i * slice, (i + 1) * slice);
+    ctx.fillStyle = i % 2 ? "#252724" : state.theme.accent;
+    ctx.fill();
+    ctx.strokeStyle = state.theme.glow;
+    ctx.lineWidth = 4;
+    ctx.stroke();
+    ctx.save();
+    ctx.translate(310, 310);
+    ctx.rotate(i * slice + slice / 2);
+    ctx.fillStyle = "#fff6df";
+    ctx.font = `bold ${labelSize}px system-ui`;
+    ctx.textAlign = "right";
+    ctx.fillText(prize, 265, 7, 220);
+    ctx.restore();
+  });
+  const winner = Math.floor(Math.random()*prizes.length), turns = 6, halfSlice = 180 / prizes.length, final = turns*360 + (360-winner*360/prizes.length-halfSlice);
+  requestAnimationFrame(() => canvas.style.transform = `rotate(${final}deg)`);
+  setTimeout(() => {
+    result.textContent = prizes[winner].toUpperCase();
+    session.recordWheel(username, true);
+    eventManager.emit({ type: "wheel-result", payload: { username, name: wheelName, reward: prizes[winner], result: prizes[winner], winner }, at: Date.now() });
+  }, 4300);
+  setTimeout(() => {
+    wrap.classList.remove("is-visible");
+    wheelBusy = false;
+    result.textContent = "SPIN THE PRIZE WHEEL";
+  }, 8500);
+}
+
+function updateWheelChoices(prizes) {
+  if (!Array.isArray(prizes)) return;
+  const clean = prizes.map(item => String(item || "").trim().slice(0, 40)).filter(Boolean).slice(0, 20);
+  if (clean.length < 2) return;
+  state.prizes = clean;
+  localStorage.setItem(WHEEL_STORAGE_KEY, JSON.stringify(clean));
+}
+
+function updateTicker(messages) {
+  if (!Array.isArray(messages)) return;
+  const clean = messages.map(item => String(item || "").trim().slice(0, 80)).filter(Boolean).slice(0, 10);
+  if (!clean.length) return;
+  state.ticker = clean;
+  localStorage.setItem(TICKER_STORAGE_KEY, JSON.stringify(clean));
+  $("#ticker-track").innerHTML = [...clean, ...clean].map(text => `<span>${escapeHtml(text)}</span>`).join("");
+}
+
+function updateTickerActivity(message) {
+  if (state.tickerSettings?.source !== "activity") return;
+  const clean = String(message || "").trim();
+  if (!clean) return;
+  state.ticker = [clean, ...state.ticker.filter(item => item !== clean)].slice(0, 6);
+  $("#ticker-track").innerHTML = [...state.ticker, ...state.ticker].map(text => `<span>${escapeHtml(text)}</span>`).join("");
+}
+
+function applyEvent(event) {
+  const { type, payload = {}, at = 0 } = event;
+  const key = `${at}:${type}`;
+  if (at && processedEvents.has(key)) return;
+  if (at) {
+    processedEvents.add(key);
+    setTimeout(() => processedEvents.delete(key), 5000);
+  }
+  if (type === "tip") handleTip(payload);
+  if (type === "follow" || type === "new-supporter" || type === "viewer-action") handleFollow(payload);
+  if (type === "alert") showAlert("NEW TIP", payload.name || "Anonymous", payload.message || "sent a tip!");
+  if (type === "goal") {
+    if (payload.label) { state.goal.label = String(payload.label); $("#goal-label").textContent = state.goal.label; }
+    if (Number(payload.target) > 0) state.goal.target = Number(payload.target);
+    updateGoal(payload.value);
+    session.recordGoal();
+    localStorage.setItem(GOAL_STORAGE_KEY, JSON.stringify(state.goal));
+    updateTickerActivity(`GOAL PROGRESS • ${state.goal.current} / ${state.goal.target}`);
+  }
+  if (type === "goal-reset") { updateGoal(0); session.recordGoal(); localStorage.setItem(GOAL_STORAGE_KEY, JSON.stringify(state.goal)); updateTickerActivity("GOAL RESET • READY"); }
+  if (type === "supporter") addOrUpdateSupporter(payload);
+  if (type === "supporter-remove") removeSupporter(payload.name);
+  if (type === "supporters-sync" && Array.isArray(payload.members)) {
+    state.supporters = payload.members.map(member => ({ name: member.name, role: member.role, level: member.level }));
+    payload.members.forEach(member => session.upsertFan(member));
+    saveSupporters(); renderSupporters();
+  }
+  if (type === "supporter-clear-session") { session.clearSession(); renderSupporters(); renderLastTipper(); renderRecentSupporter(); }
+  if (type === "supporter-clear-all" || type === "supporter-reset") { state.supporters = []; saveSupporters(); session.clearAll(); renderSupporters(); renderLastTipper(); renderRecentSupporter(); }
+  if (type === "supporter-test-data") {
+    session.loadTestData();
+    state.supporters = session.savedFans().map(fan => ({ name: fan.username, role: fan.label, level: fan.level }));
+    saveSupporters(); renderSupporters();
+  }
+  if (type === "recent-supporter-manual") setManualRecentSupporter(payload);
+  if (type === "recent-supporter-clear") clearManualRecentSupporter(false);
+  if (type === "wheel-options") updateWheelChoices(payload.prizes);
+  if (type === "wheel") { state.currentViewer = String(payload.username || "").trim(); updateWheelChoices(payload.prizes); spinWheel(payload); }
+  if (type === "wheel-result") { gameResults.showWheelResult(payload); updateTickerActivity(`WHEEL RESULT • ${payload.reward || "Winner"}`); }
+  if (type === "dice") diceEngine.roll(payload);
+  if (type === "dice-result") {
+    session.recordDice(payload.username, Boolean(payload.success));
+    gameResults.showDiceResult(payload);
+    updateTickerActivity(`DICE RESULT • ${payload.username ? `${payload.username} • ` : ""}${payload.total}`);
+  }
+  if (type === "ticker") updateTicker(payload.messages);
+  if (type === "toggle") toggle(payload.module);
+  if (type === "visibility") toggle(payload.module, Boolean(payload.visible));
+  if (type === "supporter-overlay-visibility") applySupporterOverlayVisibility(payload);
+  if (type === "background-style") applyBackgroundStyle(payload.style);
+  if (type === "studio-bootstrap") {
+    applyBackgroundStyle(payload.background);
+    applyLayout(payload.layout);
+    applyThemePreset(payload.theme);
+    applyAlertSettings(payload.alertSettings || {});
+    state.leaderboardMax = Math.max(1, Math.min(10, Number(payload.leaderboardMaximum) || 5));
+    if (Array.isArray(payload.rules) && payload.rules.length) { state.tipRules = payload.rules; localStorage.setItem(TIP_RULE_STORAGE_KEY, JSON.stringify(state.tipRules)); }
+    if (Array.isArray(payload.styles)) payload.styles.forEach(style => applyModuleStyle(style.module, style));
+    if (Array.isArray(payload.supporters)) {
+      state.supporters = payload.supporters.map(member => ({ name: member.name, role: member.role, level: member.level }));
+      payload.supporters.forEach(member => session.upsertFan(member));
+      saveSupporters();
+    }
+    if (Object.prototype.hasOwnProperty.call(payload, "recentSupporter")) {
+      if (payload.recentSupporter) setManualRecentSupporter(payload.recentSupporter);
+      else clearManualRecentSupporter(false);
+    }
+    if (payload.supporterOverlayVisibility) applySupporterOverlayVisibility(payload.supporterOverlayVisibility);
+    if (payload.gameResultSettings) applyGameResultSettings(payload.gameResultSettings);
+    if (payload.tickerSettings) applyTickerSettings(payload.tickerSettings);
+    if (payload.dmcaSettings) applyDmcaSettings(payload.dmcaSettings);
+    if (Array.isArray(payload.actions)) {
+      state.actions = payload.actions;
+      actionManager.configure(state.actions);
+      localStorage.setItem(ACTION_STORAGE_KEY, JSON.stringify(state.actions));
+    }
+    if (Array.isArray(payload.enabledModules)) {
+      state.enabledModules = payload.enabledModules;
+      moduleLoader.configureEnabled(payload.enabledModules);
+    }
+    if (payload.template && typeof payload.template === "object") { templateManager.apply(payload.template); requestAnimationFrame(protectGameZone); }
+    renderSupporters();
+  }
+  if (type === "layout") applyLayout(payload.layout);
+  if (type === "theme-preset") applyThemePreset(payload.preset);
+  if (type === "module-style") applyModuleStyle(payload.module, payload);
+  if (type === "layout-template") {
+    const templatePayload = payload.template && typeof payload.template === "object" ? payload.template : payload;
+    templateManager.apply(templatePayload); requestAnimationFrame(protectGameZone);
+  }
+  if (type === "safe-mode") setSafeMode(payload.enabled === undefined ? !safeMode : payload.enabled);
+  if (type === "tip-rules" && Array.isArray(payload.rules)) { state.tipRules = payload.rules; localStorage.setItem(TIP_RULE_STORAGE_KEY, JSON.stringify(state.tipRules)); }
+  if (type === "alert-settings") applyAlertSettings(payload);
+  if (type === "studio-settings") { applyAlertSettings(payload.alertSettings || {}); state.leaderboardMax = Math.max(1, Math.min(10, Number(payload.leaderboardMaximum) || 5)); localStorage.setItem(STUDIO_STORAGE_KEY, JSON.stringify({ themePreset: state.themePreset, alertSettings: state.alertSettings, leaderboardMax: state.leaderboardMax })); renderSupporters(); }
+  if (type === "leaderboard-settings") { state.leaderboardMax = Math.max(1, Math.min(10, Number(payload.maximum) || 5)); localStorage.setItem(STUDIO_STORAGE_KEY, JSON.stringify({ themePreset: state.themePreset, alertSettings: state.alertSettings, leaderboardMax: state.leaderboardMax })); renderSupporters(); }
+  if (type === "leaderboard-reset") { payload.scope === "all" ? session.clearAll() : session.clearSession(); renderSupporters(); renderLastTipper(); renderRecentSupporter(); }
+  if (type === "session-reset") { session.clearSession(); renderSupporters(); renderLastTipper(); renderRecentSupporter(); showAlert("SESSION RESET", "Current session is clear", "Saved fan history was protected"); }
+  const isSupporterRestore = type === "profile-reload" || (type === "session-load" && Array.isArray(payload.members));
+  if (isSupporterRestore) {
+    if (type === "session-load") localStorage.setItem(SUPPORTER_RESTORE_PROTOCOL_KEY, "1");
+    session.hydrateRemote().then(() => {
+      if (Array.isArray(payload.members)) {
+        session.replaceFans(payload.members);
+        state.supporters = payload.members.map(member => ({ name: member.name, role: member.role, level: member.level }));
+        saveSupporters();
+      }
+      renderSupporters(); renderLastTipper(); renderRecentSupporter();
+    });
+  }
+  if (type === "session-load" && !Array.isArray(payload.members)) { location.reload(); }
+  if (type === "game-result-settings") applyGameResultSettings(payload);
+  if (type === "ticker-settings") applyTickerSettings(payload);
+  if (type === "dmca-settings") applyDmcaSettings(payload);
+  if (type === "action-config" && Array.isArray(payload.actions)) {
+    state.actions = payload.actions;
+    actionManager.configure(state.actions);
+    localStorage.setItem(ACTION_STORAGE_KEY, JSON.stringify(state.actions));
+  }
+  if (type === "action-trigger") {
+    const startAction = () => actionManager.trigger(payload);
+    if (!startAction()) moduleLoader.reload().then(startAction).catch(() => {});
+  }
+  if (type === "module-enable") {
+    moduleLoader.setEnabled(payload.id, payload.enabled !== false);
+    if (payload.id === "dmca") applyDmcaSettings({ ...state.dmcaSettings, enabled: payload.enabled !== false });
+  }
+  if (type === "modules-config" && Array.isArray(payload.enabled)) moduleLoader.configureEnabled(payload.enabled);
+  if (type === "modules-reload") moduleLoader.reload().catch(() => {});
+  if (type === "module-action") {
+    const started = moduleLoader.trigger(payload.id, payload.action, payload);
+    if (!started) moduleLoader.reload().then(() => moduleLoader.trigger(payload.id, payload.action, payload)).catch(() => {});
+  }
+  if (type === "brand") {
+    state.brand = { name: String(payload.name || "YOUR STAGE NAME"), tagline: String(payload.tagline || "LIVE • GOOD VIBES • HAVE FUN"), color1: String(payload.color1 || "#ff69c9"), color2: String(payload.color2 || "#8b5cf6") };
+    localStorage.setItem(BRAND_STORAGE_KEY, JSON.stringify(state.brand));
+    $("#brand-name").textContent = state.brand.name;
+    $("#brand-tagline").textContent = state.brand.tagline;
+    document.documentElement.style.setProperty("--brand-color-1", state.brand.color1);
+    document.documentElement.style.setProperty("--brand-color-2", state.brand.color2);
+    state.theme.glow = state.brand.color1;
+    state.theme.accent = state.brand.color2;
+    state.themePreset = "custom";
+    document.documentElement.dataset.themePreset = "custom";
+    document.documentElement.style.setProperty("--glow", state.theme.glow);
+    document.documentElement.style.setProperty("--accent", state.theme.accent);
+    applyBrandGradient();
+    fitAllText();
+  }
+  if (type === "reset") {
+    localStorage.removeItem(CREW_STORAGE_KEY); localStorage.removeItem(WHEEL_STORAGE_KEY); localStorage.removeItem(GOAL_STORAGE_KEY);
+    localStorage.removeItem(TICKER_STORAGE_KEY); localStorage.removeItem(BACKGROUND_STORAGE_KEY); localStorage.removeItem(LAYOUT_STORAGE_KEY);
+    localStorage.removeItem(STUDIO_STORAGE_KEY); localStorage.removeItem(MODULE_STYLE_STORAGE_KEY); localStorage.removeItem(TIP_RULE_STORAGE_KEY);
+    localStorage.removeItem(GAME_RESULT_STORAGE_KEY); localStorage.removeItem(ACTION_STORAGE_KEY); localStorage.removeItem(TICKER_SETTINGS_KEY); localStorage.removeItem(DMCA_SETTINGS_KEY); localStorage.removeItem(RECENT_SUPPORTER_STORAGE_KEY); localStorage.removeItem(SUPPORTER_VISIBILITY_STORAGE_KEY);
+    manualRecentSupporter = null;
+    session.clearAll(); Object.assign(state, structuredClone(CONFIG)); setup();
+  }
+  moduleLoader?.dispatch(event);
+}
+
+eventManager.on("*", applyEvent);
+listen(event => eventManager.emit(event));
+setup();
+refreshMovingWatermark();
+refreshManualRecentSupporter();
+setInterval(refreshMovingWatermark, 1500);
+setInterval(refreshManualRecentSupporter, 1500);
+session.hydrateRemote().then(changed => { if (changed) { renderSupporters(); renderLastTipper(); renderRecentSupporter(); } });
+window.addEventListener("resize", fitAllText);
+
+setInterval(async () => {
+  try {
+    const response = await fetch(`/api/event?t=${Date.now()}`, { cache: "no-store" });
+    if (!response.ok) return;
+    const event = await response.json();
+    const replayPendingSupporterRestore =
+      event.type === "session-load" &&
+      Array.isArray(event.payload?.members) &&
+      localStorage.getItem(SUPPORTER_RESTORE_PROTOCOL_KEY) !== "1";
+    if (event.at && (event.at > lastServerEvent || replayPendingSupporterRestore)) {
+      lastServerEvent = event.at;
+      localStorage.setItem(LAST_SERVER_EVENT_KEY, String(lastServerEvent));
+      eventManager.emit(event);
+    }
+  } catch { /* Editable file mode keeps using the browser channel. */ }
+}, 300);

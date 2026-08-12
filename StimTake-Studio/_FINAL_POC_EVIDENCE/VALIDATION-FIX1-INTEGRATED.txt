@@ -1,0 +1,33 @@
+StimTake Studio 6.0 Final PoC FIX1 Integrated
+Static validation date: 2026-08-11
+
+PASS: FIX1 source installed
+PASS: RefreshHealth present
+PASS: ServerEventPublished present
+PASS: AddHistory present
+PASS: LoadPersistedHistory present
+PASS: LoadRuntimeState present
+PASS: VIP retained
+PASS: Session Top Tippers retained
+PASS: 20 range editor retained
+PASS: No Backstage nav
+PASS: Range overlap validation
+PASS: Single overlay per tip
+PASS: V3 Bridge present
+PASS: Designer source present
+PASS: Persistent runtime present
+PASS: Build starter present
+PASS: Studio brace balance
+PASS: ShowPack brace balance
+PASS: Launcher brace balance
+PASS: V3 content syntax
+PASS: V3 background syntax
+PASS: V3 popup syntax
+PASS: V3 regression
+PASS: V3 integration
+
+Windows C# compile: NOT PERFORMED HERE
+Windows runtime: NOT PERFORMED HERE
+Real Chaturbate + OBS end-to-end: NOT PERFORMED HERE
+
+Next action: double-click 0-BUILD-AND-START-FINAL-V6.cmd on Windows.

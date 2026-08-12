@@ -1,0 +1,4 @@
+StimTake Studio 6.0 Final PoC
+FIX1 is already integrated in this full package.
+Corrected file: StimTakeStudioV6.cs
+Next step on Windows: double-click 0-BUILD-AND-START-FINAL-V6.cmd
